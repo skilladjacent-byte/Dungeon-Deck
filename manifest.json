@@ -2,7 +2,7 @@
   "name": "Deck Diver",
   "short_name": "Deck Diver",
   "description": "A card dungeon crawler. Survive the deck.",
-  "start_url": "./scoundrel_game.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#090705",
   "theme_color": "#090705",
