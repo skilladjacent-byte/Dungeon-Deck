@@ -1,0 +1,18 @@
+{
+  "name": "Deck Diver",
+  "short_name": "Deck Diver",
+  "description": "A card dungeon crawler. Survive the deck.",
+  "start_url": "./scoundrel_game.html",
+  "display": "standalone",
+  "background_color": "#090705",
+  "theme_color": "#090705",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%23090705'/%3E%3Ccircle cx='256' cy='256' r='200' stroke='%23c8a96e' stroke-width='6' fill='none'/%3E%3Cline x1='156' y1='156' x2='356' y2='356' stroke='%23d4a017' stroke-width='12' stroke-linecap='round'/%3E%3Cline x1='356' y1='156' x2='156' y2='356' stroke='%23d4a017' stroke-width='12' stroke-linecap='round'/%3E%3Ccircle cx='256' cy='256' r='28' fill='%238b1a1a' stroke='%23d4a017' stroke-width='4'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
