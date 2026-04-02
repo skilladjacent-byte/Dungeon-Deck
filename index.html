@@ -5596,6 +5596,7 @@ function transitionToNextRoom(carryOver) {
   gameEl.classList.add('room-zooming');
   overlay.classList.remove('fade-in');
   overlay.classList.add('fade-out');
+  playTransitionSE();
 
   setTimeout(() => {
     // Phase 2: at peak black, swap background and reset zoom instantly
@@ -5737,6 +5738,7 @@ const HIT_SE = 'audio/sfx_hit.mp3';
 const HEAL_SE = 'audio/sfx_heal.mp3';
 const EQUIP_SE = 'audio/sfx_equip.mp3';
 const POISON_SE = 'audio/sfx_poison.mp3';
+const TRANSITION_SE = 'audio/sfx_transition.mp3';
 
 function playVictorySE() {
   const toggle = document.getElementById('combatSfxToggle');
@@ -5826,6 +5828,18 @@ function playPoisonSE() {
     a.volume = getMasterVolume();
     a.play().catch(err => console.warn('Poison SFX failed:', err.message));
   } catch(e) { console.warn('Poison SFX error:', e); }
+}
+
+function playTransitionSE() {
+  const sfxToggle = document.getElementById('animSfxToggle');
+  if (sfxToggle && !sfxToggle.classList.contains('on')) return;
+  const sceneToggle = document.getElementById('sceneTransitionToggle');
+  if (!sceneToggle || !sceneToggle.classList.contains('on')) return;
+  try {
+    const a = new Audio(TRANSITION_SE);
+    a.volume = getMasterVolume();
+    a.play().catch(err => console.warn('Transition SFX failed:', err.message));
+  } catch(e) { console.warn('Transition SFX error:', e); }
 }
 
 function getSfxVolume() {
