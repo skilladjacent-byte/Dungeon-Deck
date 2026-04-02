@@ -550,8 +550,7 @@ if ('serviceWorker' in navigator) {
   #game {
     background-image:
       radial-gradient(ellipse 100% 70% at 50% 110%, rgba(139,26,26,0.12) 0%, transparent 60%),
-      linear-gradient(180deg, rgba(9,7,5,0.5) 0%, rgba(17,13,8,0.5) 100%),
-      url('images/bg_dungeon.png');
+      linear-gradient(180deg, #090705 0%, #110d08 100%);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -2255,7 +2254,6 @@ if ('serviceWorker' in navigator) {
     body.has-holy-flask .mobile-items-btn,
     body.has-shield-charm .mobile-items-btn,
     body.has-luck-charm .mobile-items-btn,
-    body.has-elixir .mobile-items-btn,
     body.has-whetstone .mobile-items-btn {
       display: flex;
       bottom: 28%;
@@ -3190,53 +3188,6 @@ if ('serviceWorker' in navigator) {
   }
   body.has-luck-charm .luck-charm-btn { display: flex; }
 
-  /* Elixir of Life button */
-  .elixir-btn {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    background: linear-gradient(160deg, rgba(80,20,80,0.2), rgba(50,10,50,0.3));
-    border: 1px solid rgba(200,80,200,0.4);
-    border-radius: 8px;
-    padding: 10px 8px 8px;
-    cursor: pointer;
-    position: relative;
-    transition: all 0.25s ease;
-    width: 100%;
-  }
-  .elixir-btn:hover {
-    background: linear-gradient(160deg, rgba(120,30,120,0.3), rgba(70,15,70,0.4));
-    border-color: rgba(220,100,220,0.7);
-    box-shadow: 0 0 16px rgba(200,80,200,0.3);
-  }
-  .elixir-icon {
-    font-size: 1.8rem;
-    filter: drop-shadow(0 0 8px rgba(200,80,200,0.7));
-    line-height: 1;
-  }
-  .elixir-label {
-    font-family: 'Cinzel', serif;
-    font-size: 0.55rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #d080d0;
-  }
-  .elixir-count {
-    position: absolute;
-    bottom: 6px; right: 8px;
-    font-family: 'Cinzel', serif;
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: #d080d0;
-    background: rgba(80,20,80,0.5);
-    border: 1px solid rgba(200,80,200,0.4);
-    border-radius: 10px;
-    padding: 1px 6px;
-    line-height: 1.4;
-  }
-  body.has-elixir .elixir-btn { display: flex; }
-
   /* Whetstone button */
   .whetstone-btn {
     display: none;
@@ -3292,7 +3243,6 @@ if ('serviceWorker' in navigator) {
   body.items-disabled .holy-flask-btn,
   body.items-disabled .shield-charm-btn,
   body.items-disabled .luck-charm-btn,
-  body.items-disabled .elixir-btn,
   body.items-disabled .whetstone-btn {
     opacity: 0.35;
     pointer-events: auto;
@@ -4387,13 +4337,6 @@ if ('serviceWorker' in navigator) {
       <div class="luck-charm-count" id="luckCharmCount">1</div>
     </button>
 
-    <!-- Elixir of Life button -->
-    <button class="elixir-btn" id="elixirBtn" onclick="useElixir()">
-      <div class="elixir-icon">🧪</div>
-      <div class="elixir-label">Elixir of Life</div>
-      <div class="elixir-count" id="elixirCount">1</div>
-    </button>
-
     <!-- Whetstone button -->
     <button class="whetstone-btn" id="whetstoneBtn" onclick="useWhetstone()">
       <div class="whetstone-icon">🪨</div>
@@ -5084,7 +5027,7 @@ if ('serviceWorker' in navigator) {
         <div class="setting-name">Scene Transitions</div>
         <div class="setting-sub">Background changes between rooms</div>
       </div>
-      <div class="toggle on" id="sceneTransitionToggle" onclick="this.classList.toggle('on')"></div>
+      <div class="toggle on" id="sceneTransitionToggle" onclick="this.classList.toggle('on'); if(state.currentScreen==='game') setRoomBackground(!!(endless.active && endless.currentBoss));"></div>
     </div>
     <div class="setting-row">
       <div>
@@ -5521,7 +5464,6 @@ let endless = {
   holyFlasks: 0,
   shieldCharms: 0,
   luckCharms: 0,
-  elixirs: 0,
   whetstones: 0,
   deceptiveFakes: [],  // persistent fake card faces for Deceptive tag
 };
@@ -5582,26 +5524,61 @@ const DUNGEON_BACKGROUNDS = [
   'images/bg_dungeon.png',
   'images/bg_dungeon2.png',
   'images/bg_dungeon3.png',
-  'images/bg_dungeon4.png'
+  'images/bg_dungeon4.png',
+  'images/bg_dungeon5.png',
+  'images/bg_dungeon6.png',
+  'images/bg_dungeon7.png',
+  'images/bg_dungeon8.png',
+  'images/bg_dungeon9.png',
+  'images/bg_dungeon10.png'
 ];
 const BOSS_BACKGROUNDS = [
   'images/bg_boss1.png',
   'images/bg_boss2.png'
 ];
 let _currentBg = '';
+let _validDungeonBgs = [];
+let _validBossBgs = [];
+
+// Preload and validate which background images actually exist
+function preloadBackgrounds() {
+  DUNGEON_BACKGROUNDS.forEach(src => {
+    const img = new Image();
+    img.onload = () => { if (!_validDungeonBgs.includes(src)) _validDungeonBgs.push(src); };
+    img.src = src;
+  });
+  BOSS_BACKGROUNDS.forEach(src => {
+    const img = new Image();
+    img.onload = () => { if (!_validBossBgs.includes(src)) _validBossBgs.push(src); };
+    img.src = src;
+  });
+}
+preloadBackgrounds();
+
+const ORIGINAL_GAME_BG = 'radial-gradient(ellipse 100% 70% at 50% 110%, rgba(139,26,26,0.12) 0%, transparent 60%), linear-gradient(180deg, #090705 0%, #110d08 100%)';
 
 function setRoomBackground(isBoss) {
-  const pool = isBoss ? BOSS_BACKGROUNDS : DUNGEON_BACKGROUNDS;
+  const toggle = document.getElementById('sceneTransitionToggle');
+  const gameEl = document.getElementById('game');
+  if (!gameEl) return;
+
+  // If transitions off, use original solid background
+  if (!toggle || !toggle.classList.contains('on')) {
+    gameEl.style.backgroundImage = ORIGINAL_GAME_BG;
+    _currentBg = '';
+    return;
+  }
+
+  const pool = isBoss
+    ? (_validBossBgs.length > 0 ? _validBossBgs : BOSS_BACKGROUNDS)
+    : (_validDungeonBgs.length > 0 ? _validDungeonBgs : DUNGEON_BACKGROUNDS);
   const available = pool.filter(bg => bg !== _currentBg);
   const pick = available[Math.floor(Math.random() * available.length)] || pool[0];
   _currentBg = pick;
-  const gameEl = document.getElementById('game');
-  if (gameEl) {
-    gameEl.style.backgroundImage = `
-      radial-gradient(ellipse 100% 70% at 50% 110%, rgba(139,26,26,0.12) 0%, transparent 60%),
-      linear-gradient(180deg, rgba(9,7,5,0.5) 0%, rgba(17,13,8,0.5) 100%),
-      url('${pick}')`;
-  }
+  gameEl.style.backgroundImage = `
+    radial-gradient(ellipse 100% 70% at 50% 110%, rgba(139,26,26,0.12) 0%, transparent 60%),
+    linear-gradient(180deg, rgba(9,7,5,0.5) 0%, rgba(17,13,8,0.5) 100%),
+    url('${pick}')`;
 }
 
 function transitionToNextRoom(carryOver) {
@@ -5893,7 +5870,6 @@ function playAgain() {
     endless.holyFlasks = 0;
     endless.shieldCharms = 0;
     endless.luckCharms = 0;
-    endless.elixirs = 0;
     endless.whetstones = 0;
     endless.deceptiveFakes = [];
     document.body.classList.remove('is-endless');
@@ -5952,7 +5928,6 @@ function goTo(screenId) {
       endless.holyFlasks = 0;
       endless.shieldCharms = 0;
       endless.luckCharms = 0;
-      endless.elixirs = 0;
       endless.whetstones = 0;
       endless.deceptiveFakes = [];
       document.body.classList.remove('is-endless');
@@ -5968,7 +5943,6 @@ function goTo(screenId) {
       document.body.classList.remove('is-shielded');
       document.body.classList.remove('has-luck-charm');
       document.body.classList.remove('luck-charm-mode');
-      document.body.classList.remove('has-elixir');
       document.body.classList.remove('has-whetstone');
       document.body.classList.remove('has-level-tags');
       document.body.classList.remove('items-disabled');
@@ -6169,7 +6143,6 @@ function continueGame() {
   updateHolyFlaskUI();
   updateShieldCharmUI();
   updateLuckCharmUI();
-  updateElixirUI();
   updateWhetstoneUI();
   updateWeaponBar();
   updateHpBar();
@@ -8604,122 +8577,49 @@ function claimSelectedRewards() {
     if (reward.type === 'crystal') {
       endless.crystalBalls++;
       addLog('🔮 Crystal Ball added!', 'gold');
-      updateCrystalBallUI();
     } else if (reward.type === 'warp') {
       endless.warpScrolls++;
       addLog('📜 Warp Scroll added!', 'gold');
-      updateWarpScrollUI();
     } else if (reward.type === 'charm') {
       endless.cursedCharms++;
       addLog('☠ Cursed Charm added!', 'gold');
-      updateCursedCharmUI();
-    updateTeleportWandUI();
-    updateHolyFlaskUI();
-    updateShieldCharmUI();
-    updateLuckCharmUI();
-    updateElixirUI();
-    updateWhetstoneUI();
-  updateWhetstoneUI();
-  updateElixirUI();
-  updateWhetstoneUI();
-  updateLuckCharmUI();
-  updateElixirUI();
-  updateWhetstoneUI();
-  updateShieldCharmUI();
-  updateLuckCharmUI();
-  updateElixirUI();
-  updateWhetstoneUI();
-  updateHolyFlaskUI();
-  updateShieldCharmUI();
-  updateLuckCharmUI();
-  updateElixirUI();
-  updateWhetstoneUI();
-  updateTeleportWandUI();
-  updateHolyFlaskUI();
-  updateShieldCharmUI();
-  updateLuckCharmUI();
-  updateElixirUI();
-  updateWhetstoneUI();
     } else if (reward.type === 'wand') {
       endless.teleportWands++;
       addLog('🪄 Wand of Teleportation added!', 'gold');
-      updateTeleportWandUI();
-    updateHolyFlaskUI();
-    updateShieldCharmUI();
-    updateLuckCharmUI();
-    updateElixirUI();
-    updateWhetstoneUI();
-  updateWhetstoneUI();
-  updateElixirUI();
-  updateWhetstoneUI();
-  updateLuckCharmUI();
-  updateElixirUI();
-  updateWhetstoneUI();
-  updateShieldCharmUI();
-  updateLuckCharmUI();
-  updateElixirUI();
-  updateWhetstoneUI();
-  updateHolyFlaskUI();
-  updateShieldCharmUI();
-  updateLuckCharmUI();
-  updateElixirUI();
-  updateWhetstoneUI();
     } else if (reward.type === 'flask') {
       endless.holyFlasks++;
       addLog('🧴 Holy Flask added!', 'gold');
-      updateHolyFlaskUI();
-    updateShieldCharmUI();
-    updateLuckCharmUI();
-    updateElixirUI();
-    updateWhetstoneUI();
-  updateWhetstoneUI();
-  updateElixirUI();
-  updateWhetstoneUI();
-  updateLuckCharmUI();
-  updateElixirUI();
-  updateWhetstoneUI();
-  updateShieldCharmUI();
-  updateLuckCharmUI();
-  updateElixirUI();
-  updateWhetstoneUI();
     } else if (reward.type === 'shield') {
       endless.shieldCharms++;
       addLog('🛡️ Shield Charm added!', 'gold');
-      updateShieldCharmUI();
-    updateLuckCharmUI();
-    updateElixirUI();
-    updateWhetstoneUI();
-  updateWhetstoneUI();
-  updateElixirUI();
-  updateWhetstoneUI();
-  updateLuckCharmUI();
-  updateElixirUI();
-  updateWhetstoneUI();
     } else if (reward.type === 'luck') {
       endless.luckCharms++;
       addLog('🍀 Luck Charm added!', 'gold');
-      updateLuckCharmUI();
-    updateElixirUI();
-    updateWhetstoneUI();
-  updateWhetstoneUI();
-  updateElixirUI();
-  updateWhetstoneUI();
     } else if (reward.type === 'elixir') {
-      endless.elixirs++;
-      addLog('🧪 Elixir of Life added!', 'gold');
-      updateElixirUI();
-    updateWhetstoneUI();
-  updateWhetstoneUI();
+      state.player.maxHp += 3;
+      state.player.hp = Math.min(state.player.maxHp, state.player.hp + 3);
+      updateHpBar();
+      renderHpNotches();
+      addLog(`🧪 Elixir of Life — max HP increased to ${state.player.maxHp}!`, 'gold');
     } else if (reward.type === 'whetstone') {
       endless.whetstones++;
       addLog('🪨 Whetstone added!', 'gold');
-      updateWhetstoneUI();
     } else {
       endless.rewardCards.push(reward);
       const rewardName = reward.type === 'diamond' ? '♦ Weapon Upgrade (+1)' : '♥ Potion Upgrade (+1)';
       addLog(`Reward claimed: ${rewardName}`, 'gold');
     }
   });
+
+  // Update all item UIs
+  updateCrystalBallUI();
+  updateWarpScrollUI();
+  updateCursedCharmUI();
+  updateTeleportWandUI();
+  updateHolyFlaskUI();
+  updateShieldCharmUI();
+  updateLuckCharmUI();
+  updateWhetstoneUI();
 
   showCharSwap();
 }
@@ -8776,7 +8676,6 @@ function beginEndlessLevel() {
   endless.holyFlasks = 0;
   endless.shieldCharms = 0;
   endless.luckCharms = 0;
-  endless.elixirs = 0;
   endless.whetstones = 0;
   endless.deceptiveFakes = [];
   // Level 1: 0 tags, normal deck — go straight to level number screen then game
@@ -8995,7 +8894,6 @@ function startNextEndlessLevel() {
   updateHolyFlaskUI();
   updateShieldCharmUI();
   updateLuckCharmUI();
-  updateElixirUI();
   updateWhetstoneUI();
   updateWeaponBar();
   updateHpBar();
@@ -9162,6 +9060,7 @@ function endlessLevelComplete() {
 
 function showEndlessDefeated() {
   const overlay = document.getElementById('roomTransitionOverlay');
+  overlay.style.background = '#2a0505';
   overlay.classList.remove('fade-in');
   overlay.classList.add('fade-out');
 
@@ -9197,7 +9096,7 @@ function showEndlessDefeated() {
 
     overlay.classList.remove('fade-out');
     overlay.classList.add('fade-in');
-    setTimeout(() => overlay.classList.remove('fade-in'), 500);
+    setTimeout(() => { overlay.classList.remove('fade-in'); overlay.style.background = ''; }, 500);
   }, 600);
 }
 
@@ -9401,7 +9300,7 @@ function closeWarpScroll() {
 
 function updateMobileItemsBtn() {
   // Updates the mobile items button visibility based on whether player has any items
-  const hasItems = (endless.crystalBalls || 0) > 0 || (endless.warpScrolls || 0) > 0 || (endless.cursedCharms || 0) > 0 || (endless.teleportWands || 0) > 0 || (endless.holyFlasks || 0) > 0 || (endless.shieldCharms || 0) > 0 || (endless.luckCharms || 0) > 0 || (endless.elixirs || 0) > 0 || (endless.whetstones || 0) > 0 || state.shielded || (endless.bags || 0) > 0 || endless.bagStored;
+  const hasItems = (endless.crystalBalls || 0) > 0 || (endless.warpScrolls || 0) > 0 || (endless.cursedCharms || 0) > 0 || (endless.teleportWands || 0) > 0 || (endless.holyFlasks || 0) > 0 || (endless.shieldCharms || 0) > 0 || (endless.luckCharms || 0) > 0 || (endless.whetstones || 0) > 0 || state.shielded || (endless.bags || 0) > 0 || endless.bagStored;
   const btn = document.getElementById('mobileItemsBtn');
   if (btn) {
     btn.classList.toggle('has-items', hasItems);
@@ -9522,19 +9421,6 @@ function buildMobileItemsList() {
       </div>`;
   }
 
-  const elixirCount = endless.elixirs || 0;
-  if (elixirCount > 0) {
-    html += `
-      <div class="mobile-item-row" onclick="closeMobileItems(); useElixir();" style="border-color:rgba(200,80,200,0.2);">
-        <div class="mobile-item-icon">🧪</div>
-        <div class="mobile-item-info">
-          <div class="mobile-item-name" style="color:#d080d0;">Elixir of Life</div>
-          <div class="mobile-item-desc">+3 max HP & heal 3</div>
-        </div>
-        <div class="mobile-item-count" style="color:#d080d0;">${elixirCount}</div>
-      </div>`;
-  }
-
   const whetstoneCount = endless.whetstones || 0;
   if (whetstoneCount > 0) {
     html += `
@@ -9607,7 +9493,6 @@ function useCursedCharm() {
   updateHolyFlaskUI();
   updateShieldCharmUI();
   updateLuckCharmUI();
-  updateElixirUI();
   updateWhetstoneUI();
 
   // Show active glow on button
@@ -9649,7 +9534,6 @@ function useTeleportWand() {
   updateHolyFlaskUI();
   updateShieldCharmUI();
   updateLuckCharmUI();
-  updateElixirUI();
   updateWhetstoneUI();
 
   // Clear selection state
@@ -9712,7 +9596,6 @@ function useHolyFlask() {
   updateHolyFlaskUI();
   updateShieldCharmUI();
   updateLuckCharmUI();
-  updateElixirUI();
   updateWhetstoneUI();
   updateHpBar();
   addLog(`🧴 Holy Flask consumed — restored ${heal} HP!`, 'gold');
@@ -9751,7 +9634,6 @@ function useShieldCharm() {
   state.shielded = true;
   updateShieldCharmUI();
   updateLuckCharmUI();
-  updateElixirUI();
   updateWhetstoneUI();
   addLog('🛡️ Shield Charm activated — the next hit will be absorbed!', 'gold');
 }
@@ -9760,7 +9642,6 @@ function consumeShield() {
   state.shielded = false;
   updateShieldCharmUI();
   updateLuckCharmUI();
-  updateElixirUI();
   updateWhetstoneUI();
   addLog('🛡️ Your shield absorbs the blow and shatters!', 'gold');
 }
@@ -9865,45 +9746,11 @@ function luckCharmSelect(idx) {
   updateConfirmBtn();
   previewHpBar();
   updateLuckCharmUI();
-  updateElixirUI();
   updateWhetstoneUI();
 }
 
 function closeLuckCharm() {
   document.getElementById('luckCharmOverlay').classList.remove('open');
-}
-
-// ─────────────────────────────────────
-// ELIXIR OF LIFE
-// ─────────────────────────────────────
-
-function updateElixirUI() {
-  const count = endless.elixirs || 0;
-  const btn   = document.getElementById('elixirBtn');
-  const badge = document.getElementById('elixirCount');
-  if (!btn) return;
-  if (count > 0) {
-    document.body.classList.add('has-elixir');
-    badge.textContent = count;
-    badge.style.display = count > 1 ? '' : 'none';
-  } else {
-    document.body.classList.remove('has-elixir');
-  }
-  updateMobileItemsBtn();
-}
-
-function useElixir() {
-  if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
-  if (!endless.elixirs || endless.elixirs <= 0) return;
-
-  endless.elixirs--;
-  state.player.maxHp += 3;
-  state.player.hp = Math.min(state.player.maxHp, state.player.hp + 3);
-  updateElixirUI();
-  updateWhetstoneUI();
-  updateHpBar();
-  renderHpNotches();
-  addLog(`🧪 Elixir of Life consumed — max HP increased to ${state.player.maxHp}! Healed 3 HP.`, 'gold');
 }
 
 // ─────────────────────────────────────
@@ -10039,6 +9886,7 @@ function showDefeated() {
     return;
   }
   const overlay = document.getElementById('roomTransitionOverlay');
+  overlay.style.background = '#2a0505';
   overlay.classList.remove('fade-in');
   overlay.classList.add('fade-out');
 
@@ -10060,7 +9908,7 @@ function showDefeated() {
 
     overlay.classList.remove('fade-out');
     overlay.classList.add('fade-in');
-    setTimeout(() => overlay.classList.remove('fade-in'), 500);
+    setTimeout(() => { overlay.classList.remove('fade-in'); overlay.style.background = ''; }, 500);
   }, 600);
 }
 
@@ -10609,7 +10457,6 @@ function launchDebugBossFight() {
   updateHolyFlaskUI();
   updateShieldCharmUI();
   updateLuckCharmUI();
-  updateElixirUI();
   updateWhetstoneUI();
   updateWeaponBar();
   updateHpBar();
