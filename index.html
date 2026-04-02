@@ -8554,12 +8554,19 @@ function showBossReward() {
         <div class="reward-card-name" style="color:#d080d0;">Elixir of Life</div>
         <div class="reward-card-desc" style="color:#a060a0;">One-time use. Permanently increases your max HP by 3 and heals the same amount.</div>
       </div>`;
-    } else {
+    } else if (r.type === 'whetstone') {
       return `<div class="reward-card" style="background:linear-gradient(160deg,#1a1410,#120e0a);border-color:rgba(180,140,80,0.5);" data-reward-idx="${i}" onclick="toggleRewardSelect(${i})">
         <div class="reward-card-suit">🪨</div>
         <div class="reward-card-val" style="color:#c0a060;">Sharpen</div>
         <div class="reward-card-name" style="color:#c0a060;">Whetstone</div>
         <div class="reward-card-desc" style="color:#907840;">One-time use. Clears your weapon's kill chain, making it fresh again.</div>
+      </div>`;
+    } else {
+      return `<div class="reward-card" style="background:linear-gradient(160deg,#1a1008,#120a04);border-color:rgba(220,140,40,0.5);" data-reward-idx="${i}" onclick="toggleRewardSelect(${i})">
+        <div class="reward-card-suit">🔥</div>
+        <div class="reward-card-val" style="color:#e0a030;">Full HP</div>
+        <div class="reward-card-name" style="color:#e0a030;">Rest & Recover</div>
+        <div class="reward-card-desc" style="color:#b08020;">Rest by the campfire. Fully restores your health.</div>
       </div>`;
     }
   }).join('');
@@ -8617,6 +8624,12 @@ function claimSelectedRewards() {
     } else if (reward.type === 'whetstone') {
       endless.whetstones++;
       addLog('🪨 Whetstone added!', 'gold');
+    } else if (reward.type === 'rest') {
+      if (state.player) {
+        state.player.hp = state.player.maxHp;
+        updateHpBar();
+      }
+      addLog('🔥 You rest by the campfire — fully healed!', 'gold');
     } else {
       endless.rewardCards.push(reward);
       const rewardName = reward.type === 'diamond' ? '♦ Weapon Upgrade (+1)' : '♥ Potion Upgrade (+1)';
@@ -8650,7 +8663,8 @@ function generateRewards() {
     { type: 'shield'  },
     { type: 'luck'    },
     { type: 'elixir'  },
-    { type: 'whetstone' }
+    { type: 'whetstone' },
+    { type: 'rest'    }
   ];
   for (let i = all.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -8762,7 +8776,7 @@ function acceptCharSwap() {
   endless.starterIdx = newIdx;
   state.selectedChar = newIdx;
 
-  // Adjust HP: keep current HP, but clamp to new char's maxHp
+  // Reset to new character's base maxHp (clears elixir bonuses AND soul rend debuffs)
   state.player.maxHp = newChar.maxHp;
   state.player.hp = Math.min(state.player.hp, state.player.maxHp);
 
