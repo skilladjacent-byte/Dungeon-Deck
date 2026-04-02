@@ -5081,6 +5081,13 @@ if ('serviceWorker' in navigator) {
     </div>
     <div class="setting-row">
       <div>
+        <div class="setting-name">Scene Transitions</div>
+        <div class="setting-sub">Background changes between rooms</div>
+      </div>
+      <div class="toggle on" id="sceneTransitionToggle" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="setting-row">
+      <div>
         <div class="setting-name">Display Card Numeric Value</div>
         <div class="setting-sub">Show A/K/Q/J as numbers (14/13/12/11)</div>
       </div>
@@ -5598,6 +5605,16 @@ function setRoomBackground(isBoss) {
 }
 
 function transitionToNextRoom(carryOver) {
+  const toggle = document.getElementById('sceneTransitionToggle');
+  const transitionsOn = toggle && toggle.classList.contains('on');
+  const isBoss = !!(endless.active && endless.currentBoss);
+
+  // If transitions off, or during a boss fight (same background throughout), skip animation
+  if (!transitionsOn || isBoss) {
+    drawRoom(carryOver);
+    return;
+  }
+
   const gameEl = document.getElementById('game');
   const overlay = document.getElementById('roomTransitionOverlay');
 
@@ -5609,8 +5626,7 @@ function transitionToNextRoom(carryOver) {
 
   setTimeout(() => {
     // Phase 2: at peak black, swap background and reset zoom instantly
-    const isBoss = !!(endless.active && endless.currentBoss);
-    setRoomBackground(isBoss);
+    setRoomBackground(false);
     gameEl.classList.remove('room-zooming');
     gameEl.classList.add('room-zoom-reset');
 
@@ -9145,34 +9161,44 @@ function endlessLevelComplete() {
 }
 
 function showEndlessDefeated() {
-  endless.totalSlain += state.stats.slain;
-  document.body.classList.remove('is-boss');
-  document.body.classList.remove('boss-passive-visible');
-  document.body.classList.remove('has-level-tags');
-      document.body.classList.remove('items-disabled');
-  endless.activeTags = [];
-  endless.deceptiveFakes = [];
-  document.querySelectorAll('.boss-tag-tooltip').forEach(t => t.remove());
-  document.getElementById('bossTagRow').innerHTML = '';
-  stopBossMusic();
-  playDefeatSE();
-  playMenuMusic();
-  checkFinalMonstersUnlock();
-  const endlessKey = activeProfile !== null ? profilePrefix(activeProfile) + 'endless-best' : 'deckdiver-endless-best';
-  try {
-    const prev = parseInt(localStorage.getItem(endlessKey) || '0');
-    if (endless.level > prev) localStorage.setItem(endlessKey, String(endless.level));
-  } catch(e) {}
+  const overlay = document.getElementById('roomTransitionOverlay');
+  overlay.classList.remove('fade-in');
+  overlay.classList.add('fade-out');
 
-  document.getElementById('endlessDefLevel').textContent = `${endless.level}`;
-  document.getElementById('endlessDefeatedSub').textContent = `You reached Level ${endless.level}`;
-  const currentChar = CHARACTERS[endless.starterIdx];
-  document.getElementById('endlessDefParty').textContent = currentChar ? currentChar.emoji + ' ' + currentChar.name : '—';
-  document.getElementById('endlessDefSlain').textContent = endless.totalSlain;
+  setTimeout(() => {
+    endless.totalSlain += state.stats.slain;
+    document.body.classList.remove('is-boss');
+    document.body.classList.remove('boss-passive-visible');
+    document.body.classList.remove('has-level-tags');
+        document.body.classList.remove('items-disabled');
+    endless.activeTags = [];
+    endless.deceptiveFakes = [];
+    document.querySelectorAll('.boss-tag-tooltip').forEach(t => t.remove());
+    document.getElementById('bossTagRow').innerHTML = '';
+    stopBossMusic();
+    playDefeatSE();
+    playMenuMusic();
+    checkFinalMonstersUnlock();
+    const endlessKey = activeProfile !== null ? profilePrefix(activeProfile) + 'endless-best' : 'deckdiver-endless-best';
+    try {
+      const prev = parseInt(localStorage.getItem(endlessKey) || '0');
+      if (endless.level > prev) localStorage.setItem(endlessKey, String(endless.level));
+    } catch(e) {}
 
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('endless-defeated').classList.add('active');
-  state.currentScreen = 'endless-defeated';
+    document.getElementById('endlessDefLevel').textContent = `${endless.level}`;
+    document.getElementById('endlessDefeatedSub').textContent = `You reached Level ${endless.level}`;
+    const currentChar = CHARACTERS[endless.starterIdx];
+    document.getElementById('endlessDefParty').textContent = currentChar ? currentChar.emoji + ' ' + currentChar.name : '—';
+    document.getElementById('endlessDefSlain').textContent = endless.totalSlain;
+
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('endless-defeated').classList.add('active');
+    state.currentScreen = 'endless-defeated';
+
+    overlay.classList.remove('fade-out');
+    overlay.classList.add('fade-in');
+    setTimeout(() => overlay.classList.remove('fade-in'), 500);
+  }, 600);
 }
 
 function recordBestSkipRun() {
@@ -10012,20 +10038,30 @@ function showDefeated() {
     showEndlessDefeated();
     return;
   }
-  playDefeatSE();
-  deleteSavedRun();
-  recordBestWeaponKills();
-  recordBestWeaponsInRoom();
-  recordUnblockedDamage();
-  recordBestSkipRun();
-  recordLoss(state.deck.length);
-  checkFinalMonstersUnlock();
-  document.getElementById('def-rooms').textContent   = state.roomNumber;
-  document.getElementById('def-slain').textContent   = state.stats.slain;
-  document.getElementById('def-potions').textContent = state.stats.potions;
-  document.getElementById('def-weapons').textContent = state.stats.weapons;
-  document.getElementById('def-cards').textContent   = state.stats.cardsResolved;
-  goTo('defeated');
+  const overlay = document.getElementById('roomTransitionOverlay');
+  overlay.classList.remove('fade-in');
+  overlay.classList.add('fade-out');
+
+  setTimeout(() => {
+    playDefeatSE();
+    deleteSavedRun();
+    recordBestWeaponKills();
+    recordBestWeaponsInRoom();
+    recordUnblockedDamage();
+    recordBestSkipRun();
+    recordLoss(state.deck.length);
+    checkFinalMonstersUnlock();
+    document.getElementById('def-rooms').textContent   = state.roomNumber;
+    document.getElementById('def-slain').textContent   = state.stats.slain;
+    document.getElementById('def-potions').textContent = state.stats.potions;
+    document.getElementById('def-weapons').textContent = state.stats.weapons;
+    document.getElementById('def-cards').textContent   = state.stats.cardsResolved;
+    goTo('defeated');
+
+    overlay.classList.remove('fade-out');
+    overlay.classList.add('fade-in');
+    setTimeout(() => overlay.classList.remove('fade-in'), 500);
+  }, 600);
 }
 
 function showVictory() {
