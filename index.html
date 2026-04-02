@@ -735,17 +735,13 @@ if ('serviceWorker' in navigator) {
     display: flex; flex-direction: column; align-items: center; gap: 4px;
   }
   .room-title {
-    font-family: 'Cinzel Decorative', cursive;
-    font-size: clamp(0.9rem, 2vh, 1.6rem);
-    color: var(--parchment-light);
-    letter-spacing: 0.1em;
+    display: none;
   }
   .room-depth {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(0.5rem, 0.9vh, 0.65rem);
-    letter-spacing: 0.35em;
-    text-transform: uppercase;
-    color: var(--text-dim);
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: clamp(0.85rem, 1.8vh, 1.4rem);
+    letter-spacing: 0.15em;
+    color: var(--parchment-light);
   }
 
   /* Card Row */
@@ -2113,8 +2109,8 @@ if ('serviceWorker' in navigator) {
     }
     .card-row   { gap: 6px; justify-content: center; max-width: 96vw; flex-wrap: nowrap; }
     .play-card  { flex: 0 1 var(--card-w); min-width: 0; height: auto; aspect-ratio: 5/7; }
-    .room-title { font-size: 0.85rem; }
-    .room-depth { font-size: 0.48rem; }
+    .room-title { display: none; }
+    .room-depth { font-size: 0.75rem; }
     .sel-pip    { width: 7px; height: 7px; }
 
     /* Action buttons — large tap targets */
@@ -2237,8 +2233,8 @@ if ('serviceWorker' in navigator) {
     .btn-action  { padding: 8px 16px; font-size: 0.55rem; }
     .weapon-card { width: clamp(40px, 10vh, 70px); height: clamp(56px, 14vh, 98px); }
     .kill-badge  { width: 28px; height: 39px; font-size: 0.7rem; }
-    .room-title  { font-size: 0.75rem; }
-    .room-depth  { display: none; }
+    .room-title  { display: none; }
+    .room-depth  { font-size: 0.65rem; }
   }
 
   /* Hide panels below 1100px — they eat too much horizontal space */
@@ -4417,8 +4413,8 @@ if ('serviceWorker' in navigator) {
     <!-- MID ZONE: Room + Cards + Actions -->
     <div class="game-mid-zone">
       <div class="room-header">
-        <div class="room-title" id="roomTitle">The Antechamber</div>
-        <div class="room-depth" id="roomDepth">Room 1 · Depth I</div>
+        <div class="room-title" id="roomTitle"></div>
+        <div class="room-depth" id="roomDepth">Room 1 — Floor 1</div>
       </div>
 
       <div style="position:relative; overflow:visible;">
@@ -6149,7 +6145,7 @@ function continueGame() {
 
   const rName = ROOM_NAMES[(state.roomNumber - 1) % ROOM_NAMES.length];
   document.getElementById('roomTitle').textContent = rName;
-  document.getElementById('roomDepth').textContent = `Room ${state.roomNumber} · Depth ${toRoman(Math.ceil(state.roomNumber/3))}`;
+  document.getElementById('roomDepth').textContent = `Room ${state.roomNumber} — Floor ${Math.ceil(state.roomNumber/3)}`;
   document.getElementById('deckCount').textContent = state.deck.length;
   document.getElementById('statRooms').textContent   = state.roomNumber;
   document.getElementById('statSlain').textContent   = state.stats.slain;
@@ -6587,7 +6583,7 @@ function drawRoom(carryOver) {
 
   const rName = ROOM_NAMES[(state.roomNumber - 1) % ROOM_NAMES.length];
   document.getElementById('roomTitle').textContent = rName;
-  document.getElementById('roomDepth').textContent = `Room ${state.roomNumber} · Depth ${toRoman(Math.ceil(state.roomNumber/3))}`;
+  document.getElementById('roomDepth').textContent = `Room ${state.roomNumber} — Floor ${Math.ceil(state.roomNumber/3)}`;
   document.getElementById('deckCount').textContent = state.deck.length;
   document.getElementById('statRooms').textContent = state.roomNumber;
 
