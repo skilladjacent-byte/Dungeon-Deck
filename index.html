@@ -233,8 +233,8 @@ if ('serviceWorker' in navigator) {
   .menu-btn::before {
     content: '';
     position: absolute; inset: 0;
-    border: 1px solid rgba(200,169,110,0.25);
-    background: linear-gradient(135deg, rgba(200,169,110,0.05), rgba(200,169,110,0.02));
+    border: 1px solid rgba(200,169,110,0.35);
+    background: rgba(10,8,5,0.75);
     transition: all 0.3s ease;
   }
   .menu-btn::after {
@@ -252,7 +252,7 @@ if ('serviceWorker' in navigator) {
   }
   .menu-btn:hover::before {
     border-color: rgba(200,169,110,0.5);
-    background: linear-gradient(135deg, rgba(200,169,110,0.1), rgba(200,169,110,0.05));
+    background: rgba(15,12,8,0.85);
   }
   .menu-btn:hover::after { width: 80%; }
   .menu-btn.danger { color: #c0392b; }
@@ -4351,21 +4351,7 @@ if ('serviceWorker' in navigator) {
   </div>
   <div class="title-active-profile" id="titleProfileName" style="display:none;"></div>
   <div class="home-emblem">
-    <svg viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="45" cy="45" r="42" stroke="rgba(200,169,110,0.25)" stroke-width="1"/>
-      <circle cx="45" cy="45" r="36" stroke="rgba(200,169,110,0.12)" stroke-width="1"/>
-      <line x1="20" y1="20" x2="70" y2="70" stroke="rgba(212,160,23,0.5)" stroke-width="2" stroke-linecap="round"/>
-      <line x1="70" y1="20" x2="20" y2="70" stroke="rgba(212,160,23,0.5)" stroke-width="2" stroke-linecap="round"/>
-      <line x1="30" y1="28" x2="14" y2="38" stroke="rgba(212,160,23,0.4)" stroke-width="1.5" stroke-linecap="round"/>
-      <line x1="60" y1="62" x2="76" y2="52" stroke="rgba(212,160,23,0.4)" stroke-width="1.5" stroke-linecap="round"/>
-      <line x1="60" y1="28" x2="76" y2="38" stroke="rgba(212,160,23,0.4)" stroke-width="1.5" stroke-linecap="round"/>
-      <line x1="30" y1="62" x2="14" y2="52" stroke="rgba(212,160,23,0.4)" stroke-width="1.5" stroke-linecap="round"/>
-      <circle cx="45" cy="45" r="5" fill="rgba(139,26,26,0.7)" stroke="rgba(212,160,23,0.5)" stroke-width="1"/>
-      <circle cx="45" cy="12" r="2.5" fill="rgba(212,160,23,0.3)"/>
-      <circle cx="45" cy="78" r="2.5" fill="rgba(212,160,23,0.3)"/>
-      <circle cx="12" cy="45" r="2.5" fill="rgba(212,160,23,0.3)"/>
-      <circle cx="78" cy="45" r="2.5" fill="rgba(212,160,23,0.3)"/>
-    </svg>
+    <img src="images/DeckDiverLogo.png" alt="" style="width:100%;height:100%;object-fit:contain;">
   </div>
   <img src="images/DeckDiverLogo.png" alt="Deck Diver" class="home-logo-img">
   <p class="home-subtitle">Suited for Adventure</p>
@@ -4400,25 +4386,7 @@ if ('serviceWorker' in navigator) {
 
   <!-- Skull/sword emblem -->
   <div class="home-emblem">
-    <svg viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="45" cy="45" r="42" stroke="rgba(200,169,110,0.25)" stroke-width="1"/>
-      <circle cx="45" cy="45" r="36" stroke="rgba(200,169,110,0.12)" stroke-width="1"/>
-      <!-- Crossed swords -->
-      <line x1="20" y1="20" x2="70" y2="70" stroke="rgba(212,160,23,0.5)" stroke-width="2" stroke-linecap="round"/>
-      <line x1="70" y1="20" x2="20" y2="70" stroke="rgba(212,160,23,0.5)" stroke-width="2" stroke-linecap="round"/>
-      <!-- Guard bars -->
-      <line x1="30" y1="28" x2="14" y2="38" stroke="rgba(212,160,23,0.4)" stroke-width="1.5" stroke-linecap="round"/>
-      <line x1="60" y1="62" x2="76" y2="52" stroke="rgba(212,160,23,0.4)" stroke-width="1.5" stroke-linecap="round"/>
-      <line x1="60" y1="28" x2="76" y2="38" stroke="rgba(212,160,23,0.4)" stroke-width="1.5" stroke-linecap="round"/>
-      <line x1="30" y1="62" x2="14" y2="52" stroke="rgba(212,160,23,0.4)" stroke-width="1.5" stroke-linecap="round"/>
-      <!-- Center gem -->
-      <circle cx="45" cy="45" r="5" fill="rgba(139,26,26,0.7)" stroke="rgba(212,160,23,0.5)" stroke-width="1"/>
-      <!-- Corner ornaments -->
-      <circle cx="45" cy="12" r="2.5" fill="rgba(212,160,23,0.3)"/>
-      <circle cx="45" cy="78" r="2.5" fill="rgba(212,160,23,0.3)"/>
-      <circle cx="12" cy="45" r="2.5" fill="rgba(212,160,23,0.3)"/>
-      <circle cx="78" cy="45" r="2.5" fill="rgba(212,160,23,0.3)"/>
-    </svg>
+    <img src="images/DeckDiverLogo.png" alt="" style="width:100%;height:100%;object-fit:contain;">
   </div>
 
   <img src="images/DeckDiverLogo.png" alt="Deck Diver" class="home-logo-img">
@@ -7105,6 +7073,14 @@ function preloadCardArt() {
   const boomImg = new Image();
   boomImg.onload = () => { _validCardArt[boomSrc] = true; };
   boomImg.src = boomSrc;
+  const bombSrc = 'images/deck/bomb.png';
+  const bombImg = new Image();
+  bombImg.onload = () => { _validCardArt[bombSrc] = true; };
+  bombImg.src = bombSrc;
+  const trapSrc = 'images/deck/control_scroll.png';
+  const trapImg = new Image();
+  trapImg.onload = () => { _validCardArt[trapSrc] = true; };
+  trapImg.src = trapSrc;
 }
 preloadCardArt();
 
@@ -7205,13 +7181,23 @@ function dealCardsAnimated() {
     const orderBadge = `<div class="resolve-order-badge">${orderPos >= 0 ? orderPos + 1 : ''}</div>`;
 
     if (card.isTrap) {
-      el.innerHTML = `${orderBadge}<div class="card-inner" style="background:linear-gradient(160deg,#e8f5e0,#d0eac0);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 6px 6px;"><div style="font-family:'Cinzel',serif;font-weight:700;font-size:1.1rem;color:#2a6a1a;text-align:center;line-height:1">Monster<br>Trap</div><div style="flex:1;display:flex;align-items:center;justify-content:center;">${trapCardSVG(false)}</div><div class="card-type-badge badge-weapon">Trap</div></div>`;
+      const trapArt = 'images/deck/control_scroll.png';
+      if (_validCardArt[trapArt]) {
+        el.innerHTML = `${orderBadge}<div class="card-inner monster-art" style="background-image:url('${trapArt}');"></div>`;
+      } else {
+        el.innerHTML = `${orderBadge}<div class="card-inner" style="background:linear-gradient(160deg,#e8f5e0,#d0eac0);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 6px 6px;"><div style="font-family:'Cinzel',serif;font-weight:700;font-size:1.1rem;color:#2a6a1a;text-align:center;line-height:1">Monster<br>Trap</div><div style="flex:1;display:flex;align-items:center;justify-content:center;">${trapCardSVG(false)}</div><div class="card-type-badge badge-weapon">Trap</div></div>`;
+      }
     } else if (card.isCurse) {
       el.className += ' card-curse-potion';
       el.innerHTML = `${orderBadge}<div class="card-inner" style="background:linear-gradient(160deg,#2e1a2e,#1e0f1e);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 6px 6px;"><div style="font-family:'Cinzel',serif;font-weight:700;font-size:1.1rem;color:#cc88ff;text-align:center;line-height:1">Curse<br>Potion</div><div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:3rem;line-height:1;filter:drop-shadow(0 0 8px rgba(180,50,220,0.6));">☠</div><div class="card-type-badge" style="background:rgba(180,50,220,0.15);color:#cc88ff;">Curse</div></div>`;
     } else if (card.isKeg) {
       el.className += ' card-keg';
-      el.innerHTML = `${orderBadge}<div class="card-inner" style="background:linear-gradient(160deg,#2e1a0a,#1e0f04);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 6px 6px;"><div style="font-family:'Cinzel',serif;font-weight:700;font-size:1rem;color:#ff6622;text-align:center;line-height:1">Powder<br>Keg</div><div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:2.8rem;line-height:1;filter:drop-shadow(0 0 12px rgba(255,100,20,0.8));">💣</div><div class="card-type-badge badge-monster" style="background:rgba(255,80,20,0.15);color:#ff6622;">Danger!</div></div>`;
+      const bombArt = 'images/deck/bomb.png';
+      if (_validCardArt[bombArt]) {
+        el.innerHTML = `${orderBadge}<div class="card-inner monster-art" style="background-image:url('${bombArt}');"></div>`;
+      } else {
+        el.innerHTML = `${orderBadge}<div class="card-inner" style="background:linear-gradient(160deg,#2e1a0a,#1e0f04);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 6px 6px;"><div style="font-family:'Cinzel',serif;font-weight:700;font-size:1rem;color:#ff6622;text-align:center;line-height:1">Powder<br>Keg</div><div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:2.8rem;line-height:1;filter:drop-shadow(0 0 12px rgba(255,100,20,0.8));">💣</div><div class="card-type-badge badge-monster" style="background:rgba(255,80,20,0.15);color:#ff6622;">Danger!</div></div>`;
+      }
     } else {
       const effDisplay = getEffectiveDisplayVal(card);
       const modCls = isCardModified(card) ? ' val-modified' : '';
@@ -7286,14 +7272,22 @@ function renderCards() {
     const orderBadge = `<div class="resolve-order-badge">${orderPos >= 0 ? orderPos + 1 : ''}</div>`;
 
     if (card.isTrap) {
-      el.innerHTML = `
-        ${orderBadge}
-        <div class="card-inner" style="background:linear-gradient(160deg,#e8f5e0,#d0eac0);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 6px 6px;">
-          <div style="font-family:'Cinzel',serif;font-weight:700;font-size:1.1rem;color:#2a6a1a;text-align:center;line-height:1">Monster<br>Trap</div>
-          <div style="flex:1;display:flex;align-items:center;justify-content:center;">${trapCardSVG(false)}</div>
-          <div class="card-type-badge badge-weapon">Trap</div>
-        </div>
-      `;
+      const trapArt = 'images/deck/control_scroll.png';
+      if (_validCardArt[trapArt]) {
+        el.innerHTML = `
+          ${orderBadge}
+          <div class="card-inner monster-art" style="background-image:url('${trapArt}');"></div>
+        `;
+      } else {
+        el.innerHTML = `
+          ${orderBadge}
+          <div class="card-inner" style="background:linear-gradient(160deg,#e8f5e0,#d0eac0);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 6px 6px;">
+            <div style="font-family:'Cinzel',serif;font-weight:700;font-size:1.1rem;color:#2a6a1a;text-align:center;line-height:1">Monster<br>Trap</div>
+            <div style="flex:1;display:flex;align-items:center;justify-content:center;">${trapCardSVG(false)}</div>
+            <div class="card-type-badge badge-weapon">Trap</div>
+          </div>
+        `;
+      }
     } else if (card.isCurse) {
       el.className += ' card-curse-potion';
       el.innerHTML = `
@@ -7306,14 +7300,22 @@ function renderCards() {
       `;
     } else if (card.isKeg) {
       el.className += ' card-keg';
-      el.innerHTML = `
-        ${orderBadge}
-        <div class="card-inner" style="background:linear-gradient(160deg,#2e1a0a,#1e0f04);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 6px 6px;">
-          <div style="font-family:'Cinzel',serif;font-weight:700;font-size:1rem;color:#ff6622;text-align:center;line-height:1">Powder<br>Keg</div>
-          <div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:2.8rem;line-height:1;filter:drop-shadow(0 0 12px rgba(255,100,20,0.8));">💣</div>
-          <div class="card-type-badge badge-monster" style="background:rgba(255,80,20,0.15);color:#ff6622;">Danger!</div>
-        </div>
-      `;
+      const bombArt = 'images/deck/bomb.png';
+      if (_validCardArt[bombArt]) {
+        el.innerHTML = `
+          ${orderBadge}
+          <div class="card-inner monster-art" style="background-image:url('${bombArt}');"></div>
+        `;
+      } else {
+        el.innerHTML = `
+          ${orderBadge}
+          <div class="card-inner" style="background:linear-gradient(160deg,#2e1a0a,#1e0f04);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 6px 6px;">
+            <div style="font-family:'Cinzel',serif;font-weight:700;font-size:1rem;color:#ff6622;text-align:center;line-height:1">Powder<br>Keg</div>
+            <div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:2.8rem;line-height:1;filter:drop-shadow(0 0 12px rgba(255,100,20,0.8));">💣</div>
+            <div class="card-type-badge badge-monster" style="background:rgba(255,80,20,0.15);color:#ff6622;">Danger!</div>
+          </div>
+        `;
+      }
     } else {
       const effDisplay = getEffectiveDisplayVal(card);
       const modCls = isCardModified(card) ? ' val-modified' : '';
@@ -10254,12 +10256,20 @@ function buildDiscardGrid(containerId) {
 
   container.innerHTML = '<div class="discard-card-grid">' + sorted.map(card => {
     if (card.isTrap) {
+      const trapArt = 'images/deck/control_scroll.png';
+      if (_validCardArt[trapArt]) {
+        return `<div class="discard-mini-card has-art"><div class="disc-art" style="background-image:url('${trapArt}');"></div></div>`;
+      }
       return `<div class="discard-mini-card trap-card"><span>T</span><span class="dmc-suit">🪤</span></div>`;
     }
     if (card.isCurse) {
       return `<div class="discard-mini-card special-card"><span>☠</span><span class="dmc-suit">Curse</span></div>`;
     }
     if (card.isKeg) {
+      const bombArt = 'images/deck/bomb.png';
+      if (_validCardArt[bombArt]) {
+        return `<div class="discard-mini-card has-art"><div class="disc-art" style="background-image:url('${bombArt}');"></div></div>`;
+      }
       return `<div class="discard-mini-card keg-card"><span>💣</span><span class="dmc-suit">Keg</span></div>`;
     }
     // Use fake display if Deceptive is active
