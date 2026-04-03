@@ -10,8 +10,9 @@
 <meta name="theme-color" content="#090705"/>
 <meta name="description" content="A card dungeon crawler. Survive the deck."/>
 <link rel="manifest" href="manifest.json"/>
-<!-- Apple touch icon fallback (inline SVG as data URI) -->
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%23090705'/%3E%3Ccircle cx='256' cy='256' r='200' stroke='%23c8a96e' stroke-width='6' fill='none'/%3E%3Cline x1='156' y1='156' x2='356' y2='356' stroke='%23d4a017' stroke-width='12' stroke-linecap='round'/%3E%3Cline x1='356' y1='156' x2='156' y2='356' stroke='%23d4a017' stroke-width='12' stroke-linecap='round'/%3E%3Ccircle cx='256' cy='256' r='28' fill='%238b1a1a' stroke='%23d4a017' stroke-width='4'/%3E%3C/svg%3E"/>
+<!-- Apple touch icon -->
+<link rel="apple-touch-icon" href="images/DeckDiverLogo.png"/>
+<link rel="icon" type="image/png" href="images/DeckDiverLogo.png"/>
 <title>Deck Diver</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
 <script>
@@ -135,7 +136,8 @@ if ('serviceWorker' in navigator) {
   #home {
     background:
       radial-gradient(ellipse 80% 60% at 50% 100%, rgba(139,26,26,0.18) 0%, transparent 70%),
-      linear-gradient(180deg, #0a0705 0%, #1a1008 60%, #0d0a06 100%);
+      linear-gradient(180deg, rgba(10,7,5,0.5) 0%, rgba(26,16,8,0.5) 60%, rgba(13,10,6,0.5) 100%),
+      url('images/bg/bg_menu.png') center/cover no-repeat;
   }
 
   .home-bg-cards {
@@ -187,6 +189,12 @@ if ('serviceWorker' in navigator) {
     line-height: 1.1;
     text-align: center;
     animation: titleGlow 3s ease-in-out infinite;
+  }
+  .home-logo-img {
+    width: clamp(180px, 40vw, 400px);
+    height: auto;
+    filter: drop-shadow(0 0 30px rgba(212,160,23,0.4)) drop-shadow(0 4px 12px rgba(0,0,0,0.8));
+    animation: fadeUp 0.6s ease 0.2s both;
   }
   .home-subtitle {
     font-family: 'Cinzel', serif;
@@ -559,15 +567,9 @@ if ('serviceWorker' in navigator) {
     gap: 0;
   }
 
-  /* Left panel — player */
+  /* Left panel — player (hidden, stats moved under HP bar) */
   .game-panel-left {
-    width: clamp(140px, 15vw, 220px); min-width: 0;
-    background: linear-gradient(180deg, #120e09, #0d0a06);
-    border-right: 1px solid rgba(200,169,110,0.12);
-    padding: clamp(12px, 2vh, 28px) clamp(10px, 1.5vw, 20px);
-    display: flex; flex-direction: column; gap: clamp(10px, 1.5vh, 20px);
-    z-index: 2;
-    overflow: hidden;
+    display: none !important;
   }
 
   .player-portrait {
@@ -717,8 +719,8 @@ if ('serviceWorker' in navigator) {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: clamp(4px, 0.8vh, 14px);
     min-height: 0;
-    /* Cards height = ~28% of viewport, never more than 252px */
-    --card-h: clamp(90px, 28vh, 252px);
+    /* Cards height = ~35% of viewport (25% larger), never more than 315px */
+    --card-h: clamp(113px, 35vh, 315px);
     --card-w: calc(var(--card-h) * 0.714);
   }
 
@@ -1053,15 +1055,9 @@ if ('serviceWorker' in navigator) {
     box-shadow: 0 0 20px rgba(192,57,43,0.4);
   }
 
-  /* Right panel — dungeon info */
+  /* Right panel — dungeon info (hidden, stats moved under HP bar) */
   .game-panel-right {
-    width: 200px; min-width: 160px;
-    background: linear-gradient(180deg, #120e09, #0d0a06);
-    border-left: 1px solid rgba(200,169,110,0.12);
-    padding: 28px 18px;
-    display: flex; flex-direction: column; gap: 20px;
-    z-index: 50;
-    overflow: visible;
+    display: none !important;
   }
 
   .deck-display {
@@ -1841,46 +1837,52 @@ if ('serviceWorker' in navigator) {
 
   /* Mobile stats strip — hidden on desktop */
   .mobile-stats-strip {
-    display: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0;
+    width: min(96vw, 500px);
+    background: rgba(10,8,5,0.75);
+    border: 1px solid rgba(200,169,110,0.2);
+    border-radius: 4px;
+    padding: 6px 10px;
+    margin: 4px auto 0;
+  }
+  .mobile-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+  }
+  .mobile-stat-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.5rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .mobile-stat-val {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 0.9rem;
+    color: var(--parchment-light);
+    line-height: 1;
+  }
+  .mobile-stat-divider {
+    width: 1px;
+    height: 28px;
+    background: rgba(200,169,110,0.15);
+    flex-shrink: 0;
   }
   @media (max-width: 480px), (max-height: 700px) and (max-width: 600px) {
     .mobile-stats-strip {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 0;
       width: min(96vw, 400px);
-      background: rgba(10,8,5,0.75);
-      border: 1px solid rgba(200,169,110,0.2);
-      border-radius: 4px;
-      padding: 6px 10px;
-      margin: 4px auto 0;
-    }
-    .mobile-stat {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      flex: 1;
     }
     .mobile-stat-label {
-      font-family: 'Cinzel', serif;
       font-size: 0.45rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--text-dim);
     }
     .mobile-stat-val {
-      font-family: 'Cinzel Decorative', cursive;
       font-size: 0.85rem;
-      color: var(--parchment-light);
-      line-height: 1;
-    }
-    .mobile-stat-divider {
-      width: 1px;
-      height: 28px;
-      background: rgba(200,169,110,0.15);
-      flex-shrink: 0;
     }
   }
 
@@ -2268,25 +2270,24 @@ if ('serviceWorker' in navigator) {
   }
 
   /* Hide panels below 1100px — they eat too much horizontal space */
-  @media (max-width: 1099px) {
-    .game-panel-left, .game-panel-right { display: none; }
+  /* Show mobile items button when player has items */
+  body.has-crystal-ball .mobile-items-btn,
+  body.has-bag .mobile-items-btn,
+  body.has-warp-scroll .mobile-items-btn,
+  body.has-cursed-charm .mobile-items-btn,
+  body.has-teleport-wand .mobile-items-btn,
+  body.has-holy-flask .mobile-items-btn,
+  body.has-shield-charm .mobile-items-btn,
+  body.has-luck-charm .mobile-items-btn,
+  body.has-whetstone .mobile-items-btn {
+    display: flex;
+    bottom: 28%;
+  }
+  .mobile-items-panel {
+    bottom: calc(28% + 44px);
+  }
 
-    /* Show mobile items button when player has items and panels are hidden */
-    body.has-crystal-ball .mobile-items-btn,
-    body.has-bag .mobile-items-btn,
-    body.has-warp-scroll .mobile-items-btn,
-    body.has-cursed-charm .mobile-items-btn,
-    body.has-teleport-wand .mobile-items-btn,
-    body.has-holy-flask .mobile-items-btn,
-    body.has-shield-charm .mobile-items-btn,
-    body.has-luck-charm .mobile-items-btn,
-    body.has-whetstone .mobile-items-btn {
-      display: flex;
-      bottom: 28%;
-    }
-    .mobile-items-panel {
-      bottom: calc(28% + 44px);
-    }
+  @media (max-width: 1099px) {
 
     #game {
       flex-direction: column;
@@ -4224,21 +4225,16 @@ if ('serviceWorker' in navigator) {
 
   /* Mobile: discard button in stats strip */
   .mobile-discard-btn {
-    display: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
-  @media (max-width: 480px), (max-height: 700px) and (max-width: 600px) {
-    .mobile-discard-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      flex: 1;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .mobile-discard-btn .mobile-stat-label { color: var(--gold); }
-    .mobile-discard-btn .mobile-stat-val { color: var(--gold); font-size: 0.75rem; }
-  }
+  .mobile-discard-btn .mobile-stat-label { color: var(--gold); }
+  .mobile-discard-btn .mobile-stat-val { color: var(--gold); font-size: 0.8rem; }
 
   /* Mobile: discard panel overlay */
   .mobile-discard-overlay {
@@ -4371,7 +4367,7 @@ if ('serviceWorker' in navigator) {
       <circle cx="78" cy="45" r="2.5" fill="rgba(212,160,23,0.3)"/>
     </svg>
   </div>
-  <h1 class="home-title">Deck<br>Diver</h1>
+  <img src="images/DeckDiverLogo.png" alt="Deck Diver" class="home-logo-img">
   <p class="home-subtitle">Suited for Adventure</p>
   <p class="title-click-hint">Click anywhere to continue</p>
 </div>
@@ -4425,7 +4421,7 @@ if ('serviceWorker' in navigator) {
     </svg>
   </div>
 
-  <h1 class="home-title">Deck<br>Diver</h1>
+  <img src="images/DeckDiverLogo.png" alt="Deck Diver" class="home-logo-img">
   <p class="home-subtitle">Suited for Adventure</p>
 
   <nav class="menu-list">
@@ -5443,7 +5439,7 @@ const CHARACTERS = [
         desc: 'Your weapon also blocks monsters equal in value to the last monster you defeated with it, not just weaker ones.'
       }
     ],
-    hp: 15, maxHp: 15,
+    hp: 20, maxHp: 20,
     weapon: { name: 'Unarmed', val: 0 },
     armor:  { name: 'Duelist\'s Coat' },
     unlockRequires: 'win'
