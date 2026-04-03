@@ -200,7 +200,8 @@ if ('serviceWorker' in navigator) {
     font-family: 'Cinzel', serif;
     font-size: 0.85rem;
     letter-spacing: 0.35em;
-    color: var(--parchment-dark);
+    color: var(--parchment);
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
     text-transform: uppercase;
     margin-top: 6px;
     margin-bottom: 48px;
@@ -221,7 +222,8 @@ if ('serviceWorker' in navigator) {
     font-size: 1rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--parchment);
+    color: var(--parchment-light);
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
     background: transparent;
     border: none;
     cursor: pointer;
@@ -4350,9 +4352,6 @@ if ('serviceWorker' in navigator) {
     <div class="bg-card"></div><div class="bg-card"></div>
   </div>
   <div class="title-active-profile" id="titleProfileName" style="display:none;"></div>
-  <div class="home-emblem">
-    <img src="images/DeckDiverLogo.png" alt="" style="width:100%;height:100%;object-fit:contain;">
-  </div>
   <img src="images/DeckDiverLogo.png" alt="Deck Diver" class="home-logo-img">
   <p class="home-subtitle">Suited for Adventure</p>
   <p class="title-click-hint">Click anywhere to continue</p>
@@ -4383,11 +4382,6 @@ if ('serviceWorker' in navigator) {
   </div>
 
   <div class="title-active-profile" id="homeProfileName"></div>
-
-  <!-- Skull/sword emblem -->
-  <div class="home-emblem">
-    <img src="images/DeckDiverLogo.png" alt="" style="width:100%;height:100%;object-fit:contain;">
-  </div>
 
   <img src="images/DeckDiverLogo.png" alt="Deck Diver" class="home-logo-img">
   <p class="home-subtitle">Suited for Adventure</p>
@@ -5907,6 +5901,8 @@ const HEAL_SE = 'audio/sfx_heal.mp3';
 const EQUIP_SE = 'audio/sfx_equip.mp3';
 const POISON_SE = 'audio/sfx_poison.mp3';
 const TRANSITION_SE = 'audio/sfx_transition.mp3';
+const BOOMERANG_SE = 'audio/sfx_boomerang.mp3';
+const CONTROL_SCROLL_SE = 'audio/sfx_control_scroll.mp3';
 
 function playVictorySE() {
   const toggle = document.getElementById('combatSfxToggle');
@@ -5946,6 +5942,26 @@ function playBlockSE() {
     a.volume = getMasterVolume();
     a.play().catch(err => console.warn('Block SFX failed:', err.message));
   } catch(e) { console.warn('Block SFX error:', e); }
+}
+
+function playBoomerangSE() {
+  const toggle = document.getElementById('combatSfxToggle');
+  if (toggle && !toggle.classList.contains('on')) return;
+  try {
+    const a = new Audio(BOOMERANG_SE);
+    a.volume = getMasterVolume();
+    a.play().catch(err => console.warn('Boomerang SFX failed:', err.message));
+  } catch(e) { console.warn('Boomerang SFX error:', e); }
+}
+
+function playControlScrollSE() {
+  const toggle = document.getElementById('combatSfxToggle');
+  if (toggle && !toggle.classList.contains('on')) return;
+  try {
+    const a = new Audio(CONTROL_SCROLL_SE);
+    a.volume = getMasterVolume();
+    a.play().catch(err => console.warn('Control Scroll SFX failed:', err.message));
+  } catch(e) { console.warn('Control Scroll SFX error:', e); }
 }
 
 function playPartialBlockSE() {
@@ -7976,6 +7992,7 @@ function resolveRoom() {
         updateWeaponBar();
         const monsterName = card.suit === '♠' ? 'Zombie' : 'Skeleton';
         addLog(`Lv.${nv} ${monsterName} captured by Monster Trap! Now fighting for you.`, 'gold');
+        sfxQueue.push({ fn: () => { playControlScrollSE(); flashGoldSlash(); triggerScreenShake(); } });
       } else if (weaponActive) {
         dmg = Math.max(0, nv - weaponVal);
         // Shield absorbs the hit
@@ -7989,7 +8006,7 @@ function resolveRoom() {
         updateWeaponBar();
         const monsterName = card.suit === '♠' ? 'Zombie' : 'Skeleton';
         addLog(`Lv.${nv} ${monsterName} — weapon blocked ${weaponVal} dmg, took ${dmg}.`, 'danger');
-        if (dmg === 0) sfxQueue.push({ fn: () => { playBlockSE(); flashGoldSlash(); triggerScreenShake(); } });
+        if (dmg === 0) sfxQueue.push({ fn: () => { (state.player.weapon && state.player.weapon.isBoomerang ? playBoomerangSE : playBlockSE)(); flashGoldSlash(); triggerScreenShake(); } });
         else sfxQueue.push({ fn: () => { playPartialBlockSE(); flashPartialSlash(); triggerScreenShake(); } });
         // Corrosive: flag weapon for destruction after room resolves
         if (card.isCorrosive) {
