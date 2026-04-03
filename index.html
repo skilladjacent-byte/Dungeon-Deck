@@ -1551,6 +1551,31 @@ if ('serviceWorker' in navigator) {
   }
   .kill-badge.red-suit  { color: #8b1a1a; }
   .kill-badge.black-suit { color: #1a1410; }
+  .kill-badge.has-art {
+    background: transparent;
+    border-color: rgba(80,60,40,0.4);
+    overflow: hidden;
+    padding: 0;
+    position: relative;
+  }
+  .kill-badge.has-art .kill-art { position: absolute; inset: 1px; background-size: cover; background-position: center; z-index: 2; border-radius: 4px; }
+  .kill-badge.has-art .kill-title { position: absolute; top: 2%; left: 50%; transform: translateX(-50%); width: 80%; z-index: 1; pointer-events: none; }
+  .kill-badge.has-art .kill-title img { width: 100%; height: auto; display: block; }
+  .kill-badge.has-art .kill-val { position: absolute; bottom: 2%; left: 50%; transform: translateX(-50%); width: 55%; z-index: 10; pointer-events: none; }
+  .kill-badge.has-art .kill-val img { width: 100%; height: auto; display: block; }
+
+  .discard-mini-card.has-art {
+    background: transparent !important;
+    border-color: rgba(80,60,40,0.4);
+    overflow: hidden;
+    padding: 0;
+    position: relative;
+  }
+  .discard-mini-card.has-art .disc-art { position: absolute; inset: 1px; background-size: cover; background-position: center; z-index: 2; border-radius: 4px; }
+  .discard-mini-card.has-art .disc-title { position: absolute; top: 2%; left: 50%; transform: translateX(-50%); width: 80%; z-index: 1; pointer-events: none; }
+  .discard-mini-card.has-art .disc-title img { width: 100%; height: auto; display: block; }
+  .discard-mini-card.has-art .disc-val { position: absolute; bottom: 2%; left: 50%; transform: translateX(-50%); width: 55%; z-index: 10; pointer-events: none; }
+  .discard-mini-card.has-art .disc-val img { width: 100%; height: auto; display: block; }
   .kill-count-num {
     display: none;
   }
@@ -5118,10 +5143,10 @@ if ('serviceWorker' in navigator) {
     </div>
     <div class="setting-row">
       <div>
-        <div class="setting-name">Display Card Numeric Value</div>
-        <div class="setting-sub">Show A/K/Q/J as numbers (14/13/12/11)</div>
+        <div class="setting-name">Display Face Cards</div>
+        <div class="setting-sub">Show 11/12/13/14 as J/Q/K/A</div>
       </div>
-      <div class="toggle" id="numericValToggle" onclick="this.classList.toggle('on'); if(state.currentScreen==='game') renderCards();"></div>
+      <div class="toggle" id="faceCardToggle" onclick="this.classList.toggle('on'); if(state.currentScreen==='game') renderCards();"></div>
     </div>
     <div class="setting-row">
       <div>
@@ -6970,7 +6995,16 @@ function getCardValueImageUrl(card) {
   const effVal = getEffectiveVal(card);
   const modified = isCardModified(card);
   const prefix = modified ? 'alt_value' : 'value';
-  return `images/value/${prefix}_${effVal}.png`;
+  const toggle = document.getElementById('faceCardToggle');
+  const useFace = toggle && toggle.classList.contains('on');
+  let filename;
+  if (useFace) {
+    const faceMap = { 11: 'j', 12: 'q', 13: 'k', 14: 'a' };
+    filename = faceMap[effVal] || String(effVal);
+  } else {
+    filename = String(effVal);
+  }
+  return `images/value/${prefix}_${filename}.png`;
 }
 
 let _validCardArt = {};
@@ -7016,14 +7050,14 @@ function getEffectiveVal(card) {
 // Returns display string for the effective value
 function getEffectiveDisplayVal(card) {
   const eff = getEffectiveVal(card);
-  const toggle = document.getElementById('numericValToggle');
-  const useNumeric = toggle && toggle.classList.contains('on');
-  if (useNumeric) return String(eff);
-  // Convert back to face card name
-  if (eff === 11) return 'J';
-  if (eff === 12) return 'Q';
-  if (eff === 13) return 'K';
-  if (eff === 14) return 'A';
+  const toggle = document.getElementById('faceCardToggle');
+  const useFace = toggle && toggle.classList.contains('on');
+  if (useFace) {
+    if (eff === 11) return 'J';
+    if (eff === 12) return 'Q';
+    if (eff === 13) return 'K';
+    if (eff === 14) return 'A';
+  }
   return String(eff);
 }
 
@@ -7035,9 +7069,9 @@ function isCardModified(card) {
 
 // Returns the value to show on the card face — numeric if toggle is on
 function displayVal(val) {
-  const toggle = document.getElementById('numericValToggle');
-  const useNumeric = toggle && toggle.classList.contains('on');
-  if (!useNumeric) return val;
+  const toggle = document.getElementById('faceCardToggle');
+  const useFace = toggle && toggle.classList.contains('on');
+  if (useFace) return val;
   return String(numericValue(val));
 }
 
@@ -7422,8 +7456,27 @@ function updateWeaponBar() {
       const effVal = k.effectiveVal != null ? k.effectiveVal : numericValue(k.val);
       const rawVal = numericValue(k.val);
       const isModified = effVal !== rawVal;
+
+      // Try full art for monster kills
+      const fakeCard = { type: 'monster', val: k.val, suit: k.suit, isRed: (k.suit === '♥' || k.suit === '♦') };
+      const artUrl = getCardArtUrl(fakeCard);
+      if (artUrl && _validCardArt[artUrl]) {
+        const titleUrl = getCardTitleImageUrl(fakeCard);
+        const toggle = document.getElementById('faceCardToggle');
+        const useFace = toggle && toggle.classList.contains('on');
+        const faceMap = { 11: 'j', 12: 'q', 13: 'k', 14: 'a' };
+        const valFile = (useFace && faceMap[effVal]) ? faceMap[effVal] : String(effVal);
+        const prefix = isModified ? 'alt_value' : 'value';
+        const valUrl = `images/value/${prefix}_${valFile}.png`;
+        return `
+          <div class="kill-badge has-art" title="${effVal}${k.suit}">
+            ${titleUrl ? `<div class="kill-title"><img src="${titleUrl}" alt=""></div>` : ''}
+            <div class="kill-art" style="background-image:url('${artUrl}');"></div>
+            <div class="kill-val"><img src="${valUrl}" alt=""></div>
+          </div>`;
+      }
+
       const modCls = isModified ? ' val-modified' : '';
-      // Display effective value as face card name if needed
       const dispVal = effVal === 11 ? 'J' : effVal === 12 ? 'Q' : effVal === 13 ? 'K' : effVal === 14 ? 'A' : String(effVal);
       return `
         <div class="kill-badge ${colorCls}" title="${dispVal}${k.suit}">
@@ -10096,6 +10149,22 @@ function buildDiscardGrid(containerId) {
     // Use fake display if Deceptive is active
     const disp = isDeceptive && card._fakeDisplay ? card._fakeDisplay : card;
     const colorCls = disp.isRed ? 'red-suit' : 'black-suit';
+
+    // Try full art
+    const artUrl = getCardArtUrl(disp);
+    if (artUrl && _validCardArt[artUrl]) {
+      const titleUrl = getCardTitleImageUrl(disp);
+      const effVal = getEffectiveVal(disp);
+      const modified = isCardModified(disp);
+      const toggle = document.getElementById('faceCardToggle');
+      const useFace = toggle && toggle.classList.contains('on');
+      const faceMap = { 11: 'j', 12: 'q', 13: 'k', 14: 'a' };
+      const valFile = (useFace && faceMap[effVal]) ? faceMap[effVal] : String(effVal);
+      const prefix = modified ? 'alt_value' : 'value';
+      const valUrl = `images/value/${prefix}_${valFile}.png`;
+      return `<div class="discard-mini-card has-art">${titleUrl ? `<div class="disc-title"><img src="${titleUrl}" alt=""></div>` : ''}<div class="disc-art" style="background-image:url('${artUrl}');"></div><div class="disc-val"><img src="${valUrl}" alt=""></div></div>`;
+    }
+
     return `<div class="discard-mini-card ${colorCls}"><span>${displayVal(disp.val)}</span><span class="dmc-suit">${disp.suit}</span></div>`;
   }).join('') + '</div>';
 }
