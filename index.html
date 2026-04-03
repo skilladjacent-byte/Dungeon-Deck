@@ -996,6 +996,7 @@ if ('serviceWorker' in navigator) {
     display: flex; align-items: center; justify-content: center;
     font-size: 1.8rem;
     color: rgba(212,160,23,0.2);
+    z-index: 12;
   }
   .play-card.facedown { cursor: default; }
 
@@ -1535,8 +1536,8 @@ if ('serviceWorker' in navigator) {
     max-width: 600px;
   }
   .kill-badge {
-    width: clamp(36px, 7vh, 74px);
-    height: clamp(50px, 9.8vh, 104px);
+    width: clamp(47px, 9.1vh, 96px);
+    height: clamp(65px, 12.7vh, 135px);
     border-radius: 6px;
     background: linear-gradient(160deg, #faf0d8, #ecddb5);
     border: 1px solid #c8a96e;
@@ -2316,7 +2317,7 @@ if ('serviceWorker' in navigator) {
     }
     .kill-counter { min-width: 0; max-width: 260px; }
     .kill-badges  { max-width: 260px; gap: 6px; }
-    .kill-badge   { width: clamp(40px, 6vw, 74px); height: clamp(56px, 8.4vw, 104px); font-size: clamp(1rem, 2vw, 2.2rem); }
+    .kill-badge   { width: clamp(52px, 7.8vw, 96px); height: clamp(73px, 10.9vw, 135px); font-size: clamp(1rem, 2vw, 2.2rem); }
     .kill-count-num { font-size: 1rem; }
     .kill-counter-title { font-size: 0.8rem; }
   }
@@ -2712,6 +2713,8 @@ if ('serviceWorker' in navigator) {
   .play-card.veiled .card-center-suit,
   .play-card.veiled .card-phone-val,
   .play-card.veiled .card-type-badge,
+  .play-card.veiled .card-title-img,
+  .play-card.veiled .card-value-img,
   .play-card.veiled .resolve-order-badge { visibility: hidden; }
   .card-veil-back {
     position: absolute; inset: 0;
@@ -2723,7 +2726,7 @@ if ('serviceWorker' in navigator) {
     align-items: center; justify-content: center;
     gap: 6px;
     pointer-events: none;
-    z-index: 5;
+    z-index: 12;
   }
   .play-card.veiled .card-veil-back { display: flex; }
   .card-veil-suit {
@@ -3902,6 +3905,11 @@ if ('serviceWorker' in navigator) {
     box-shadow: 0 0 30px rgba(255,40,40,0.8), 0 0 60px rgba(255,20,20,0.5), 0 0 100px rgba(255,0,0,0.3);
     filter: blur(1px);
   }
+  .damage-slash-line.thick {
+    width: 8px;
+    box-shadow: 0 0 40px rgba(255,40,40,0.9), 0 0 80px rgba(255,20,20,0.6), 0 0 120px rgba(255,0,0,0.4);
+    filter: blur(1.5px);
+  }
   @keyframes slashFlash {
     0% { opacity: 1; }
     20% { opacity: 1; }
@@ -3926,6 +3934,11 @@ if ('serviceWorker' in navigator) {
     box-shadow: 0 0 30px rgba(220,180,40,0.8), 0 0 60px rgba(180,140,20,0.5), 0 0 100px rgba(160,120,0,0.3);
     background: linear-gradient(180deg, transparent, rgba(220,180,40,0.9) 30%, rgba(255,220,80,1) 50%, rgba(220,180,40,0.9) 70%, transparent);
     filter: blur(1px);
+  }
+  .partial-slash-line.thick {
+    width: 8px;
+    box-shadow: 0 0 40px rgba(220,180,40,0.9), 0 0 80px rgba(180,140,20,0.6), 0 0 120px rgba(160,120,0,0.4);
+    filter: blur(1.5px);
   }
 
   /* ─── HEAL HEARTS BUBBLE ─── */
@@ -7660,7 +7673,7 @@ function flashDamageSlash() {
   const angle = angles[idx] + (Math.random() * 10 - 5);
   const offset = offsets[idx] + (Math.random() * 10 - 5);
   const line = document.createElement('div');
-  line.className = 'damage-slash-line';
+  line.className = 'damage-slash-line thick';
   line.style.transform = `translateX(calc(-50% + ${offset}vw)) rotate(${angle}deg)`;
   el.appendChild(line);
   document.body.appendChild(el);
@@ -7678,7 +7691,7 @@ function flashGoldSlash() {
   const angle = angles[idx] + (Math.random() * 10 - 5);
   const offset = offsets[idx] + (Math.random() * 8 - 4);
   const line = document.createElement('div');
-  line.className = 'partial-slash-line';
+  line.className = 'partial-slash-line thick';
   line.style.transform = `translateX(calc(-50% + ${offset}vw)) rotate(${angle}deg)`;
   el.appendChild(line);
   document.body.appendChild(el);
@@ -7921,17 +7934,17 @@ function resolveRoom() {
             addLog(`☠ Max HP reduced by ${maxHpReduction} → now ${state.player.maxHp}`, 'danger');
           }
         }
-        // Boss tag: Soul Rend — Spades 2–4 drain max HP when they deal damage
+        // Boss tag: Soul Rend — Monsters 2–4 drain max HP when they deal damage
         if (endless.activeTags && endless.activeTags.some(t => t.id === 'spade_drain')
-            && card.suit === '♠' && numericValue(card.val) <= 4 && dmg > 0) {
+            && card.type === 'monster' && numericValue(card.val) >= 2 && numericValue(card.val) <= 4 && dmg > 0) {
           state.player.maxHp = Math.max(1, state.player.maxHp - dmg);
           state.player.hp    = Math.min(state.player.hp, state.player.maxHp);
           updateHpBar();
-          addLog(`♠ Soul Rend — Max HP reduced by ${dmg} → now ${state.player.maxHp}`, 'danger');
+          addLog(`💀 Soul Rend — Max HP reduced by ${dmg} → now ${state.player.maxHp}`, 'danger');
         }
-        // Boss tag: Virulent — Clubs 2–4 poison on unblocked hit
+        // Boss tag: Virulent — Monsters 2–4 poison on unblocked hit
         if (endless.activeTags && endless.activeTags.some(t => t.id === 'poison')
-            && card.suit === '♣' && numericValue(card.val) <= 4
+            && card.type === 'monster' && numericValue(card.val) >= 2 && numericValue(card.val) <= 4
             && !weaponActive && !endless.poisoned) {
           endless.poisoned = true;
           document.body.classList.add('is-poisoned');
@@ -8129,16 +8142,16 @@ function recordUnblockedDamage() {
 const BOSS_TAGS = [
   {
     id: 'spade_drain',
-    icon: '♠',
+    icon: '💀',
     name: 'Soul Rend',
-    desc: 'Spades 2–4, when dealing damage, permanently reduce your Max HP by the amount dealt.',
+    desc: 'Monsters valued 2–4, when dealing damage, permanently reduce your Max HP by the amount dealt.',
     // Applied in resolveRoom after spade damage
   },
   {
     id: 'poison',
     icon: '☠',
     name: 'Virulent',
-    desc: 'Clubs 2–4 poison you on unblocked hit. Poison deals 1 damage each time a room resolves. Cured by any Health Potion.',
+    desc: 'Monsters valued 2–4 poison you on unblocked hit. Poison deals 1 damage each time a room resolves. Cured by any Health Potion.',
     // Applied in resolveRoom; persists via endless.poisoned
   },
   {
