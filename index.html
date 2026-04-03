@@ -1020,7 +1020,7 @@ if ('serviceWorker' in navigator) {
     padding: clamp(6px, 1vh, 10px) clamp(14px, 2.5vw, 28px);
     cursor: pointer;
     border: 1px solid;
-    background: transparent;
+    background: rgba(10,8,5,0.7);
     transition: all 0.25s ease;
   }
   .btn-confirm {
@@ -1028,7 +1028,7 @@ if ('serviceWorker' in navigator) {
     border-color: rgba(212,160,23,0.4);
   }
   .btn-confirm:hover:not(:disabled) {
-    background: rgba(212,160,23,0.1);
+    background: rgba(212,160,23,0.15);
     border-color: var(--gold);
     box-shadow: 0 0 16px rgba(212,160,23,0.2);
   }
@@ -1048,7 +1048,7 @@ if ('serviceWorker' in navigator) {
     box-shadow: 0 0 10px rgba(192,57,43,0.2);
   }
   .btn-flee.flee-ready:hover {
-    background: rgba(139,26,26,0.12);
+    background: rgba(139,26,26,0.2);
     border-color: var(--blood-bright);
     box-shadow: 0 0 20px rgba(192,57,43,0.4);
   }
@@ -1497,6 +1497,10 @@ if ('serviceWorker' in navigator) {
     border: 1px dashed rgba(200,169,110,0.2);
     box-shadow: none;
   }
+  .weapon-card.has-wpn-art {
+    background: transparent;
+    border-color: rgba(80,60,40,0.4);
+  }
   .weapon-card-inner {
     position: absolute; inset: 8px;
     border: 1px solid rgba(139,90,40,0.3);
@@ -1846,8 +1850,8 @@ if ('serviceWorker' in navigator) {
       justify-content: flex-start;
       gap: 0;
       width: min(96vw, 400px);
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(200,169,110,0.12);
+      background: rgba(10,8,5,0.75);
+      border: 1px solid rgba(200,169,110,0.2);
       border-radius: 4px;
       padding: 6px 10px;
       margin: 4px auto 0;
@@ -3716,6 +3720,61 @@ if ('serviceWorker' in navigator) {
   }
   .play-card.veiled.corrosive .card-veil-back {
     border: 1px solid rgba(40,255,40,0.5);
+  }
+
+  /* ─── BOOMERANG WEAPON GLOW ─── */
+
+  /* ─── SOUL REND GLOW (red) ─── */
+  .play-card.soul-rend {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 18px rgba(255,40,40,0.6), 0 0 40px rgba(255,40,40,0.3);
+    animation: soulRendPulse 1.8s ease-in-out infinite;
+  }
+  .play-card.soul-rend.dealing { animation: cardDealIn 0.465s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+  @keyframes soulRendPulse {
+    0%, 100% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 18px rgba(255,40,40,0.6), 0 0 40px rgba(255,40,40,0.3); }
+    50% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 24px rgba(255,40,40,0.8), 0 0 56px rgba(255,40,40,0.45); }
+  }
+  .play-card.soul-rend::after {
+    content: '💀';
+    position: absolute;
+    top: 4px; right: 6px;
+    font-size: 0.7rem;
+    z-index: 15;
+    pointer-events: none;
+    filter: drop-shadow(0 0 6px rgba(255,40,40,1));
+  }
+
+  /* ─── VIRULENT GLOW (green) ─── */
+  .play-card.virulent {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 18px rgba(80,220,40,0.6), 0 0 40px rgba(80,220,40,0.3);
+    animation: virulentPulse 1.8s ease-in-out infinite;
+  }
+  .play-card.virulent.dealing { animation: cardDealIn 0.465s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+  @keyframes virulentPulse {
+    0%, 100% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 18px rgba(80,220,40,0.6), 0 0 40px rgba(80,220,40,0.3); }
+    50% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 24px rgba(80,220,40,0.8), 0 0 56px rgba(80,220,40,0.45); }
+  }
+  .play-card.virulent::after {
+    content: '☠';
+    position: absolute;
+    top: 4px; right: 6px;
+    font-size: 0.7rem;
+    z-index: 15;
+    pointer-events: none;
+    filter: drop-shadow(0 0 6px rgba(80,220,40,1));
+  }
+
+  /* ─── SOUL REND + VIRULENT (alternating pulse) ─── */
+  .play-card.soul-rend.virulent {
+    animation: soulVirulentPulse 2.4s ease-in-out infinite;
+  }
+  .play-card.soul-rend.virulent.dealing { animation: cardDealIn 0.465s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+  @keyframes soulVirulentPulse {
+    0%, 100% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 20px rgba(255,40,40,0.7), 0 0 44px rgba(255,40,40,0.35); }
+    50% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 20px rgba(80,220,40,0.7), 0 0 44px rgba(80,220,40,0.35); }
+  }
+  .play-card.soul-rend.virulent::after {
+    content: '💀☠';
   }
 
   /* ─── BOOMERANG WEAPON GLOW ─── */
@@ -6995,6 +7054,7 @@ function getPotionImageUrl(card) {
 
 function getWeaponImageUrl(card) {
   if (card.type !== 'weapon' || card.isTrap) return null;
+  if (card.isBoomerang) return 'images/deck/weapon_boomerang.png';
   const v = numericValue(card.val);
   return `images/deck/weapon_${v}.png`;
 }
@@ -7045,6 +7105,10 @@ function preloadCardArt() {
     img.onload = () => { _validCardArt[src] = true; };
     img.src = src;
   }
+  const boomSrc = 'images/deck/weapon_boomerang.png';
+  const boomImg = new Image();
+  boomImg.onload = () => { _validCardArt[boomSrc] = true; };
+  boomImg.src = boomSrc;
 }
 preloadCardArt();
 
@@ -7134,6 +7198,10 @@ function dealCardsAnimated() {
     el.className = cls;
     if (card.isCorrosive) el.classList.add('corrosive');
     if (card.isBoomerang) el.classList.add('boomerang');
+    if (card.type === 'monster' && numericValue(card.val) >= 2 && numericValue(card.val) <= 4 && endless.activeTags) {
+      if (endless.activeTags.some(t => t.id === 'spade_drain')) el.classList.add('soul-rend');
+      if (endless.activeTags.some(t => t.id === 'poison')) el.classList.add('virulent');
+    }
     el.dataset.idx = idx;
     el.style.opacity = '0';
 
@@ -7211,6 +7279,10 @@ function renderCards() {
     el.className = cls;
     if (card.isCorrosive) el.classList.add('corrosive');
     if (card.isBoomerang) el.classList.add('boomerang');
+    if (card.type === 'monster' && numericValue(card.val) >= 2 && numericValue(card.val) <= 4 && endless.activeTags) {
+      if (endless.activeTags.some(t => t.id === 'spade_drain')) el.classList.add('soul-rend');
+      if (endless.activeTags.some(t => t.id === 'poison')) el.classList.add('virulent');
+    }
     el.dataset.idx = idx;
 
     // Resolution order badge
@@ -7445,12 +7517,13 @@ function updateWeaponBar() {
     const effWpnVal = Math.max(0, w.val - bossTagWeaponPenalty());
     const wpnModified = effWpnVal !== w.val;
     const wpnModCls = wpnModified ? ' val-modified' : '';
-    const fakeWpnCard = { type: 'weapon', val: String(w.val), suit: '♦', isRed: true };
+    const fakeWpnCard = { type: 'weapon', val: String(w.val), suit: '♦', isRed: true, isBoomerang: !!w.isBoomerang };
     const wpnArt = getCardArtUrl(fakeWpnCard);
     const wpnUseArt = wpnArt && _validCardArt[wpnArt];
     cardEl.className = 'weapon-card';
 
     if (wpnUseArt) {
+      cardEl.className = 'weapon-card has-wpn-art';
       const titleUrl = getCardTitleImageUrl(fakeWpnCard);
       const toggle = document.getElementById('faceCardToggle');
       const useFace = toggle && toggle.classList.contains('on');
@@ -10165,8 +10238,8 @@ function buildDiscardGrid(containerId) {
     });
   }
 
-  // Sort: by suit order (♠ ♣ ♥ ♦), then by numeric value ascending; specials at end
-  const suitOrder = { '♠': 0, '♣': 1, '♥': 2, '♦': 3 };
+  // Sort: monsters first (by value), then potions (by value), then weapons (by value); specials at end
+  const typeOrder = { 'monster': 0, 'potion': 1, 'weapon': 2 };
   const sorted = [...state.discard].sort((a, b) => {
     // Specials (trap, curse, keg) go last, grouped by type
     const aSpecial = a.isTrap ? 10 : a.isCurse ? 11 : a.isKeg ? 12 : 0;
@@ -10177,8 +10250,9 @@ function buildDiscardGrid(containerId) {
     // When deceptive, sort by fake display
     const aDisp = isDeceptive && a._fakeDisplay ? a._fakeDisplay : a;
     const bDisp = isDeceptive && b._fakeDisplay ? b._fakeDisplay : b;
-    const suitDiff = (suitOrder[aDisp.suit] ?? 9) - (suitOrder[bDisp.suit] ?? 9);
-    if (suitDiff !== 0) return suitDiff;
+    const aType = (typeOrder[aDisp.type] ?? 9);
+    const bType = (typeOrder[bDisp.type] ?? 9);
+    if (aType !== bType) return aType - bType;
     return numericValue(aDisp.val) - numericValue(bDisp.val);
   });
 
