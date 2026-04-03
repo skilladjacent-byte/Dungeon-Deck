@@ -6993,8 +6993,14 @@ function getPotionImageUrl(card) {
   return 'images/deck/heal.png';
 }
 
+function getWeaponImageUrl(card) {
+  if (card.type !== 'weapon' || card.isTrap) return null;
+  const v = numericValue(card.val);
+  return `images/deck/weapon_${v}.png`;
+}
+
 function getCardArtUrl(card) {
-  return getMonsterImageUrl(card) || getPotionImageUrl(card);
+  return getMonsterImageUrl(card) || getPotionImageUrl(card) || getWeaponImageUrl(card);
 }
 
 function getCardTitleImageUrl(card) {
@@ -7033,6 +7039,12 @@ function preloadCardArt() {
   const healImg = new Image();
   healImg.onload = () => { _validCardArt[healSrc] = true; };
   healImg.src = healSrc;
+  for (let v = 2; v <= 14; v++) {
+    const src = `images/deck/weapon_${v}.png`;
+    const img = new Image();
+    img.onload = () => { _validCardArt[src] = true; };
+    img.src = src;
+  }
 }
 preloadCardArt();
 
@@ -7433,27 +7445,48 @@ function updateWeaponBar() {
     const effWpnVal = Math.max(0, w.val - bossTagWeaponPenalty());
     const wpnModified = effWpnVal !== w.val;
     const wpnModCls = wpnModified ? ' val-modified' : '';
+    const fakeWpnCard = { type: 'weapon', val: String(w.val), suit: '♦', isRed: true };
+    const wpnArt = getCardArtUrl(fakeWpnCard);
+    const wpnUseArt = wpnArt && _validCardArt[wpnArt];
     cardEl.className = 'weapon-card';
-    cardEl.innerHTML = `
-      <div class="weapon-card-inner" style="position:absolute;inset:5px;overflow:hidden;background:linear-gradient(160deg,#faf0d8,#ecddb5);border:1px solid rgba(139,90,40,0.3);border-radius:3px;">
-        <div class="weapon-desktop-layout">
-          <div style="position:absolute;top:12px;left:12px;font-family:'Cinzel',serif;font-weight:700;font-size:1.8rem;line-height:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:#8b1a1a;">
-            <span class="${wpnModCls}">${effWpnVal}</span><span class="weapon-corner-suit" style="font-size:1.35rem">♦</span>
+
+    if (wpnUseArt) {
+      const titleUrl = getCardTitleImageUrl(fakeWpnCard);
+      const toggle = document.getElementById('faceCardToggle');
+      const useFace = toggle && toggle.classList.contains('on');
+      const faceMap = { 11: 'j', 12: 'q', 13: 'k', 14: 'a' };
+      const valFile = (useFace && faceMap[effWpnVal]) ? faceMap[effWpnVal] : String(effWpnVal);
+      const prefix = wpnModified ? 'alt_value' : 'value';
+      const valUrl = `images/value/${prefix}_${valFile}.png`;
+      cardEl.innerHTML = `
+        <div style="position:absolute;inset:0;overflow:hidden;border-radius:5px;">
+          ${titleUrl ? `<div style="position:absolute;top:4%;left:50%;transform:translateX(-50%);width:80%;z-index:1;pointer-events:none;"><img src="${titleUrl}" style="width:100%;height:auto;display:block;" alt=""></div>` : ''}
+          <div style="position:absolute;inset:3px;background-image:url('${wpnArt}');background-size:cover;background-position:center;z-index:2;border-radius:4px;"></div>
+          <div style="position:absolute;bottom:4%;left:50%;transform:translateX(-50%);width:55%;z-index:10;pointer-events:none;"><img src="${valUrl}" style="width:100%;height:auto;display:block;" alt=""></div>
+        </div>
+      `;
+    } else {
+      cardEl.innerHTML = `
+        <div class="weapon-card-inner" style="position:absolute;inset:5px;overflow:hidden;background:linear-gradient(160deg,#faf0d8,#ecddb5);border:1px solid rgba(139,90,40,0.3);border-radius:3px;">
+          <div class="weapon-desktop-layout">
+            <div style="position:absolute;top:12px;left:12px;font-family:'Cinzel',serif;font-weight:700;font-size:1.8rem;line-height:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:#8b1a1a;">
+              <span class="${wpnModCls}">${effWpnVal}</span><span class="weapon-corner-suit" style="font-size:1.35rem">♦</span>
+            </div>
+            <div class="weapon-card-center-suit" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:8rem;line-height:1;color:#8b1a1a;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));">♦</div>
+            <div style="position:absolute;bottom:12px;right:12px;font-family:'Cinzel',serif;font-weight:700;font-size:1.8rem;line-height:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:#8b1a1a;transform:rotate(180deg);">
+              <span class="${wpnModCls}">${effWpnVal}</span><span class="weapon-corner-suit" style="font-size:1.35rem">♦</span>
+            </div>
           </div>
-          <div class="weapon-card-center-suit" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:8rem;line-height:1;color:#8b1a1a;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));">♦</div>
-          <div style="position:absolute;bottom:12px;right:12px;font-family:'Cinzel',serif;font-weight:700;font-size:1.8rem;line-height:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:#8b1a1a;transform:rotate(180deg);">
-            <span class="${wpnModCls}">${effWpnVal}</span><span class="weapon-corner-suit" style="font-size:1.35rem">♦</span>
+          <div class="weapon-phone-layout">
+            <div class="weapon-phone-val">
+              <span class="weapon-phone-num${wpnModCls}">${effWpnVal}</span>
+              <span class="weapon-phone-suit">♦</span>
+            </div>
+            <div class="weapon-phone-badge">Weapon</div>
           </div>
         </div>
-        <div class="weapon-phone-layout">
-          <div class="weapon-phone-val">
-            <span class="weapon-phone-num${wpnModCls}">${effWpnVal}</span>
-            <span class="weapon-phone-suit">♦</span>
-          </div>
-          <div class="weapon-phone-badge">Weapon</div>
-        </div>
-      </div>
-    `;
+      `;
+    }
   }
 
   // Kill badges
