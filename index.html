@@ -3715,10 +3715,53 @@ if ('serviceWorker' in navigator) {
     position: absolute !important;
     inset: 3px !important;
     padding: 0 !important;
+    background-color: transparent !important;
     background-size: cover !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
     border-radius: 4px;
+    border: none !important;
+    z-index: 2;
+  }
+
+  /* Make play-card bg dark/transparent for monster art */
+  .play-card:has(.monster-art) {
+    background: transparent;
+    border-color: rgba(80,60,40,0.4);
+  }
+
+  /* Title image — behind the card */
+  .card-title-img {
+    position: absolute;
+    top: 4%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: auto;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .card-title-img img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Value image — in front of the card */
+  .card-value-img {
+    position: absolute;
+    bottom: 4%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 55%;
+    height: auto;
+    z-index: 10;
+    pointer-events: none;
+  }
+  .card-value-img img {
+    width: 100%;
+    height: auto;
+    display: block;
   }
   .monster-art-val {
     position: absolute;
@@ -6907,17 +6950,44 @@ function getMonsterImageUrl(card) {
   return `images/deck/monster_${filename}.png`;
 }
 
-let _validMonsterImages = {};
-function preloadMonsterImages() {
-  const vals = ['2','3','4','5','6','7','8','9','10','j','q','k','a'];
-  vals.forEach(v => {
+function getPotionImageUrl(card) {
+  if (card.type !== 'potion') return null;
+  return 'images/deck/heal.png';
+}
+
+function getCardArtUrl(card) {
+  return getMonsterImageUrl(card) || getPotionImageUrl(card);
+}
+
+function getCardTitleImageUrl(card) {
+  if (card.type === 'monster') return 'images/title/class_monster.png';
+  if (card.type === 'potion') return 'images/title/class_potion.png';
+  if (card.type === 'weapon' && !card.isTrap) return 'images/title/class_weapon.png';
+  return null;
+}
+
+function getCardValueImageUrl(card) {
+  const effVal = getEffectiveVal(card);
+  const modified = isCardModified(card);
+  const prefix = modified ? 'alt_value' : 'value';
+  return `images/value/${prefix}_${effVal}.png`;
+}
+
+let _validCardArt = {};
+function preloadCardArt() {
+  const monsterVals = ['2','3','4','5','6','7','8','9','10','j','q','k','a'];
+  monsterVals.forEach(v => {
     const src = `images/deck/monster_${v}.png`;
     const img = new Image();
-    img.onload = () => { _validMonsterImages[src] = true; };
+    img.onload = () => { _validCardArt[src] = true; };
     img.src = src;
   });
+  const healSrc = 'images/deck/heal.png';
+  const healImg = new Image();
+  healImg.onload = () => { _validCardArt[healSrc] = true; };
+  healImg.src = healSrc;
 }
-preloadMonsterImages();
+preloadCardArt();
 
 // Returns the boomerang weapon to the deck if it has returns remaining
 function returnBoomerangToDeck(weapon) {
@@ -7022,10 +7092,12 @@ function dealCardsAnimated() {
     } else {
       const effDisplay = getEffectiveDisplayVal(card);
       const modCls = isCardModified(card) ? ' val-modified' : '';
-      const monsterImg = getMonsterImageUrl(card);
-      const useArt = monsterImg && _validMonsterImages[monsterImg];
+      const cardArtImg = getCardArtUrl(card);
+      const useArt = cardArtImg && _validCardArt[cardArtImg];
       if (useArt) {
-        el.innerHTML = `${orderBadge}<div class="card-inner monster-art" style="background-image:url('${monsterImg}');"><div class="monster-art-val"><span class="monster-art-num${modCls}">${effDisplay}</span><span class="monster-art-suit">${card.suit}</span></div><div class="card-type-badge ${lbl.cls}">${lbl.text}</div></div>`;
+        const titleImg = getCardTitleImageUrl(card);
+        const valueImg = getCardValueImageUrl(card);
+        el.innerHTML = `${orderBadge}${titleImg ? `<div class="card-title-img"><img src="${titleImg}" alt=""></div>` : ''}<div class="card-inner monster-art" style="background-image:url('${cardArtImg}');"></div>${valueImg ? `<div class="card-value-img"><img src="${valueImg}" alt=""></div>` : ''}`;
       } else {
         el.innerHTML = `${orderBadge}<div class="card-inner"><div class="card-corner-val tl ${colorCls}"><span class="${modCls}">${effDisplay}</span><span class="card-corner-suit">${card.suit}</span></div><div class="card-phone-val"><span class="card-phone-num ${colorCls}${modCls}">${effDisplay}</span><span class="card-phone-suit ${colorCls}">${card.suit}</span></div><div class="card-center-suit ${colorCls}">${card.suit}</div><div class="card-corner-val br ${colorCls}"><span class="${modCls}">${effDisplay}</span><span class="card-corner-suit">${card.suit}</span></div><div class="card-type-badge ${lbl.cls}">${lbl.text}</div></div>`;
       }
@@ -7118,19 +7190,17 @@ function renderCards() {
     } else {
       const effDisplay = getEffectiveDisplayVal(card);
       const modCls = isCardModified(card) ? ' val-modified' : '';
-      const monsterImg = getMonsterImageUrl(card);
-      const useArt = monsterImg && _validMonsterImages[monsterImg];
+      const cardArtImg = getCardArtUrl(card);
+      const useArt = cardArtImg && _validCardArt[cardArtImg];
 
       if (useArt) {
+        const titleImg = getCardTitleImageUrl(card);
+        const valueImg = getCardValueImageUrl(card);
         el.innerHTML = `
           ${orderBadge}
-          <div class="card-inner monster-art" style="background-image:url('${monsterImg}');">
-            <div class="monster-art-val">
-              <span class="monster-art-num${modCls}">${effDisplay}</span>
-              <span class="monster-art-suit">${card.suit}</span>
-            </div>
-            <div class="card-type-badge ${lbl.cls}">${lbl.text}</div>
-          </div>
+          ${titleImg ? `<div class="card-title-img"><img src="${titleImg}" alt=""></div>` : ''}
+          <div class="card-inner monster-art" style="background-image:url('${cardArtImg}');"></div>
+          ${valueImg ? `<div class="card-value-img"><img src="${valueImg}" alt=""></div>` : ''}
         `;
       } else {
         el.innerHTML = `
