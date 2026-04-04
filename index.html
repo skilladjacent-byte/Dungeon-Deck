@@ -755,6 +755,7 @@ if ('serviceWorker' in navigator) {
   .card-row {
     display: flex; gap: 20px; align-items: flex-end;
     position: relative;
+    min-height: var(--card-h, 168px);
   }
 
   .card-row-label {
@@ -1383,13 +1384,112 @@ if ('serviceWorker' in navigator) {
     box-shadow: 0 4px 20px rgba(0,0,0,0.5);
   }
   .top-hp-portrait {
-    width: 36px; height: 36px; border-radius: 50%;
+    width: 59px; height: 59px; border-radius: 50%;
     background: linear-gradient(135deg, #2a1f14, #1a140e);
     border: 1px solid rgba(200,169,110,0.35);
     display: flex; align-items: center; justify-content: center;
     font-size: 1.1rem; flex-shrink: 0;
   }
   .top-hp-info { flex: 1; min-width: 0; }
+
+  /* Party badge on portrait */
+  .party-badge {
+    position: absolute;
+    bottom: -2px; right: -2px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: rgba(160,128,255,0.9);
+    color: #fff;
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid rgba(255,255,255,0.3);
+    box-shadow: 0 0 8px rgba(160,128,255,0.6);
+    z-index: 5;
+    cursor: pointer;
+  }
+
+  /* Party info panel */
+  .party-panel-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 400;
+  }
+  .party-panel-backdrop.open { display: block; }
+  .party-panel {
+    display: none;
+    position: absolute;
+    top: 70px;
+    left: 12px;
+    z-index: 401;
+    background: linear-gradient(160deg, rgba(18,14,9,0.95), rgba(12,9,6,0.95));
+    border: 1px solid rgba(200,169,110,0.3);
+    border-radius: 8px;
+    padding: 14px 16px;
+    min-width: 220px;
+    max-width: 300px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+    flex-direction: column;
+    gap: 10px;
+  }
+  .party-panel.open { display: flex; }
+  .party-panel-member {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border: 1px solid rgba(200,169,110,0.12);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .party-panel-member:hover {
+    background: rgba(200,169,110,0.06);
+  }
+  .party-panel-member.expanded {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .party-panel-member .member-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+  }
+  .party-panel-member .member-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    color: var(--parchment-light);
+    letter-spacing: 0.06em;
+  }
+  .party-panel-member .member-role {
+    font-family: 'Cinzel', serif;
+    font-size: 0.55rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-left: auto;
+  }
+  .party-panel-passive {
+    font-family: 'Crimson Text', serif;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    line-height: 1.4;
+    padding: 6px 0 0;
+    border-top: 1px solid rgba(200,169,110,0.1);
+    margin-top: 4px;
+    width: 100%;
+  }
+  .party-panel-passive-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    color: var(--parchment);
+    letter-spacing: 0.06em;
+    margin-bottom: 2px;
+  }
   .top-hp-label-row {
     display: flex; justify-content: space-between; align-items: baseline;
     margin-bottom: 6px;
@@ -2135,7 +2235,7 @@ if ('serviceWorker' in navigator) {
     .game-top-zone { padding: 36px 0 6px; }
     .weapon-corner-suit { display: none !important; }
     .game-top-bar  { width: min(96vw, 400px); padding: 8px 10px; gap: 8px; }
-    .top-hp-portrait { width: 28px; height: 28px; font-size: 0.9rem; }
+    .top-hp-portrait { width: 46px; height: 46px; font-size: 1.1rem; }
     .top-hp-track    { height: 14px; }
 
     /* Cards — auto-scale to fit viewport width */
@@ -2877,7 +2977,16 @@ if ('serviceWorker' in navigator) {
     gap: 6px;
     box-shadow: 0 0 20px rgba(160,100,255,0.3), 0 8px 24px rgba(0,0,0,0.5);
     position: relative;
+    overflow: hidden;
   }
+  .crystal-ball-card.has-art {
+    background: transparent;
+  }
+  .crystal-ball-card .cb-art { position: absolute; inset: 2px; background-size: cover; background-position: center; z-index: 2; border-radius: 6px; }
+  .crystal-ball-card .cb-title { position: absolute; top: 3%; left: 50%; transform: translateX(-50%); width: 80%; z-index: 1; pointer-events: none; }
+  .crystal-ball-card .cb-title img { width: 100%; height: auto; display: block; }
+  .crystal-ball-card .cb-val { position: absolute; bottom: 3%; left: 50%; transform: translateX(-50%); width: 55%; z-index: 10; pointer-events: none; }
+  .crystal-ball-card .cb-val img { width: 100%; height: auto; display: block; }
   .crystal-ball-card-val {
     font-family: 'Cinzel', serif;
     font-weight: 700;
@@ -3379,7 +3488,14 @@ if ('serviceWorker' in navigator) {
     position: relative;
     cursor: pointer;
     transition: all 0.25s ease;
+    overflow: hidden;
   }
+  .warp-scroll-card.has-art { background: transparent; }
+  .warp-scroll-card .ws-art { position: absolute; inset: 2px; background-size: cover; background-position: center; z-index: 2; border-radius: 6px; }
+  .warp-scroll-card .ws-title { position: absolute; top: 3%; left: 50%; transform: translateX(-50%); width: 80%; z-index: 1; pointer-events: none; }
+  .warp-scroll-card .ws-title img { width: 100%; height: auto; display: block; }
+  .warp-scroll-card .ws-val { position: absolute; bottom: 3%; left: 50%; transform: translateX(-50%); width: 55%; z-index: 10; pointer-events: none; }
+  .warp-scroll-card .ws-val img { width: 100%; height: auto; display: block; }
   .warp-scroll-card:hover {
     transform: translateY(-8px) scale(1.05);
     border-color: #60d0e0;
@@ -4542,7 +4658,10 @@ if ('serviceWorker' in navigator) {
     <!-- TOP ZONE: Health Bar -->
     <div class="game-top-zone">
       <div class="game-top-bar">
-        <div class="top-hp-portrait" id="topHpPortrait">🧍</div>
+        <div class="top-hp-portrait-wrap" style="position:relative;flex-shrink:0;">
+          <div class="top-hp-portrait" id="topHpPortrait" onclick="openPartyPanel()" style="cursor:pointer;">🧍</div>
+          <div class="party-badge" id="partyBadge" style="display:none;" onclick="openPartyPanel()">+</div>
+        </div>
         <div class="top-hp-info">
           <div class="top-hp-label-row">
             <span class="top-hp-name" id="topHpName">Deckard Diver</span>
@@ -4557,6 +4676,12 @@ if ('serviceWorker' in navigator) {
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- PARTY INFO PANEL -->
+    <div class="party-panel-backdrop" id="partyPanelBackdrop" onclick="closePartyPanel()"></div>
+    <div class="party-panel" id="partyPanel">
+      <div id="partyPanelContent"></div>
     </div>
 
     <!-- MOBILE STATS STRIP (hidden on desktop) -->
@@ -4629,7 +4754,7 @@ if ('serviceWorker' in navigator) {
         <div class="weapon-card-wrap">
           <div class="weapon-zone-label">Equipped Weapon</div>
           <div class="weapon-card empty" id="weaponCardEl">
-            <div class="weapon-card-inner">🗡️</div>
+            <div class="weapon-card-inner"></div>
           </div>
         </div>
         <div class="kill-counter" id="killCounter">
@@ -5057,14 +5182,12 @@ if ('serviceWorker' in navigator) {
         <div class="end-stat-val" id="endlessDefLevel" style="color:#a080ff;">—</div>
       </div>
       <div class="end-stat-row">
-        <div class="end-stat-label">Character</div>
-        <div class="end-stat-val" id="endlessDefParty">—</div>
-      </div>
-      <div class="end-stat-row">
         <div class="end-stat-label">Monsters Slain</div>
         <div class="end-stat-val" id="endlessDefSlain">—</div>
       </div>
     </div>
+    <div id="endlessDefPortrait" style="display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 0 12px;gap:10px;"></div>
+    <div id="endlessDefParty" style="display:none;">—</div>
     <div style="display:flex;gap:12px;margin-top:4px;width:100%;">
       <button class="btn-ghost" onclick="goTo('home')" style="flex:1;">Main Menu</button>
       <button class="btn-primary" onclick="playAgain()" style="flex:1;">Play Again</button>
@@ -5303,6 +5426,17 @@ if ('serviceWorker' in navigator) {
         style="font-family:'Cinzel',serif;font-size:1rem;letter-spacing:0.08em;color:var(--parchment-light);
                background:rgba(255,255,255,0.04);border:1px solid rgba(200,169,110,0.35);border-radius:3px;
                outline:none;padding:8px 12px;width:100px;text-align:center;" />
+    </div>
+
+    <!-- Force Recruit -->
+    <div style="margin-bottom:20px;">
+      <div class="setting-row" style="padding:0;">
+        <div>
+          <div class="setting-name">Force Recruit in Rewards</div>
+          <div class="setting-sub">100% chance a party recruit appears after every level</div>
+        </div>
+        <div class="toggle" id="debugForceRecruitToggle" onclick="this.classList.toggle('on')"></div>
+      </div>
     </div>
 
     <div class="modal-actions">
@@ -5633,6 +5767,7 @@ let endless = {
   active: false,
   level: 1,
   party: [],
+  partyMembers: [],
   starterIdx: 0,
   totalSlain: 0,
   currentBoss: null,
@@ -5658,13 +5793,53 @@ function hasPassive(name) {
       endless.currentBoss.name === 'The Dark Brain') {
     return false;
   }
-  // In endless mode, only check the current active character (no party stacking)
   if (endless.active) {
+    // Check main character
     const c = CHARACTERS[endless.starterIdx];
-    return c && c.passives.some(p => p.name === name);
+    if (c && c.passives.some(p => p.name === name)) return true;
+    // Check recruited party members
+    if (endless.partyMembers && endless.partyMembers.length > 0) {
+      return endless.partyMembers.some(idx => {
+        const m = CHARACTERS[idx];
+        return m && m.passives.some(p => p.name === name);
+      });
+    }
+    return false;
   }
   const char = CHARACTERS[state.selectedChar ?? 0];
   return char && char.passives.some(p => p.name === name);
+}
+
+// ─────────────────────────────────────
+// VETERAN TRACKING (characters that have beaten a boss in endless)
+// ─────────────────────────────────────
+function getVeteranKey() {
+  return activeProfile !== null ? profilePrefix(activeProfile) + 'endless-veterans' : 'deckdiver-endless-veterans';
+}
+
+function loadVeterans() {
+  if (isAdminProfile()) return CHARACTERS.filter(c => c.id !== 'naktuk').map(c => c.id);
+  try {
+    const raw = localStorage.getItem(getVeteranKey());
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function saveVeteran(charId) {
+  const vets = loadVeterans();
+  if (!vets.includes(charId)) {
+    vets.push(charId);
+    try { localStorage.setItem(getVeteranKey(), JSON.stringify(vets)); } catch {}
+  }
+}
+
+function getRecruitCandidates() {
+  const vets = loadVeterans();
+  const mainIdx = endless.starterIdx;
+  const partyIds = [CHARACTERS[mainIdx]?.id, ...(endless.partyMembers || []).map(idx => CHARACTERS[idx]?.id)];
+  return CHARACTERS
+    .map((c, idx) => ({ char: c, idx }))
+    .filter(({ char }) => vets.includes(char.id) && !partyIds.includes(char.id) && char.id !== 'naktuk');
 }
 
 // ─────────────────────────────────────
@@ -6320,10 +6495,18 @@ function continueGame() {
     endless.poisoned     = save.endlessPoisoned || false;
     endless.crystalBalls = save.endlessCrystalBalls || 0;
     endless.warpScrolls  = save.endlessWarpScrolls || 0;
+    endless.partyMembers = save.endlessPartyMembers || [];
+    endless.cursedCharms = save.endlessCursedCharms || 0;
+    endless.teleportWands = save.endlessTeleportWands || 0;
+    endless.holyFlasks   = save.endlessHolyFlasks || 0;
+    endless.shieldCharms = save.endlessShieldCharms || 0;
+    endless.luckCharms   = save.endlessLuckCharms || 0;
+    endless.whetstones   = save.endlessWhetstones || 0;
     endless.activeTags   = [];
     endless.currentBoss  = null;
     document.body.classList.add('is-endless');
     if (endless.poisoned) document.body.classList.add('is-poisoned');
+    updatePartyBadge();
   }
 
   // Restore all game state
@@ -6353,7 +6536,7 @@ function continueGame() {
   document.getElementById('playerPortrait').innerHTML = charLogoHtml(char, 60);
   document.getElementById('playerName').textContent     = char.name;
   document.getElementById('playerClass').textContent    = char.cls;
-  document.getElementById('topHpPortrait').innerHTML = charLogoHtml(char, 28);
+  document.getElementById('topHpPortrait').innerHTML = charLogoHtml(char, 46);
   document.getElementById('topHpName').textContent      = char.name;
 
   if (save.endlessActive) updateEndlessUI();
@@ -6367,6 +6550,7 @@ function continueGame() {
   updateWhetstoneUI();
   updateWeaponBar();
   updateHpBar();
+  setRoomBackground(!!(endless.active && endless.currentBoss));
 
   const rName = ROOM_NAMES[(state.roomNumber - 1) % ROOM_NAMES.length];
   document.getElementById('roomTitle').textContent = rName;
@@ -6574,8 +6758,10 @@ function buildCharGrid() {
   const unlocked = getUnlockedCharacters();
 
   let renderIdx = 0;
+  const veterans = loadVeterans();
   unlocked.forEach((c) => {
     const charIdx = CHARACTERS.indexOf(c);
+    const isVeteran = veterans.includes(c.id);
 
     const myRenderIdx = renderIdx++;
     const row = document.createElement('div');
@@ -6583,11 +6769,13 @@ function buildCharGrid() {
 
     const el = document.createElement('div');
     el.className = 'char-card' + (myRenderIdx === 0 ? ' selected' : '');
+    const vetLabel = isVeteran ? `<div style="font-family:'Cinzel',serif;font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:#a080ff;margin-bottom:4px;text-shadow:0 0 8px rgba(160,128,255,0.5);">Veteran</div>` : '';
     el.innerHTML = `
       <div class="char-corner tl"></div>
       <div class="char-corner tr"></div>
       <div class="char-corner bl"></div>
       <div class="char-corner br"></div>
+      ${vetLabel}
       <div class="char-avatar" style="background:${c.bg}; box-shadow: 0 0 20px ${c.color}22;">${charLogoHtml(c, 72)}</div>
       <div class="char-text-col" style="flex:1;min-width:0;display:flex;flex-direction:column;">
         <div class="char-name">${c.name}</div>
@@ -6769,7 +6957,7 @@ function startGame() {
   document.getElementById('playerPortrait').innerHTML = charLogoHtml(char, 60);
   document.getElementById('playerName').textContent = char.name;
   document.getElementById('playerClass').textContent = char.cls;
-  document.getElementById('topHpPortrait').innerHTML = charLogoHtml(char, 28);
+  document.getElementById('topHpPortrait').innerHTML = charLogoHtml(char, 46);
   document.getElementById('topHpName').textContent = char.name;
   state.weaponKills = [];
   updateWeaponBar();
@@ -6997,12 +7185,100 @@ function liftVeil() {
   });
 }
 
+// ─────────────────────────────────────
+// PARTY INFO PANEL
+// ─────────────────────────────────────
+function openPartyPanel() {
+  const panel = document.getElementById('partyPanel');
+  const backdrop = document.getElementById('partyPanelBackdrop');
+  const content = document.getElementById('partyPanelContent');
+
+  const mainChar = CHARACTERS[endless.active ? endless.starterIdx : (state.selectedChar ?? 0)];
+  if (!mainChar) return;
+
+  const members = [{ char: mainChar, role: 'Leader' }];
+  if (endless.active && endless.partyMembers && endless.partyMembers.length > 0) {
+    endless.partyMembers.forEach(idx => {
+      const c = CHARACTERS[idx];
+      if (c) members.push({ char: c, role: 'Recruit' });
+    });
+  }
+
+  content.innerHTML = members.map((m, i) => {
+    const passiveHtml = m.char.passives.length > 0
+      ? m.char.passives.map(p => `<div class="party-panel-passive"><div class="party-panel-passive-name">${p.name}</div>${p.desc}</div>`).join('')
+      : '<div class="party-panel-passive" style="color:var(--text-dim);font-style:italic;">No passive abilities</div>';
+    return `<div class="party-panel-member" onclick="togglePartyMember(this, event)">
+      <div class="member-header">
+        ${charLogoHtml(m.char, 36)}
+        <span class="member-name">${m.char.name}</span>
+        <span class="member-role">${m.role}</span>
+      </div>
+      <div class="party-panel-passives" style="display:none;width:100%;">${passiveHtml}</div>
+    </div>`;
+  }).join('');
+
+  // If only one member, auto-expand
+  if (members.length === 1) {
+    const first = content.querySelector('.party-panel-member');
+    if (first) {
+      first.classList.add('expanded');
+      first.querySelector('.party-panel-passives').style.display = '';
+    }
+  }
+
+  panel.classList.add('open');
+  backdrop.classList.add('open');
+}
+
+function togglePartyMember(el, e) {
+  e.stopPropagation();
+  const passives = el.querySelector('.party-panel-passives');
+  const isOpen = passives.style.display !== 'none';
+  // Close all others
+  el.closest('#partyPanelContent').querySelectorAll('.party-panel-member').forEach(m => {
+    m.classList.remove('expanded');
+    m.querySelector('.party-panel-passives').style.display = 'none';
+  });
+  if (!isOpen) {
+    el.classList.add('expanded');
+    passives.style.display = '';
+  }
+}
+
+function closePartyPanel() {
+  document.getElementById('partyPanel').classList.remove('open');
+  document.getElementById('partyPanelBackdrop').classList.remove('open');
+}
+
+function updatePartyBadge() {
+  const badge = document.getElementById('partyBadge');
+  if (!badge) return;
+  badge.style.display = (endless.active && endless.partyMembers && endless.partyMembers.length > 0) ? '' : 'none';
+}
+
+function getPartyBaseMaxHp() {
+  const mainChar = CHARACTERS[endless.active ? endless.starterIdx : (state.selectedChar ?? 0)];
+  let highest = mainChar ? mainChar.maxHp : 20;
+  if (endless.active && endless.partyMembers) {
+    endless.partyMembers.forEach(idx => {
+      const c = CHARACTERS[idx];
+      if (c && c.maxHp > highest) highest = c.maxHp;
+    });
+  }
+  return highest;
+}
+
 function updateFleeButton() {
   const btn = document.getElementById('fleeBtn');
   const finalRoom = state.hand.length < roomSize();
-  const maxSkips = hasPassive('Quick Feet') ? 2 : 1;
+  const hasTrap = hasPassive('Monster Trap');
+  const hasQuick = hasPassive('Quick Feet');
+  // Quick Feet + Monster Trap cancel out → normal skipping
+  const skipDisabled = hasTrap && !hasQuick;
+  const maxSkips = (hasQuick && !hasTrap) ? 2 : 1;
   const onCooldown = state.consecutiveSkips >= maxSkips;
-  if (onCooldown || finalRoom || hasPassive('Monster Trap') || bossTagNoFlee()) {
+  if (onCooldown || finalRoom || skipDisabled || bossTagNoFlee()) {
     btn.classList.remove('flee-ready');
   } else {
     btn.classList.add('flee-ready');
@@ -7518,44 +7794,74 @@ function updateWeaponBar() {
 
   if (!w || (w.val === 0 && !w.isTrap)) {
     cardEl.className = 'weapon-card empty';
-    cardEl.innerHTML = '<div class="weapon-card-inner">🗡️</div>';
+    cardEl.innerHTML = '<div class="weapon-card-inner"></div>';
   } else if (w.isTrap && !w.trapped) {
-    // Empty trap — show cage, ready to capture
+    // Empty trap — show control scroll art
+    const trapArt = 'images/deck/control_scroll.png';
     cardEl.className = 'weapon-card';
-    cardEl.innerHTML = `
-      <div class="weapon-card-inner" style="position:absolute;inset:8px;overflow:hidden;background:linear-gradient(160deg,#e8f5e0,#d0eac0);border:1px solid rgba(74,153,68,0.4);border-radius:3px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:16px 10px 12px;">
-        <div style="font-family:'Cinzel',serif;font-weight:700;font-size:1.4rem;color:#2a6a1a;text-align:center;line-height:1.2">Monster<br>Trap</div>
-        <div style="flex:1;display:flex;align-items:center;justify-content:center;">${trapCardSVG(false)}</div>
-        <div style="font-family:'Cinzel',serif;font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;background:rgba(74,153,68,0.15);color:#2a6a1a;border-radius:2px;padding:4px 8px;width:100%;text-align:center">Ready to Capture</div>
-      </div>
-    `;
+    if (_validCardArt[trapArt]) {
+      cardEl.className = 'weapon-card has-wpn-art';
+      cardEl.innerHTML = `
+        <div style="position:absolute;inset:0;overflow:hidden;border-radius:5px;">
+          <div style="position:absolute;inset:3px;background-image:url('${trapArt}');background-size:cover;background-position:center;z-index:2;border-radius:4px;"></div>
+        </div>
+      `;
+    } else {
+      cardEl.innerHTML = `
+        <div class="weapon-card-inner" style="position:absolute;inset:8px;overflow:hidden;background:linear-gradient(160deg,#e8f5e0,#d0eac0);border:1px solid rgba(74,153,68,0.4);border-radius:3px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:16px 10px 12px;">
+          <div style="font-family:'Cinzel',serif;font-weight:700;font-size:1.4rem;color:#2a6a1a;text-align:center;line-height:1.2">Monster<br>Trap</div>
+          <div style="flex:1;display:flex;align-items:center;justify-content:center;">${trapCardSVG(false)}</div>
+          <div style="font-family:'Cinzel',serif;font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;background:rgba(74,153,68,0.15);color:#2a6a1a;border-radius:2px;padding:4px 8px;width:100%;text-align:center">Ready to Capture</div>
+        </div>
+      `;
+    }
   } else if (w.isTrap && w.trapped) {
-    // Monster captured — show its card style with green border
+    // Monster captured — show captured monster art with green glow
     const t = w.trapped;
-    const colorCls = (t.suit === '♥' || t.suit === '♦') ? 'red-suit' : 'black-suit';
-    const suitColor = (t.suit === '♥' || t.suit === '♦') ? '#8b1a1a' : '#1a1410';
+    const fakeCard = { type: 'monster', val: t.val, suit: t.suit, isRed: (t.suit === '♥' || t.suit === '♦'), _originalVal: t.val };
+    const monsterArt = getCardArtUrl(fakeCard);
     cardEl.className = 'weapon-card';
-    cardEl.innerHTML = `
-      <div class="weapon-card-inner" style="position:absolute;inset:5px;overflow:hidden;background:linear-gradient(160deg,#faf0d8,#ecddb5);border:2px solid #44bb44;border-radius:3px;box-shadow:0 0 12px rgba(68,187,68,0.3);">
-        <div class="weapon-desktop-layout">
-          <div style="position:absolute;top:10px;left:10px;font-family:'Cinzel',serif;font-weight:700;font-size:1.6rem;line-height:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:${suitColor};">
-            <span>${t.val}</span><span class="weapon-corner-suit" style="font-size:1.2rem">${t.suit}</span>
-          </div>
-          <div class="weapon-card-center-suit" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7rem;line-height:1;color:${suitColor};filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));">${t.suit}</div>
-          <div style="position:absolute;bottom:10px;right:10px;font-family:'Cinzel',serif;font-weight:700;font-size:1.6rem;line-height:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:${suitColor};transform:rotate(180deg);">
-            <span>${t.val}</span><span class="weapon-corner-suit" style="font-size:1.2rem">${t.suit}</span>
-          </div>
-          <div style="position:absolute;bottom:46px;left:0;right:0;text-align:center;font-family:'Cinzel',serif;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;background:rgba(68,187,68,0.15);color:#2a6a1a;padding:3px 0;">Captured</div>
+    if (monsterArt && _validCardArt[monsterArt]) {
+      cardEl.className = 'weapon-card has-wpn-art';
+      const titleUrl = getCardTitleImageUrl(fakeCard);
+      const effVal = numericValue(t.val);
+      const toggle = document.getElementById('faceCardToggle');
+      const useFace = toggle && toggle.classList.contains('on');
+      const faceMap = { 11: 'j', 12: 'q', 13: 'k', 14: 'a' };
+      const valFile = (useFace && faceMap[effVal]) ? faceMap[effVal] : String(effVal);
+      const valUrl = `images/value/value_${valFile}.png`;
+      cardEl.innerHTML = `
+        <div style="position:absolute;inset:0;overflow:hidden;border-radius:5px;box-shadow:0 0 16px rgba(68,187,68,0.4);border:2px solid #44bb44;">
+          ${titleUrl ? `<div style="position:absolute;top:4%;left:50%;transform:translateX(-50%);width:80%;z-index:1;pointer-events:none;"><img src="${titleUrl}" style="width:100%;height:auto;display:block;" alt=""></div>` : ''}
+          <div style="position:absolute;inset:3px;background-image:url('${monsterArt}');background-size:cover;background-position:center;z-index:2;border-radius:4px;"></div>
+          <div style="position:absolute;bottom:4%;left:50%;transform:translateX(-50%);width:55%;z-index:10;pointer-events:none;"><img src="${valUrl}" style="width:100%;height:auto;display:block;" alt=""></div>
         </div>
-        <div class="weapon-phone-layout">
-          <div class="weapon-phone-val">
-            <span class="weapon-phone-num" style="color:${suitColor}">${t.val}</span>
-            <span class="weapon-phone-suit" style="color:${suitColor}">${t.suit}</span>
+      `;
+    } else {
+      const colorCls = (t.suit === '♥' || t.suit === '♦') ? 'red-suit' : 'black-suit';
+      const suitColor = (t.suit === '♥' || t.suit === '♦') ? '#8b1a1a' : '#1a1410';
+      cardEl.innerHTML = `
+        <div class="weapon-card-inner" style="position:absolute;inset:5px;overflow:hidden;background:linear-gradient(160deg,#faf0d8,#ecddb5);border:2px solid #44bb44;border-radius:3px;box-shadow:0 0 12px rgba(68,187,68,0.3);">
+          <div class="weapon-desktop-layout">
+            <div style="position:absolute;top:10px;left:10px;font-family:'Cinzel',serif;font-weight:700;font-size:1.6rem;line-height:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:${suitColor};">
+              <span>${t.val}</span><span class="weapon-corner-suit" style="font-size:1.2rem">${t.suit}</span>
+            </div>
+            <div class="weapon-card-center-suit" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7rem;line-height:1;color:${suitColor};filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));">${t.suit}</div>
+            <div style="position:absolute;bottom:10px;right:10px;font-family:'Cinzel',serif;font-weight:700;font-size:1.6rem;line-height:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:${suitColor};transform:rotate(180deg);">
+              <span>${t.val}</span><span class="weapon-corner-suit" style="font-size:1.2rem">${t.suit}</span>
+            </div>
+            <div style="position:absolute;bottom:46px;left:0;right:0;text-align:center;font-family:'Cinzel',serif;font-size:0.75rem;letter-spacing:0.12em;text-transform:uppercase;background:rgba(68,187,68,0.15);color:#2a6a1a;padding:3px 0;">Captured</div>
           </div>
-          <div class="weapon-phone-badge" style="background:rgba(68,187,68,0.15);color:#2a6a1a;">Captured</div>
+          <div class="weapon-phone-layout">
+            <div class="weapon-phone-val">
+              <span class="weapon-phone-num" style="color:${suitColor}">${t.val}</span>
+              <span class="weapon-phone-suit" style="color:${suitColor}">${t.suit}</span>
+            </div>
+            <div class="weapon-phone-badge" style="background:rgba(68,187,68,0.15);color:#2a6a1a;">Captured</div>
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    }
   } else {
     const effWpnVal = Math.max(0, w.val - bossTagWeaponPenalty());
     const wpnModified = effWpnVal !== w.val;
@@ -7616,11 +7922,11 @@ function updateWeaponBar() {
     badgesEl.innerHTML = kills.map(k => {
       const colorCls = (k.suit === '♥' || k.suit === '♦') ? 'red-suit' : 'black-suit';
       const effVal = k.effectiveVal != null ? k.effectiveVal : numericValue(k.val);
-      const rawVal = numericValue(k.val);
-      const isModified = effVal !== rawVal;
+      const origVal = numericValue(k.originalVal || k.val);
+      const isModified = effVal !== origVal;
 
       // Try full art for monster kills
-      const fakeCard = { type: 'monster', val: k.val, suit: k.suit, isRed: (k.suit === '♥' || k.suit === '♦') };
+      const fakeCard = { type: 'monster', val: k.val, suit: k.suit, isRed: (k.suit === '♥' || k.suit === '♦'), _originalVal: k.originalVal || k.val };
       const artUrl = getCardArtUrl(fakeCard);
       if (artUrl && _validCardArt[artUrl]) {
         const titleUrl = getCardTitleImageUrl(fakeCard);
@@ -8031,7 +8337,7 @@ function resolveRoom() {
         }
         state.player.hp = Math.max(0, state.player.hp - dmg);
         state.stats.slain++;
-        state.weaponKills.push({ val: card.val, suit: card.suit, effectiveVal: nv });
+        state.weaponKills.push({ val: card.val, suit: card.suit, effectiveVal: nv, originalVal: card._originalVal || card.val });
         updateWeaponBar();
         const monsterName = card.suit === '♠' ? 'Zombie' : 'Skeleton';
         addLog(`Lv.${nv} ${monsterName} — weapon blocked ${weaponVal} dmg, took ${dmg}.`, 'danger');
@@ -8863,7 +9169,7 @@ function startBossFight() {
     document.getElementById('playerPortrait').innerHTML = charLogoHtml(starterChar, 60);
     document.getElementById('playerName').textContent      = starterChar.name;
     document.getElementById('playerClass').textContent     = starterChar.cls;
-    document.getElementById('topHpPortrait').innerHTML = charLogoHtml(starterChar, 28);
+    document.getElementById('topHpPortrait').innerHTML = charLogoHtml(starterChar, 46);
     document.getElementById('topHpName').textContent       = starterChar.name;
   }
 
@@ -8983,6 +9289,16 @@ function showBossReward() {
         <div class="reward-card-name" style="color:#c0a060;">Whetstone</div>
         <div class="reward-card-desc" style="color:#907840;">One-time use. Clears your weapon's kill chain, making it fresh again.</div>
       </div>`;
+    } else if (r.type === 'recruit') {
+      const rc = CHARACTERS[r.charIdx];
+      const logoHtml = charLogoHtml(rc, 48);
+      const passiveName = rc.passives.length > 0 ? rc.passives[0].name : 'No passive';
+      return `<div class="reward-card" style="background:linear-gradient(160deg,${rc.bg});border-color:${rc.color}80;" data-reward-idx="${i}" onclick="toggleRewardSelect(${i})">
+        <div class="reward-card-suit">${logoHtml}</div>
+        <div class="reward-card-val" style="color:${rc.color};">Recruit</div>
+        <div class="reward-card-name" style="color:${rc.color};">${rc.name}</div>
+        <div class="reward-card-desc" style="color:${rc.color}99;">${passiveName} — joins your party. Both passives active.</div>
+      </div>`;
     } else {
       return `<div class="reward-card" style="background:linear-gradient(160deg,#1a1008,#120a04);border-color:rgba(220,140,40,0.5);" data-reward-idx="${i}" onclick="toggleRewardSelect(${i})">
         <div class="reward-card-suit">🔥</div>
@@ -9052,6 +9368,27 @@ function claimSelectedRewards() {
         updateHpBar();
       }
       addLog('🔥 You rest by the campfire — fully healed!', 'gold');
+    } else if (reward.type === 'recruit') {
+      const rc = CHARACTERS[reward.charIdx];
+      if (rc && !endless.partyMembers.includes(reward.charIdx)) {
+        // Calculate current bonus/deficit over party's highest base HP
+        const oldBase = getPartyBaseMaxHp();
+        const bonusHp = state.player.maxHp - oldBase;
+
+        endless.partyMembers.push(reward.charIdx);
+
+        // Recalculate maxHP using new highest base + existing bonuses
+        const newBase = getPartyBaseMaxHp();
+        if (newBase > oldBase) {
+          state.player.maxHp = newBase + bonusHp;
+          state.player.hp = Math.min(state.player.hp + (newBase - oldBase), state.player.maxHp);
+          updateHpBar();
+          addLog(`🤝 ${rc.name} joins your party! Max HP increased to ${state.player.maxHp}.`, 'gold');
+        } else {
+          addLog(`🤝 ${rc.name} joins your party! ${rc.passives.length > 0 ? rc.passives[0].name + ' is now active.' : ''}`, 'gold');
+        }
+        updatePartyBadge();
+      }
     } else {
       endless.rewardCards.push(reward);
       const rewardName = reward.type === 'diamond' ? '♦ Weapon Upgrade (+1)' : '♥ Potion Upgrade (+1)';
@@ -9069,11 +9406,10 @@ function claimSelectedRewards() {
   updateLuckCharmUI();
   updateWhetstoneUI();
 
-  showCharSwap();
+  proceedToNextLevel();
 }
 
 function generateRewards() {
-  // Reward pool: pick 4 from 6
   const all = [
     { type: 'diamond' },
     { type: 'heart'   },
@@ -9092,7 +9428,22 @@ function generateRewards() {
     const j = Math.floor(Math.random() * (i + 1));
     [all[i], all[j]] = [all[j], all[i]];
   }
-  return all.slice(0, 4);
+  const rewards = all.slice(0, 4);
+
+  // 5% chance to replace one reward with a recruit (only after boss fights)
+  // Debug toggle: 100% chance after every level
+  const forceRecruit = document.getElementById('debugForceRecruitToggle');
+  const forceOn = forceRecruit && forceRecruit.classList.contains('on');
+  if (forceOn || (endless._lastLevelWasBoss && Math.random() < 0.05)) {
+    const candidates = getRecruitCandidates();
+    if (candidates.length > 0) {
+      const pick = candidates[Math.floor(Math.random() * candidates.length)];
+      const replaceIdx = Math.floor(Math.random() * rewards.length);
+      rewards[replaceIdx] = { type: 'recruit', charIdx: pick.idx };
+    }
+  }
+
+  return rewards;
 }
 
 // ─────────────────────────────────────
@@ -9103,7 +9454,9 @@ function startEndlessMode() {
   endless.active     = true;
   endless.level      = 1;
   endless.party      = [];
+  endless.partyMembers = [];
   endless.totalSlain = 0;
+  updatePartyBadge();
   document.body.classList.add('is-endless');
   // Go to char-select; after selecting, the game starts as endless level 1
   // We flag it so startGame knows to show level transition first
@@ -9337,7 +9690,7 @@ function startNextEndlessLevel() {
     document.getElementById('playerPortrait').innerHTML = charLogoHtml(starterChar, 60);
     document.getElementById('playerName').textContent     = starterChar.name;
     document.getElementById('playerClass').textContent    = starterChar.cls;
-    document.getElementById('topHpPortrait').innerHTML = charLogoHtml(starterChar, 28);
+    document.getElementById('topHpPortrait').innerHTML = charLogoHtml(starterChar, 46);
     document.getElementById('topHpName').textContent      = starterChar.name;
   }
 
@@ -9488,6 +9841,15 @@ function endlessLevelComplete() {
   endless.totalSlain += state.stats.slain;
   playVictorySE();
 
+  // Track if this was a boss level before cleanup
+  endless._lastLevelWasBoss = !!endless.currentBoss;
+
+  // Track veteran status: current character beat a boss
+  if (endless.currentBoss) {
+    const mainChar = CHARACTERS[endless.starterIdx];
+    if (mainChar) saveVeteran(mainChar.id);
+  }
+
   // Clean up boss state if this was a boss level
   if (endless.currentBoss) {
     document.body.classList.remove('is-boss');
@@ -9541,7 +9903,18 @@ function showEndlessDefeated() {
     document.getElementById('endlessDefLevel').textContent = `${endless.level}`;
     document.getElementById('endlessDefeatedSub').textContent = `You reached Level ${endless.level}`;
     const currentChar = CHARACTERS[endless.starterIdx];
-    document.getElementById('endlessDefParty').textContent = currentChar ? currentChar.emoji + ' ' + currentChar.name : '—';
+    const partyIndices = [endless.starterIdx, ...(endless.partyMembers || [])];
+    const partyChars = partyIndices.map(idx => CHARACTERS[idx]).filter(Boolean);
+    const portraitEl = document.getElementById('endlessDefPortrait');
+
+    if (partyChars.length === 1) {
+      portraitEl.innerHTML = `${charLogoHtml(partyChars[0], 120)}<div style="font-family:'Cinzel',serif;font-size:1rem;letter-spacing:0.1em;color:var(--parchment-light);">${partyChars[0].name}</div>`;
+    } else if (partyChars.length > 1) {
+      const size = partyChars.length <= 2 ? 90 : partyChars.length <= 3 ? 80 : partyChars.length <= 4 ? 70 : 60;
+      portraitEl.innerHTML = `<div style="display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px;max-width:${5 * (size + 10)}px;">${partyChars.map(c => charLogoHtml(c, size)).join('')}</div>`;
+    } else {
+      portraitEl.innerHTML = '';
+    }
     document.getElementById('endlessDefSlain').textContent = endless.totalSlain;
 
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -9610,17 +9983,25 @@ function useCrystalBall() {
   container.innerHTML = peek.length === 0
     ? `<div style="font-family:'Crimson Text',serif;color:var(--text-dim);font-size:1rem;">The deck is empty.</div>`
     : peek.map(card => {
-        const colorCls = card.isRed ? 'color:#8b1a1a' : 'color:#1a1410';
-        let valDisplay = displayVal(card.val);
-        let suitDisplay = card.suit;
-        let labelText = card.type === 'monster' ? 'Monster' : card.type === 'weapon' ? 'Weapon' : card.type === 'potion' ? 'Potion' : 'Curse';
-        let labelColor = card.type === 'monster' ? '#8b1a1a' : card.type === 'weapon' ? '#3a4060' : card.type === 'potion' ? '#1a501a' : '#cc88ff';
-        let labelBg    = card.type === 'monster' ? 'rgba(139,26,26,0.12)' : card.type === 'weapon' ? 'rgba(58,64,96,0.1)' : card.type === 'potion' ? 'rgba(26,80,26,0.1)' : 'rgba(180,50,220,0.15)';
-
+        // Try full art for special cards first
         if (card.isTrap) {
+          const trapArt = 'images/deck/control_scroll.png';
+          if (_validCardArt[trapArt]) {
+            return `<div class="crystal-ball-card has-art"><div class="cb-art" style="background-image:url('${trapArt}');"></div></div>`;
+          }
           return `<div class="crystal-ball-card" style="background:linear-gradient(160deg,#e8f5e0,#d0eac0);">
             <div style="font-family:'Cinzel',serif;font-weight:700;font-size:0.85rem;color:#2a6a1a;text-align:center;line-height:1.3">Monster<br>Trap</div>
             <div class="crystal-ball-card-label" style="color:#2a6a1a;background:rgba(42,106,26,0.1);">Trap</div>
+          </div>`;
+        }
+        if (card.isKeg) {
+          const bombArt = 'images/deck/bomb.png';
+          if (_validCardArt[bombArt]) {
+            return `<div class="crystal-ball-card has-art"><div class="cb-art" style="background-image:url('${bombArt}');"></div></div>`;
+          }
+          return `<div class="crystal-ball-card" style="background:linear-gradient(160deg,#2e1a0a,#1e0f04);">
+            <div class="crystal-ball-card-val" style="color:#ff6622;">💣</div>
+            <div class="crystal-ball-card-label" style="color:#ff6622;background:rgba(255,80,20,0.12);">Danger!</div>
           </div>`;
         }
         if (card.isCurse) {
@@ -9629,6 +10010,29 @@ function useCrystalBall() {
             <div class="crystal-ball-card-label" style="color:#cc88ff;background:rgba(180,50,220,0.15);">Curse</div>
           </div>`;
         }
+
+        // Try full art for normal cards
+        const artUrl = getCardArtUrl(card);
+        if (artUrl && _validCardArt[artUrl]) {
+          const titleUrl = getCardTitleImageUrl(card);
+          const effVal = getEffectiveVal(card);
+          const modified = isCardModified(card);
+          const toggle = document.getElementById('faceCardToggle');
+          const useFace = toggle && toggle.classList.contains('on');
+          const faceMap = { 11: 'j', 12: 'q', 13: 'k', 14: 'a' };
+          const valFile = (useFace && faceMap[effVal]) ? faceMap[effVal] : String(effVal);
+          const prefix = modified ? 'alt_value' : 'value';
+          const valUrl = `images/value/${prefix}_${valFile}.png`;
+          return `<div class="crystal-ball-card has-art">${titleUrl ? `<div class="cb-title"><img src="${titleUrl}" alt=""></div>` : ''}<div class="cb-art" style="background-image:url('${artUrl}');"></div><div class="cb-val"><img src="${valUrl}" alt=""></div></div>`;
+        }
+
+        // Fallback to text card
+        const colorCls = card.isRed ? 'color:#8b1a1a' : 'color:#1a1410';
+        let valDisplay = displayVal(card.val);
+        let suitDisplay = card.suit;
+        let labelText = card.type === 'monster' ? 'Monster' : card.type === 'weapon' ? 'Weapon' : card.type === 'potion' ? 'Potion' : 'Curse';
+        let labelColor = card.type === 'monster' ? '#8b1a1a' : card.type === 'weapon' ? '#3a4060' : card.type === 'potion' ? '#1a501a' : '#cc88ff';
+        let labelBg    = card.type === 'monster' ? 'rgba(139,26,26,0.12)' : card.type === 'weapon' ? 'rgba(58,64,96,0.1)' : card.type === 'potion' ? 'rgba(26,80,26,0.1)' : 'rgba(180,50,220,0.15)';
         return `<div class="crystal-ball-card">
           <div class="crystal-ball-card-val" style="${colorCls}">${valDisplay}</div>
           <div class="crystal-ball-card-suit" style="${colorCls}">${suitDisplay}</div>
@@ -9683,15 +10087,24 @@ function useWarpScroll() {
   }
 
   container.innerHTML = _warpScrollPeek.map((card, idx) => {
-    const colorCls = card.isRed ? 'color:#8b1a1a' : 'color:#1a1410';
-    let labelText = card.type === 'monster' ? 'Monster' : card.type === 'weapon' ? 'Weapon' : card.type === 'potion' ? 'Potion' : card.type === 'keg' ? 'Danger!' : 'Curse';
-    let labelColor = card.type === 'monster' ? '#8b1a1a' : card.type === 'weapon' ? '#3a4060' : card.type === 'potion' ? '#1a501a' : card.type === 'keg' ? '#ff6622' : '#cc88ff';
-    let labelBg = card.type === 'monster' ? 'rgba(139,26,26,0.12)' : card.type === 'weapon' ? 'rgba(58,64,96,0.1)' : card.type === 'potion' ? 'rgba(26,80,26,0.1)' : card.type === 'keg' ? 'rgba(255,80,20,0.12)' : 'rgba(180,50,220,0.15)';
-
     if (card.isTrap) {
+      const trapArt = 'images/deck/control_scroll.png';
+      if (_validCardArt[trapArt]) {
+        return `<div class="warp-scroll-card has-art" onclick="warpScrollSelect(${idx})"><div class="ws-art" style="background-image:url('${trapArt}');"></div></div>`;
+      }
       return `<div class="warp-scroll-card" onclick="warpScrollSelect(${idx})" style="background:linear-gradient(160deg,#e8f5e0,#d0eac0);">
         <div style="font-family:'Cinzel',serif;font-weight:700;font-size:0.85rem;color:#2a6a1a;text-align:center;line-height:1.3">Monster<br>Trap</div>
         <div class="warp-scroll-card-label" style="color:#2a6a1a;background:rgba(42,106,26,0.1);">Trap</div>
+      </div>`;
+    }
+    if (card.isKeg) {
+      const bombArt = 'images/deck/bomb.png';
+      if (_validCardArt[bombArt]) {
+        return `<div class="warp-scroll-card has-art" onclick="warpScrollSelect(${idx})"><div class="ws-art" style="background-image:url('${bombArt}');"></div></div>`;
+      }
+      return `<div class="warp-scroll-card" onclick="warpScrollSelect(${idx})" style="background:linear-gradient(160deg,#2e1a0a,#1e0f04);">
+        <div class="warp-scroll-card-val" style="color:#ff6622;">💣</div>
+        <div class="warp-scroll-card-label" style="color:#ff6622;background:rgba(255,80,20,0.12);">Danger!</div>
       </div>`;
     }
     if (card.isCurse) {
@@ -9700,12 +10113,25 @@ function useWarpScroll() {
         <div class="warp-scroll-card-label" style="color:#cc88ff;background:rgba(180,50,220,0.15);">Curse</div>
       </div>`;
     }
-    if (card.isKeg) {
-      return `<div class="warp-scroll-card" onclick="warpScrollSelect(${idx})" style="background:linear-gradient(160deg,#2e1a0a,#1e0f04);">
-        <div class="warp-scroll-card-val" style="color:#ff6622;">💣</div>
-        <div class="warp-scroll-card-label" style="color:#ff6622;background:rgba(255,80,20,0.12);">Danger!</div>
-      </div>`;
+
+    const artUrl = getCardArtUrl(card);
+    if (artUrl && _validCardArt[artUrl]) {
+      const titleUrl = getCardTitleImageUrl(card);
+      const effVal = getEffectiveVal(card);
+      const modified = isCardModified(card);
+      const toggle = document.getElementById('faceCardToggle');
+      const useFace = toggle && toggle.classList.contains('on');
+      const faceMap = { 11: 'j', 12: 'q', 13: 'k', 14: 'a' };
+      const valFile = (useFace && faceMap[effVal]) ? faceMap[effVal] : String(effVal);
+      const prefix = modified ? 'alt_value' : 'value';
+      const valUrl = `images/value/${prefix}_${valFile}.png`;
+      return `<div class="warp-scroll-card has-art" onclick="warpScrollSelect(${idx})">${titleUrl ? `<div class="ws-title"><img src="${titleUrl}" alt=""></div>` : ''}<div class="ws-art" style="background-image:url('${artUrl}');"></div><div class="ws-val"><img src="${valUrl}" alt=""></div></div>`;
     }
+
+    const colorCls = card.isRed ? 'color:#8b1a1a' : 'color:#1a1410';
+    let labelText = card.type === 'monster' ? 'Monster' : card.type === 'weapon' ? 'Weapon' : card.type === 'potion' ? 'Potion' : 'Curse';
+    let labelColor = card.type === 'monster' ? '#8b1a1a' : card.type === 'weapon' ? '#3a4060' : card.type === 'potion' ? '#1a501a' : '#cc88ff';
+    let labelBg = card.type === 'monster' ? 'rgba(139,26,26,0.12)' : card.type === 'weapon' ? 'rgba(58,64,96,0.1)' : card.type === 'potion' ? 'rgba(26,80,26,0.1)' : 'rgba(180,50,220,0.15)';
     return `<div class="warp-scroll-card" onclick="warpScrollSelect(${idx})">
       <div class="warp-scroll-card-val" style="${colorCls}">${displayVal(card.val)}</div>
       <div class="warp-scroll-card-suit" style="${colorCls}">${card.suit}</div>
@@ -10425,7 +10851,11 @@ function showVictory() {
 }
 
 function fleeRoom() {
-  const maxSkips = hasPassive('Quick Feet') ? 2 : 1;
+  const hasTrap = hasPassive('Monster Trap');
+  const hasQuick = hasPassive('Quick Feet');
+  const skipDisabled = hasTrap && !hasQuick;
+  if (skipDisabled) return;
+  const maxSkips = (hasQuick && !hasTrap) ? 2 : 1;
   if (state.consecutiveSkips >= maxSkips) return;
   if (bossTagNoFlee()) return;
   playTransitionSE();
@@ -10566,6 +10996,13 @@ saveRun = function() {
     endlessPoisoned: endless.poisoned,
     endlessCrystalBalls: endless.crystalBalls,
     endlessWarpScrolls: endless.warpScrolls,
+    endlessPartyMembers: endless.partyMembers,
+    endlessCursedCharms: endless.cursedCharms,
+    endlessTeleportWands: endless.teleportWands,
+    endlessHolyFlasks: endless.holyFlasks,
+    endlessShieldCharms: endless.shieldCharms,
+    endlessLuckCharms: endless.luckCharms,
+    endlessWhetstones: endless.whetstones,
   };
   try { localStorage.setItem(getSaveKey(), JSON.stringify(save)); }
   catch(e) { console.warn('Save failed:', e); }
@@ -10941,7 +11378,7 @@ function launchDebugBossFight() {
   document.getElementById('playerPortrait').innerHTML = charLogoHtml(starterChar, 60);
   document.getElementById('playerName').textContent     = starterChar.name;
   document.getElementById('playerClass').textContent    = starterChar.cls;
-  document.getElementById('topHpPortrait').innerHTML = charLogoHtml(starterChar, 28);
+  document.getElementById('topHpPortrait').innerHTML = charLogoHtml(starterChar, 46);
   document.getElementById('topHpName').textContent      = starterChar.name;
 
   updateEndlessUI();
