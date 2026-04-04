@@ -29,7 +29,7 @@ if ('serviceWorker' in navigator) {
   }).catch(() => {});
 
   const swCode = `
-    const CACHE = 'deck-diver-v4';
+    const CACHE = 'deck-diver-v5';
     self.addEventListener('install', e => {
       e.waitUntil(
         caches.open(CACHE).then(cache =>
@@ -199,9 +199,10 @@ if ('serviceWorker' in navigator) {
   .home-subtitle {
     font-family: 'Cinzel', serif;
     font-size: 0.85rem;
+    font-weight: 700;
     letter-spacing: 0.35em;
     color: var(--parchment);
-    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+    text-shadow: 0 0 8px rgba(0,0,0,1), 0 1px 6px rgba(0,0,0,0.9);
     text-transform: uppercase;
     margin-top: 6px;
     margin-bottom: 48px;
@@ -220,7 +221,7 @@ if ('serviceWorker' in navigator) {
   .menu-btn {
     font-family: 'Cinzel', serif;
     font-size: 1.1rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: #efe0c0;
@@ -2457,9 +2458,11 @@ if ('serviceWorker' in navigator) {
   .title-active-profile {
     font-family: 'Cinzel', serif;
     font-size: clamp(0.8rem, 1.5vw, 1.1rem);
+    font-weight: 700;
     letter-spacing: 0.25em;
     text-transform: uppercase;
     color: var(--gold);
+    text-shadow: 0 0 8px rgba(0,0,0,1), 0 1px 6px rgba(0,0,0,0.9);
     border: 1px solid rgba(212,160,23,0.3);
     background: rgba(212,160,23,0.07);
     padding: 6px 20px;
@@ -2470,9 +2473,11 @@ if ('serviceWorker' in navigator) {
   .title-click-hint {
     font-family: 'Crimson Text', serif;
     font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+    font-weight: 700;
     letter-spacing: 0.3em;
     text-transform: uppercase;
     color: var(--text-dim);
+    text-shadow: 0 0 8px rgba(0,0,0,1), 0 1px 6px rgba(0,0,0,0.9);
     margin-top: 32px;
     animation: titlePulse 2.5s ease-in-out infinite;
   }
@@ -4288,6 +4293,27 @@ if ('serviceWorker' in navigator) {
     padding: 8px 0;
   }
 
+  /* Desktop: larger discard panel and cards */
+  @media (min-width: 769px) {
+    .mobile-discard-box {
+      width: min(92vw, 700px);
+      max-height: 75vh;
+      padding: 28px 32px;
+      border-radius: 12px;
+    }
+    .mobile-discard-box .discard-hover-title {
+      font-size: 1.4rem;
+      margin-bottom: 18px;
+    }
+    .mobile-discard-box .discard-card-grid {
+      gap: 12px;
+    }
+    .mobile-discard-box .discard-mini-card {
+      width: calc((100% - 60px) / 6);
+      max-width: 110px;
+    }
+  }
+
   /* Hide desktop hover panel on mobile */
   @media (max-width: 1099px) {
     .discard-hover-panel { display: none !important; }
@@ -4768,64 +4794,33 @@ if ('serviceWorker' in navigator) {
     <div class="htp-section">
       <div class="htp-section-title">The Goal</div>
       <p class="htp-text">
-        You are a diver descending into a dungeon made entirely of playing cards. Your goal is simple:
-        <strong>survive long enough to exhaust the entire 44-card deck.</strong> Clear every card without losing all your HP and you win.
+        You are a diver descending into a dungeon made of cards. Your goal is simple:
+        <strong>survive long enough to exhaust the entire deck.</strong> Clear every card without losing all your HP and you win.
       </p>
       <div class="htp-callout">
-        💀 HP varies by character. If your HP reaches zero at any point during a room — even mid-resolution — the run ends immediately. A potion later in the same selection cannot save you.
+        💀 If your HP reaches zero at any point during a room — even mid-resolution — the run ends immediately. A potion later in the same selection cannot save you.
       </div>
     </div>
 
     <!-- THE DECK -->
     <div class="htp-section">
-      <div class="htp-section-title">The Deck — What Each Suit Means</div>
-      <p class="htp-text">The dungeon deck uses four suits, each with a different role:</p>
-      <div class="htp-visual">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
-          <div class="htp-card-demo">
-            <div class="htp-card-tl black-card"><span>7</span><span>♠</span></div>
-            <div class="htp-card-inner"><div class="htp-card-val black-card">♠</div></div>
-            <div class="htp-card-label" style="color:#1a1410;background:rgba(26,20,16,0.1);border:1px solid rgba(26,20,16,0.2);">Monster</div>
-          </div>
-          <span style="font-family:'Cinzel',serif;font-size:0.7rem;color:var(--text-dim);">♠ Spades</span>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
-          <div class="htp-card-demo">
-            <div class="htp-card-inner"><div class="htp-card-val black-card">♣</div></div>
-            <div class="htp-card-label" style="color:#1a1410;background:rgba(26,20,16,0.1);border:1px solid rgba(26,20,16,0.2);">Monster</div>
-          </div>
-          <span style="font-family:'Cinzel',serif;font-size:0.7rem;color:var(--text-dim);">♣ Clubs</span>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
-          <div class="htp-card-demo">
-            <div class="htp-card-inner"><div class="htp-card-val red-card">♥</div></div>
-            <div class="htp-card-label" style="color:#8b1a1a;background:rgba(139,26,26,0.1);border:1px solid rgba(139,26,26,0.2);">Potion</div>
-          </div>
-          <span style="font-family:'Cinzel',serif;font-size:0.7rem;color:var(--text-dim);">♥ Hearts</span>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
-          <div class="htp-card-demo">
-            <div class="htp-card-inner"><div class="htp-card-val red-card">♦</div></div>
-            <div class="htp-card-label" style="color:#3a4060;background:rgba(58,64,96,0.1);border:1px solid rgba(58,64,96,0.2);">Weapon</div>
-          </div>
-          <span style="font-family:'Cinzel',serif;font-size:0.7rem;color:var(--text-dim);">♦ Diamonds</span>
-        </div>
-      </div>
+      <div class="htp-section-title">The Deck — Three Card Types</div>
+      <p class="htp-text">The dungeon deck has three types of cards. Each card has a value from 2–14.</p>
       <div class="htp-rule-grid" style="margin-top:8px;">
         <div class="htp-rule-card">
           <div class="htp-rule-icon">☠️</div>
-          <div class="htp-rule-title">♠ ♣ Monsters</div>
-          <div class="htp-rule-desc">Deal damage equal to their card value. A=14, K=13, Q=12, J=11, 2–10 face value.</div>
+          <div class="htp-rule-title">Monsters</div>
+          <div class="htp-rule-desc">Deal damage equal to their value. Fight them head-on or block with a weapon.</div>
         </div>
         <div class="htp-rule-card">
-          <div class="htp-rule-icon">🧪</div>
-          <div class="htp-rule-title">♥ Potions</div>
-          <div class="htp-rule-desc">Restore HP equal to their value, up to your maximum. Only 1 potion works per room — the second is wasted.</div>
+          <div class="htp-rule-icon">❤️</div>
+          <div class="htp-rule-title">Potions</div>
+          <div class="htp-rule-desc">Restore HP equal to their value, up to your maximum. Only 1 potion works per room — extras are wasted.</div>
         </div>
         <div class="htp-rule-card">
           <div class="htp-rule-icon">⚔️</div>
-          <div class="htp-rule-title">♦ Weapons</div>
-          <div class="htp-rule-desc">Equip to reduce monster damage. A weapon subtracts its value from incoming damage. Values 2–10 only.</div>
+          <div class="htp-rule-title">Weapons</div>
+          <div class="htp-rule-desc">Equip to block monster damage. A weapon subtracts its value from incoming damage. Only one weapon at a time.</div>
         </div>
       </div>
     </div>
@@ -4849,16 +4844,16 @@ if ('serviceWorker' in navigator) {
       <div class="htp-section-title">Weapons — The Kill Chain</div>
       <p class="htp-text">
         Equipping a weapon lets you reduce damage from monsters — but there's a catch. <strong>Your weapon only works against monsters strictly weaker than the last one you defeated with it.</strong>
-        If the next monster is equal to or stronger than your last kill, the weapon won't help.
+        If the next monster is equal or stronger, the weapon won't help.
       </p>
       <div class="htp-callout danger">
-        ⚠️ Example: You equip a 7♦ and defeat a 5♠ (took 0 damage). Next you face a 6♣ — your weapon is <strong>ineffective</strong> because 6 ≥ 5. You take full 6 damage.
+        ⚠️ Example: You equip a Level 7 weapon and defeat a Level 5 monster (0 damage). Next you face a Level 6 — your weapon is <strong>ineffective</strong> because 6 ≥ 5. You take full damage.
       </div>
       <p class="htp-text">
-        The kill chain resets every time you equip a new weapon. Plan your order: fight the strongest monster first, then work downward.
+        The kill chain resets every time you equip a new weapon. Fight the strongest monster first, then work downward.
       </p>
       <div class="htp-callout info">
-        🖱️ <strong>Right-click a monster</strong> (or long-press on mobile) to bypass your weapon — you take full damage but your kill chain is preserved for the other monsters in the room.
+        🖱️ <strong>Right-click a monster</strong> (or long-press on mobile) to bypass your weapon — you take full damage but your kill chain is preserved for other monsters in the room.
       </div>
     </div>
 
@@ -4867,10 +4862,10 @@ if ('serviceWorker' in navigator) {
       <div class="htp-section-title">Skip — Escaping a Room</div>
       <p class="htp-text">
         Once per room (with a one-room cooldown), you can press <strong>Skip</strong> to send all room cards to the bottom of the deck and draw a fresh room.
-        Skip is free — no HP cost — but it's disabled on the final room of the run.
+        Skip is free — no HP cost — but it's disabled on the final room.
       </p>
       <div class="htp-callout">
-        🏃 Use Skip when the room has too many high-value monsters your weapon can't handle. Since skipped cards go to the bottom of the deck, you'll see them again eventually — plan accordingly.
+        🏃 Skipped cards go to the bottom of the deck, so you'll see them again — plan accordingly.
       </div>
     </div>
 
@@ -4878,7 +4873,7 @@ if ('serviceWorker' in navigator) {
     <div class="htp-section">
       <div class="htp-section-title">Characters</div>
       <p class="htp-text">
-        Every character plays differently. <strong>Deckard Diver</strong> is always available — straightforward rules, 20 HP, no gimmicks. Additional characters can be unlocked by achieving specific feats during your runs. Each unlocked character brings a unique passive ability that changes how the deck, weapons, or rooms behave.
+        Every character plays differently. <strong>Deckard Diver</strong> is always available — straightforward rules, 20 HP, no gimmicks. Additional characters are unlocked by achieving specific feats during your runs. Each character has a unique passive ability that changes how the deck, weapons, or rooms behave.
       </p>
       <div class="htp-callout info">
         🔒 Unlock conditions are hidden until met. Try different strategies and see what opens up.
@@ -4889,7 +4884,7 @@ if ('serviceWorker' in navigator) {
     <div class="htp-section">
       <div class="htp-section-title">Profiles</div>
       <p class="htp-text">
-        Deck Diver supports up to <strong>3 separate profiles</strong>, each with their own unlocks, stats, and save data. Select your profile from the profile screen before entering the main menu. You can create, rename, or delete profiles at any time, and switch between them using the <em>Switch Profile</em> option on the main menu.
+        Deck Diver supports up to <strong>3 separate profiles</strong>, each with their own unlocks, stats, and save data. Select your profile from the profile screen before entering the main menu. You can create, rename, or delete profiles at any time.
       </p>
     </div>
 
@@ -4905,17 +4900,17 @@ if ('serviceWorker' in navigator) {
         <div class="htp-rule-card">
           <div class="htp-rule-icon">🗡️</div>
           <div class="htp-rule-title">Keep Your Weapon</div>
-          <div class="htp-rule-desc">Don't swap weapons unless necessary. Swapping resets your kill chain, and the new weapon's chain carries into the next room.</div>
+          <div class="htp-rule-desc">Don't swap weapons unless necessary. Swapping resets your kill chain. In Endless Mode, your weapon carries between levels.</div>
         </div>
         <div class="htp-rule-card">
-          <div class="htp-rule-icon">🧪</div>
+          <div class="htp-rule-icon">❤️</div>
           <div class="htp-rule-title">Time Your Potions</div>
           <div class="htp-rule-desc">Only one potion works per room. If you draw two, carry the weaker one over and drink the higher-value one.</div>
         </div>
         <div class="htp-rule-card">
           <div class="htp-rule-icon">🃏</div>
           <div class="htp-rule-title">Choose Your Skip</div>
-          <div class="htp-rule-desc">A room with two high monsters and no weapon is dangerous — Skip out. But remember those cards go back into the deck.</div>
+          <div class="htp-rule-desc">A room with high monsters and no weapon is dangerous — Skip out. But remember those cards go back into the deck.</div>
         </div>
         <div class="htp-rule-card">
           <div class="htp-rule-icon">🖱️</div>
@@ -4923,7 +4918,7 @@ if ('serviceWorker' in navigator) {
           <div class="htp-rule-desc">Right-clicking forces full damage but saves your kill chain. Use it when a monster would break your chain anyway.</div>
         </div>
         <div class="htp-rule-card">
-          <div class="htp-rule-icon">❤️</div>
+          <div class="htp-rule-icon">💜</div>
           <div class="htp-rule-title">Watch the Preview</div>
           <div class="htp-rule-desc">The health bar shows a live damage/healing preview as you select cards. Use it before confirming every room.</div>
         </div>
@@ -4944,16 +4939,19 @@ if ('serviceWorker' in navigator) {
     <div class="htp-section htp-endless-section" id="htpEndlessSection" style="display:none;">
       <div class="htp-section-title" style="color:#a080ff;">∞ Endless Mode</div>
       <p class="htp-text">
-        Endless Mode is a continuous gauntlet where the dungeon never truly ends. Instead of one run, you descend level after level — each level is a full deck run, and clearing it advances you to the next.
+        Endless Mode is a continuous gauntlet where the dungeon never ends. You descend floor after floor — each level is a full deck run, and clearing it advances you deeper.
       </p>
       <div class="htp-callout" style="border-color:rgba(160,128,255,0.3);background:rgba(160,128,255,0.06);">
-        💜 Your HP carries over between levels. You don't get a full restore — every point of HP you conserve matters across the entire run.
+        💜 Your HP and equipped weapon carry over between levels. Every point of HP you conserve matters across the entire run.
       </div>
       <p class="htp-text">
-        <strong>Scaling difficulty:</strong> Each level adds one additional <strong>Tag</strong> — a modifier that changes the rules. Level 1 has no tags, Level 2 has 1, Level 3 has 2, and so on. Tags are randomly selected each level and can include effects like empowered monsters, disabled skipping, poisoned rooms, corrosive weapons, deceptive discard piles, and more.
+        <strong>Scaling difficulty:</strong> Each level adds one additional <strong>Tag</strong> — a modifier that changes the rules. Level 1 has no tags, Level 2 has 1, Level 3 has 2, and so on. Tags include effects like empowered monsters, disabled skipping, poison, corrosive weapons, and more.
       </p>
       <p class="htp-text">
-        <strong>After each level</strong>, you choose a <strong>Reward</strong> — upgrade a weapon, upgrade a potion, add a Curse Potion, gain a Crystal Ball (peek at upcoming cards), or gain a Warp Scroll (rearrange upcoming cards). Then a random unlocked character is offered as a <strong>swap</strong> — you can switch to them or keep your current character. Only one character is active at a time; abilities don't stack.
+        <strong>After each level</strong>, you choose <strong>2 Rewards</strong> from 4 options. Rewards include usable items like Crystal Balls, Warp Scrolls, Shield Charms, Cursed Charms, Holy Flasks, Luck Charms, Whetstones, and Wands of Teleportation — as well as instant effects like weapon upgrades, potion upgrades, Elixir of Life (+3 max HP), and Rest &amp; Recover (full heal).
+      </p>
+      <p class="htp-text">
+        Then a random unlocked character is offered as a <strong>swap</strong> — you can switch or keep your current character. Switching resets your max HP to the new character's base (clearing both elixir bonuses and debuffs from tags like Soul Rend). Only one character is active at a time; abilities don't stack.
       </p>
     </div>
 
@@ -4961,13 +4959,13 @@ if ('serviceWorker' in navigator) {
     <div class="htp-section htp-endless-section" id="htpBossSection" style="display:none;">
       <div class="htp-section-title" style="color:#e04040;">⚔ Boss Fights</div>
       <p class="htp-text">
-        Every <strong>4th level</strong> (Level 4, 8, 12, etc.) is a <strong>Boss Fight</strong>. Bosses use a smaller, more dangerous deck and have a unique passive ability that changes the rules for that fight. The level's tags also apply on top of the boss's own ability.
+        Every <strong>4th level</strong> (Floor B4, B8, B12, etc.) is a <strong>Boss Fight</strong>. Bosses use a smaller, more dangerous deck and have a unique passive ability that changes the rules for that fight. The level's tags also apply on top of the boss's own ability.
       </p>
       <div class="htp-callout danger">
-        ⚠️ You enter the boss fight <strong>unarmed</strong>, with whatever HP you ended the previous level with. Dying in a boss fight ends your run immediately.
+        ⚠️ Your weapon and kill chain carry into boss fights — a strong weapon from the previous level can give you a crucial edge. Dying in a boss fight ends your run immediately.
       </div>
       <p class="htp-text">
-        Boss levels carry the same tag scaling as any other level — a Level 8 boss will have 7 tags plus its own passive, making later bosses significantly more challenging.
+        Boss levels carry the same tag scaling as any other level — a Floor B8 boss will have 7 tags plus its own passive, making later bosses significantly more challenging.
       </p>
     </div>
 
@@ -7001,6 +6999,7 @@ function numericValue(val) {
 
 // Increment a card's val by 1, converting between face card names
 function incrementCardVal(card) {
+  if (!card._originalVal) card._originalVal = card.val;
   const nv = numericValue(card.val) + 1;
   if (nv <= 10) card.val = String(nv);
   else if (nv === 11) card.val = 'J';
@@ -7011,6 +7010,7 @@ function incrementCardVal(card) {
 }
 
 function decrementCardVal(card) {
+  if (!card._originalVal) card._originalVal = card.val;
   const nv = numericValue(card.val) - 1;
   if (nv < 0) { card.val = '0'; return; }
   if (nv <= 10) card.val = String(nv);
@@ -7023,7 +7023,7 @@ function decrementCardVal(card) {
 
 function getMonsterImageUrl(card) {
   if (card.type !== 'monster') return null;
-  const v = numericValue(card.val);
+  const v = numericValue(card._originalVal || card.val);
   const valMap = { 11: 'j', 12: 'q', 13: 'k', 14: 'a' };
   const filename = valMap[v] || String(v);
   return `images/deck/monster_${filename}.png`;
@@ -7143,7 +7143,9 @@ function getEffectiveDisplayVal(card) {
 // Whether a card's effective value differs from its raw value
 function isCardModified(card) {
   if (card.isTrap || card.isCurse || card.isKeg) return false;
-  return getEffectiveVal(card) !== numericValue(card.val);
+  const effectiveVal = getEffectiveVal(card);
+  const originalVal = numericValue(card._originalVal || card.val);
+  return effectiveVal !== originalVal;
 }
 
 // Returns the value to show on the card face — numeric if toggle is on
@@ -10270,7 +10272,7 @@ function buildDiscardGrid(containerId) {
     const aType = (typeOrder[aDisp.type] ?? 9);
     const bType = (typeOrder[bDisp.type] ?? 9);
     if (aType !== bType) return aType - bType;
-    return numericValue(aDisp.val) - numericValue(bDisp.val);
+    return numericValue(aDisp._originalVal || aDisp.val) - numericValue(bDisp._originalVal || bDisp.val);
   });
 
   container.innerHTML = '<div class="discard-card-grid">' + sorted.map(card => {
