@@ -7190,11 +7190,12 @@ function powderKegCleanup() {
 // ─────────────────────────────────────
 
 function veilSuitHint(card) {
-  if (card.isTrap)  return { display: '?', colorCls: 'unknown', backImg: null };
-  if (card.isCurse) return { display: '☠', colorCls: 'unknown', backImg: null };
-  if (card.isKeg)   return { display: '💣', colorCls: 'unknown', backImg: null };
+  const specialBack = 'images/title/class_special_back.png';
+  if (card.isTrap)  return { display: '?', colorCls: 'unknown', backImg: specialBack };
+  if (card.isCurse) return { display: '☠', colorCls: 'unknown', backImg: specialBack };
+  if (card.isKeg)   return { display: '💣', colorCls: 'unknown', backImg: specialBack };
   const colorCls = card.isRed ? 'red-suit' : 'black-suit';
-  const backMap = { monster: 'images/title/class_monster_back.png', potion: 'images/title/class_potion_back.png', weapon: 'images/title/class_weapon_back.png' };
+  const backMap = { monster: 'images/title/class_monster.png', potion: 'images/title/class_potion.png', weapon: 'images/title/class_weapon.png' };
   return { display: card.suit, colorCls, backImg: backMap[card.type] || null };
 }
 
@@ -7211,7 +7212,7 @@ function applyVeil() {
       const back = document.createElement('div');
       back.className = 'card-veil-back';
       if (hint.backImg) {
-        back.innerHTML = `<img src="${hint.backImg}" style="width:100%;height:100%;object-fit:cover;border-radius:4px;opacity:0.85;">`;
+        back.innerHTML = `<img src="${hint.backImg}" style="width:40%;height:auto;object-fit:contain;opacity:0.85;">`;
       } else {
         back.innerHTML = `<div class="card-veil-suit ${hint.colorCls}">${hint.display}</div>`;
       }
@@ -7241,7 +7242,7 @@ function reapplyVeilInstant() {
       const back = document.createElement('div');
       back.className = 'card-veil-back';
       if (hint.backImg) {
-        back.innerHTML = `<img src="${hint.backImg}" style="width:100%;height:100%;object-fit:cover;border-radius:4px;opacity:0.85;">`;
+        back.innerHTML = `<img src="${hint.backImg}" style="width:40%;height:auto;object-fit:contain;opacity:0.85;">`;
       } else {
         back.innerHTML = `<div class="card-veil-suit ${hint.colorCls}">${hint.display}</div>`;
       }
@@ -8852,8 +8853,8 @@ function renderBossTagBadges() {
   if (!row) return;
   const tags = endless.activeTags || [];
   row.innerHTML = tags.map(t => `
-    <div class="boss-tag-badge" data-name="${t.icon} ${t.name}" data-desc="${t.desc}">
-      ${t.icon} ${t.name}
+    <div class="boss-tag-badge" data-name="${t.name}" data-desc="${t.desc}">
+      ${t.name}
     </div>
   `).join('');
 
@@ -9807,7 +9808,7 @@ function startNextEndlessLevel() {
   addLog(`Level ${endless.level} begins.`, 'new');
   if (isBossLevel) addLog(`⚔ Boss fight — ${endless.currentBoss.name}!`, 'danger');
   if (endless.activeTags.length > 0) {
-    addLog(`Tags: ${endless.activeTags.map(t => t.icon + ' ' + t.name).join(', ')}`, 'gold');
+    addLog(`Tags: ${endless.activeTags.map(t => t.name).join(', ')}`, 'gold');
   }
 }
 
@@ -10855,14 +10856,15 @@ function buildDiscardGrid(containerId) {
 
   // Assign persistent fake displays to normal cards if Deceptive is active
   if (isDeceptive) {
-    const fakeSuits = ['♠','♣','♥','♦'];
+    const fakeTypes = ['monster','potion','weapon'];
     const fakeVals  = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
     state.discard.forEach(card => {
-      if (card.isTrap || card.isCurse || card.isKeg) return; // specials stay real
+      if (card.isTrap || card.isCurse || card.isKeg) return;
       if (!card._fakeDisplay) {
-        const fs = fakeSuits[Math.floor(Math.random() * fakeSuits.length)];
+        const ft = fakeTypes[Math.floor(Math.random() * fakeTypes.length)];
         const fv = fakeVals[Math.floor(Math.random() * fakeVals.length)];
-        card._fakeDisplay = { suit: fs, val: fv, isRed: (fs === '♥' || fs === '♦') };
+        const fs = ft === 'monster' ? (Math.random() < 0.5 ? '♠' : '♣') : ft === 'potion' ? '♥' : '♦';
+        card._fakeDisplay = { suit: fs, val: fv, type: ft, isRed: (fs === '♥' || fs === '♦'), _originalVal: fv };
       }
     });
   }
