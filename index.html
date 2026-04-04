@@ -1383,7 +1383,7 @@ if ('serviceWorker' in navigator) {
     box-shadow: 0 4px 20px rgba(0,0,0,0.5);
   }
   .top-hp-portrait {
-    width: 36px; height: 36px; border-radius: 50%;
+    width: 45px; height: 45px; border-radius: 50%;
     background: linear-gradient(135deg, #2a1f14, #1a140e);
     border: 1px solid rgba(200,169,110,0.35);
     display: flex; align-items: center; justify-content: center;
@@ -2135,7 +2135,7 @@ if ('serviceWorker' in navigator) {
     .game-top-zone { padding: 36px 0 6px; }
     .weapon-corner-suit { display: none !important; }
     .game-top-bar  { width: min(96vw, 400px); padding: 8px 10px; gap: 8px; }
-    .top-hp-portrait { width: 28px; height: 28px; font-size: 0.9rem; }
+    .top-hp-portrait { width: 35px; height: 35px; font-size: 0.9rem; }
     .top-hp-track    { height: 14px; }
 
     /* Cards — auto-scale to fit viewport width */
@@ -6353,7 +6353,7 @@ function continueGame() {
   document.getElementById('playerPortrait').innerHTML = charLogoHtml(char, 60);
   document.getElementById('playerName').textContent     = char.name;
   document.getElementById('playerClass').textContent    = char.cls;
-  document.getElementById('topHpPortrait').innerHTML = charLogoHtml(char, 28);
+  document.getElementById('topHpPortrait').innerHTML = charLogoHtml(char, 35);
   document.getElementById('topHpName').textContent      = char.name;
 
   if (save.endlessActive) updateEndlessUI();
@@ -6769,7 +6769,7 @@ function startGame() {
   document.getElementById('playerPortrait').innerHTML = charLogoHtml(char, 60);
   document.getElementById('playerName').textContent = char.name;
   document.getElementById('playerClass').textContent = char.cls;
-  document.getElementById('topHpPortrait').innerHTML = charLogoHtml(char, 28);
+  document.getElementById('topHpPortrait').innerHTML = charLogoHtml(char, 35);
   document.getElementById('topHpName').textContent = char.name;
   state.weaponKills = [];
   updateWeaponBar();
@@ -8863,7 +8863,7 @@ function startBossFight() {
     document.getElementById('playerPortrait').innerHTML = charLogoHtml(starterChar, 60);
     document.getElementById('playerName').textContent      = starterChar.name;
     document.getElementById('playerClass').textContent     = starterChar.cls;
-    document.getElementById('topHpPortrait').innerHTML = charLogoHtml(starterChar, 28);
+    document.getElementById('topHpPortrait').innerHTML = charLogoHtml(starterChar, 35);
     document.getElementById('topHpName').textContent       = starterChar.name;
   }
 
@@ -9337,7 +9337,7 @@ function startNextEndlessLevel() {
     document.getElementById('playerPortrait').innerHTML = charLogoHtml(starterChar, 60);
     document.getElementById('playerName').textContent     = starterChar.name;
     document.getElementById('playerClass').textContent    = starterChar.cls;
-    document.getElementById('topHpPortrait').innerHTML = charLogoHtml(starterChar, 28);
+    document.getElementById('topHpPortrait').innerHTML = charLogoHtml(starterChar, 35);
     document.getElementById('topHpName').textContent      = starterChar.name;
   }
 
@@ -10941,7 +10941,7 @@ function launchDebugBossFight() {
   document.getElementById('playerPortrait').innerHTML = charLogoHtml(starterChar, 60);
   document.getElementById('playerName').textContent     = starterChar.name;
   document.getElementById('playerClass').textContent    = starterChar.cls;
-  document.getElementById('topHpPortrait').innerHTML = charLogoHtml(starterChar, 28);
+  document.getElementById('topHpPortrait').innerHTML = charLogoHtml(starterChar, 35);
   document.getElementById('topHpName').textContent      = starterChar.name;
 
   updateEndlessUI();
