@@ -1061,6 +1061,35 @@ if ('serviceWorker' in navigator) {
     box-shadow: 0 0 20px rgba(192,57,43,0.4);
   }
 
+  /* Ponder button */
+  .btn-ponder {
+    color: #b080e0;
+    border-color: rgba(176,128,224,0.4);
+    margin-top: 6px;
+    align-self: center;
+  }
+  .btn-ponder:hover {
+    background: rgba(176,128,224,0.15);
+    border-color: #b080e0;
+    box-shadow: 0 0 16px rgba(176,128,224,0.3);
+  }
+
+  /* Purple fog overlay for pondered rooms */
+  .ponder-fog {
+    display: none;
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 50;
+    box-shadow: inset 0 0 80px 30px rgba(140,80,220,0.25), inset 0 0 160px 60px rgba(100,40,180,0.15);
+    animation: ponderFogPulse 3s ease-in-out infinite;
+  }
+  .ponder-fog.active { display: block; }
+  @keyframes ponderFogPulse {
+    0%, 100% { box-shadow: inset 0 0 80px 30px rgba(140,80,220,0.25), inset 0 0 160px 60px rgba(100,40,180,0.15); }
+    50% { box-shadow: inset 0 0 100px 40px rgba(140,80,220,0.35), inset 0 0 180px 70px rgba(100,40,180,0.2); }
+  }
+
   /* Right panel — dungeon info (hidden, stats moved under HP bar) */
   .game-panel-right {
     display: none !important;
@@ -4679,6 +4708,7 @@ if ('serviceWorker' in navigator) {
     </div>
 
     <!-- PARTY INFO PANEL -->
+    <div class="ponder-fog" id="ponderFog"></div>
     <div class="party-panel-backdrop" id="partyPanelBackdrop" onclick="closePartyPanel()"></div>
     <div class="party-panel" id="partyPanel">
       <div id="partyPanelContent"></div>
@@ -4735,6 +4765,7 @@ if ('serviceWorker' in navigator) {
           <button class="btn-action btn-confirm" id="confirmBtn" disabled onclick="confirmRoom()">Continue</button>
           <button class="btn-action btn-flee flee-ready" id="fleeBtn" onclick="fleeRoom()">Skip</button>
         </div>
+        <button class="btn-action btn-ponder" id="ponderBtn" onclick="usePonder()" style="display:none;">Ponder</button>
       </div>
 
       <div style="display:flex;gap:6px;" id="roomDots"></div>
@@ -5694,6 +5725,23 @@ const CHARACTERS = [
     unlockRequires: 'doubleAllMonsterRooms'
   },
   {
+    id: 'claire',
+    emoji: '🔮', name: 'Claire the Seer', cls: 'Oracle',
+    desc: 'A mystic who sees through the fog of indecision. After skipping a room, she can Ponder — undoing the skip and returning to face what she fled from.',
+    bg: 'linear-gradient(135deg,#140a1e,#0a0514)',
+    color: '#b080e0',
+    passives: [
+      {
+        name: 'Ponder',
+        desc: 'After skipping a room, a Ponder button appears. Press it to undo the skip and return to the previous room. Can only Ponder once per skip — resolving a room normally resets it.'
+      }
+    ],
+    hp: 20, maxHp: 20,
+    weapon: { name: 'Unarmed', val: 0 },
+    armor:  { name: 'Veil of Foresight' },
+    unlockRequires: 'discardCheck10Win'
+  },
+  {
     id: 'naktuk',
     emoji: '👑', name: 'Naktuk', cls: 'Debug Overlord',
     desc: 'An ancient presence who walks through the dungeon untouched. Monsters cannot harm him.',
@@ -5713,7 +5761,7 @@ const CHARACTERS = [
 ];
 
 // Character logo images
-const CHAR_LOGO_IDS = ['deckard','perry','milo','serena','ashton','avery','jack','gobbo','jet','gale','corvo','naktuk'];
+const CHAR_LOGO_IDS = ['deckard','perry','milo','serena','ashton','avery','jack','gobbo','jet','gale','corvo','claire','naktuk'];
 let _validCharLogos = {};
 function preloadCharLogos() {
   CHAR_LOGO_IDS.forEach(id => {
@@ -6527,6 +6575,11 @@ function continueGame() {
   state.directBypassCount   = save.directBypassCount  || 0;
   state.weaponsThisRoom     = save.weaponsThisRoom     || 0;
   state.stats               = save.stats;
+  state.discardViewsThisRun = save.discardViewsThisRun || 0;
+  state._hasPondered = false;
+  state._canPonder = false;
+  state._ponderSnapshot = null;
+  state._inSkippedRoom = false;
 
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('game').classList.add('active');
@@ -6565,6 +6618,8 @@ function continueGame() {
   updatePips();
   updateConfirmBtn();
   updateFleeButton();
+  document.getElementById('ponderBtn').style.display = 'none';
+  document.getElementById('ponderFog').classList.remove('active');
 
   const required = requiredSelections();
   document.getElementById('actionHint').textContent = state.selected.length >= required
@@ -6647,10 +6702,11 @@ function getUnlockedCharacters() {
   const jetUnlocked    = allStats.some(d => (d.allRedSkips || 0) >= 10);
   const galeUnlocked   = allStats.some(d => (d.lostToFinalMonsters || 0) >= 1);
   const corvoUnlocked  = allStats.some(d => (d.doubleAllMonsterRooms || 0) >= 1);
+  const claireUnlocked = allStats.some(d => (d.discardCheck10Win || 0) >= 1);
 
   return CHARACTERS.filter(c => {
     if (!c.unlockRequires) return true;
-    if (c.unlockRequires === 'admin')          return false; // Naktuk only via admin
+    if (c.unlockRequires === 'admin')          return false;
     if (c.unlockRequires === 'win')           return hasWon;
     if (c.unlockRequires === 'weapon6kills')  return miloUnlocked;
     if (c.unlockRequires === 'win75pct')      return serenaUnlocked;
@@ -6661,6 +6717,7 @@ function getUnlockedCharacters() {
     if (c.unlockRequires === 'allRedSkips10') return jetUnlocked;
     if (c.unlockRequires === 'lostToFinalMonsters') return galeUnlocked;
     if (c.unlockRequires === 'doubleAllMonsterRooms') return corvoUnlocked;
+    if (c.unlockRequires === 'discardCheck10Win') return claireUnlocked;
     return false;
   });
 }
@@ -6947,6 +7004,11 @@ function startGame() {
   state.potionUsedThisRoom = 0;
   state.directBypassCount = 0;
   state.weaponsThisRoom = 0;
+  state._hasPondered = false;
+  state._canPonder = false;
+  state._ponderSnapshot = null;
+  state._inSkippedRoom = false;
+  state.discardViewsThisRun = 0;
 
   // Ashton starts with a Monster Trap equipped
   if (hasPassive('Monster Trap')) {
@@ -7054,6 +7116,15 @@ function drawRoom(carryOver) {
   updateConfirmBtn();
   updateFleeButton();
   syncMobileStats();
+
+  // Claire's Ponder: show button and fog after room is set
+  if (state._canPonder && state._inSkippedRoom) {
+    document.getElementById('ponderBtn').style.display = '';
+    document.getElementById('ponderFog').classList.add('active');
+  } else {
+    document.getElementById('ponderBtn').style.display = 'none';
+  }
+
   const required = requiredSelections();
   document.getElementById('actionHint').textContent = `Select ${required} card${required !== 1 ? 's' : ''} to continue`;
 
@@ -7102,6 +7173,14 @@ function powderKegCleanup() {
   state.bypassed = [];
   state.skipped = null;
 
+  // Clear ponder state — room was resolved by explosion
+  state._inSkippedRoom = false;
+  state._canPonder = false;
+  state._hasPondered = false;
+  state._ponderSnapshot = null;
+  document.getElementById('ponderBtn').style.display = 'none';
+  document.getElementById('ponderFog').classList.remove('active');
+
   state.roomNumber++;
   setTimeout(() => transitionToNextRoom(null), 300);
 }
@@ -7111,11 +7190,12 @@ function powderKegCleanup() {
 // ─────────────────────────────────────
 
 function veilSuitHint(card) {
-  if (card.isTrap)  return { display: '?', colorCls: 'unknown' };
-  if (card.isCurse) return { display: '☠', colorCls: 'unknown' };
-  if (card.isKeg)   return { display: '💣', colorCls: 'unknown' };
+  if (card.isTrap)  return { display: '?', colorCls: 'unknown', backImg: null };
+  if (card.isCurse) return { display: '☠', colorCls: 'unknown', backImg: null };
+  if (card.isKeg)   return { display: '💣', colorCls: 'unknown', backImg: null };
   const colorCls = card.isRed ? 'red-suit' : 'black-suit';
-  return { display: card.suit, colorCls };
+  const backMap = { monster: 'images/title/class_monster_back.png', potion: 'images/title/class_potion_back.png', weapon: 'images/title/class_weapon_back.png' };
+  return { display: card.suit, colorCls, backImg: backMap[card.type] || null };
 }
 
 function applyVeil() {
@@ -7130,7 +7210,11 @@ function applyVeil() {
     if (!el.querySelector('.card-veil-back')) {
       const back = document.createElement('div');
       back.className = 'card-veil-back';
-      back.innerHTML = `<div class="card-veil-suit ${hint.colorCls}">${hint.display}</div>`;
+      if (hint.backImg) {
+        back.innerHTML = `<img src="${hint.backImg}" style="width:100%;height:100%;object-fit:cover;border-radius:4px;opacity:0.85;">`;
+      } else {
+        back.innerHTML = `<div class="card-veil-suit ${hint.colorCls}">${hint.display}</div>`;
+      }
       el.appendChild(back);
     }
     el.classList.add('flip-hiding');
@@ -7156,7 +7240,11 @@ function reapplyVeilInstant() {
     if (!el.querySelector('.card-veil-back')) {
       const back = document.createElement('div');
       back.className = 'card-veil-back';
-      back.innerHTML = `<div class="card-veil-suit ${hint.colorCls}">${hint.display}</div>`;
+      if (hint.backImg) {
+        back.innerHTML = `<img src="${hint.backImg}" style="width:100%;height:100%;object-fit:cover;border-radius:4px;opacity:0.85;">`;
+      } else {
+        back.innerHTML = `<div class="card-veil-suit ${hint.colorCls}">${hint.display}</div>`;
+      }
       el.appendChild(back);
     }
     el.classList.add('veiled');
@@ -7718,6 +7806,7 @@ function rightClickCard(idx) {
   }
 
   renderCards();
+  if (state.isVeiled) reapplyVeilInstant();
   updatePips();
   updateConfirmBtn();
   previewHpBar();
@@ -8551,6 +8640,14 @@ function resolveRoom() {
       addLog(`💀 The Necromancer resurrects ${names} from the discard!`, 'danger');
     }
   }
+
+  // Clear Claire's ponder state — entering a room via resolve, not skip
+  state._inSkippedRoom = false;
+  state._canPonder = false;
+  state._hasPondered = false;
+  state._ponderSnapshot = null;
+  document.getElementById('ponderBtn').style.display = 'none';
+  document.getElementById('ponderFog').classList.remove('active');
 
   setTimeout(() => transitionToNextRoom(carryOver), 600);
 }
@@ -9850,6 +9947,16 @@ function endlessLevelComplete() {
     if (mainChar) saveVeteran(mainChar.id);
   }
 
+  // Claire unlock: checked discard 10+ times and beat a level
+  if ((state.discardViewsThisRun || 0) >= 10) {
+    const charId = CHARACTERS[state.selectedChar ?? 0]?.id;
+    if (charId) {
+      const data = loadCharStats(charId);
+      data.discardCheck10Win = (data.discardCheck10Win || 0) + 1;
+      saveCharStats(charId, data);
+    }
+  }
+
   // Clean up boss state if this was a boss level
   if (endless.currentBoss) {
     document.body.classList.remove('is-boss');
@@ -10680,6 +10787,58 @@ function useBag() {
 }
 
 // ─────────────────────────────────────
+// CLAIRE'S PONDER
+// ─────────────────────────────────────
+function usePonder() {
+  if (!state._canPonder || !state._ponderSnapshot) return;
+  playTransitionSE();
+
+  const snap = state._ponderSnapshot;
+  state.hand = snap.hand;
+  state.deck = snap.deck;
+  state.roomNumber = snap.roomNumber;
+  state.consecutiveSkips = snap.consecutiveSkips;
+  state.totalSkipsThisRun = snap.totalSkipsThisRun;
+  state.fleeUsedLastRoom = snap.fleeUsedLastRoom;
+
+  // Restore previous room background
+  _currentBg = snap.bg;
+  const gameEl = document.getElementById('game');
+  if (snap.bgStyle) gameEl.style.backgroundImage = snap.bgStyle;
+
+  // Reset selection state
+  state.selected = [];
+  state.selectionOrder = [];
+  state.bypassed = [];
+  state.skipped = null;
+  state.isVeiled = false;
+  state.potionUsedThisRoom = 0;
+  state.weaponsThisRoom = 0;
+  state.cursedCharmActive = false;
+
+  // Clear ponder state
+  state._canPonder = false;
+  state._hasPondered = true;
+  state._ponderSnapshot = null;
+  state._inSkippedRoom = false;
+
+  // Hide button and fog
+  document.getElementById('ponderBtn').style.display = 'none';
+  document.getElementById('ponderFog').classList.remove('active');
+
+  // Update UI
+  document.getElementById('roomDepth').textContent = `Room ${state.roomNumber} — Floor B${endless.active ? endless.level : 1}`;
+  document.getElementById('deckCount').textContent = state.deck.length;
+  updateHpBar();
+  renderCards();
+  updateFleeButton();
+  updateConfirmBtn();
+  updatePips();
+  syncMobileStats();
+  addLog('🔮 Claire ponders... and returns to the room she fled.', 'gold');
+}
+
+// ─────────────────────────────────────
 // DISCARD PANEL
 // ─────────────────────────────────────
 
@@ -10770,6 +10929,9 @@ function buildDiscardGrid(containerId) {
 function openMobileDiscard() {
   buildDiscardGrid('mobileDiscardCards');
   document.getElementById('mobileDiscardOverlay').classList.add('open');
+  if (state.currentScreen === 'game') {
+    state.discardViewsThisRun = (state.discardViewsThisRun || 0) + 1;
+  }
 }
 
 function closeMobileDiscard() {
@@ -10782,6 +10944,9 @@ function closeMobileDiscard() {
   if (section) {
     section.addEventListener('mouseenter', () => {
       buildDiscardGrid('discardHoverCards');
+      if (state.currentScreen === 'game') {
+        state.discardViewsThisRun = (state.discardViewsThisRun || 0) + 1;
+      }
     });
   }
 })();
@@ -10840,6 +11005,15 @@ function showVictory() {
     }
   }
   recordWin(state.player.hp);
+
+  // Claire unlock: checked discard 10+ times and won
+  if ((state.discardViewsThisRun || 0) >= 10) {
+    const charId = CHARACTERS[state.selectedChar ?? 0].id;
+    const data = loadCharStats(charId);
+    data.discardCheck10Win = (data.discardCheck10Win || 0) + 1;
+    saveCharStats(charId, data);
+  }
+
   playVictorySE();
   document.getElementById('vic-hp').textContent      = `${state.player.hp} / ${state.player.maxHp}`;
   document.getElementById('vic-rooms').textContent   = state.roomNumber;
@@ -10859,6 +11033,20 @@ function fleeRoom() {
   if (state.consecutiveSkips >= maxSkips) return;
   if (bossTagNoFlee()) return;
   playTransitionSE();
+
+  // Save snapshot for Ponder (before any modifications)
+  if (hasPassive('Ponder') && !state._hasPondered) {
+    state._ponderSnapshot = {
+      hand: JSON.parse(JSON.stringify(state.hand)),
+      deck: JSON.parse(JSON.stringify(state.deck)),
+      roomNumber: state.roomNumber,
+      consecutiveSkips: state.consecutiveSkips,
+      totalSkipsThisRun: state.totalSkipsThisRun,
+      fleeUsedLastRoom: state.fleeUsedLastRoom,
+      bg: _currentBg,
+      bgStyle: document.getElementById('game').style.backgroundImage,
+    };
+  }
 
   // Clear any selection and reset health bar preview instantly
   state.selected = [];
@@ -10940,6 +11128,12 @@ function fleeRoom() {
     if (state.player.hp <= 0) return;
   }
 
+  // Claire's Ponder: set flags (UI shown after room is drawn)
+  if (hasPassive('Ponder') && state._ponderSnapshot && !state._hasPondered) {
+    state._canPonder = true;
+    state._inSkippedRoom = true;
+  }
+
   setTimeout(() => transitionToNextRoom(null), 400);
 }
 
@@ -11003,6 +11197,7 @@ saveRun = function() {
     endlessShieldCharms: endless.shieldCharms,
     endlessLuckCharms: endless.luckCharms,
     endlessWhetstones: endless.whetstones,
+    discardViewsThisRun: state.discardViewsThisRun || 0,
   };
   try { localStorage.setItem(getSaveKey(), JSON.stringify(save)); }
   catch(e) { console.warn('Save failed:', e); }
