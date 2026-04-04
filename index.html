@@ -29,7 +29,7 @@ if ('serviceWorker' in navigator) {
   }).catch(() => {});
 
   const swCode = `
-    const CACHE = 'deck-diver-v5';
+    const CACHE = 'deck-diver-v6';
     self.addEventListener('install', e => {
       e.waitUntil(
         caches.open(CACHE).then(cache =>
@@ -2604,7 +2604,7 @@ if ('serviceWorker' in navigator) {
     align-items: center;
     flex-wrap: wrap;
   }
-  .profile-char-icon { font-size: 1.1rem; opacity: 0.85; }
+  .profile-char-icon { font-size: 1.1rem; opacity: 0.85; display: none; }
   .profile-slot-stats {
     display: flex;
     gap: 16px;
@@ -5578,6 +5578,31 @@ const CHARACTERS = [
   }
 ];
 
+// Character logo images
+const CHAR_LOGO_IDS = ['deckard','perry','milo','serena','ashton','avery','jack','gobbo','jet','gale','corvo','naktuk'];
+let _validCharLogos = {};
+function preloadCharLogos() {
+  CHAR_LOGO_IDS.forEach(id => {
+    const src = `images/character/logo_${id}.png`;
+    const img = new Image();
+    img.onload = () => { _validCharLogos[id] = src; };
+    img.src = src;
+  });
+}
+preloadCharLogos();
+
+function getCharLogoUrl(char) {
+  return _validCharLogos[char.id] || null;
+}
+
+function charLogoHtml(char, sizePx) {
+  const url = getCharLogoUrl(char);
+  if (url) {
+    return `<img src="${url}" alt="${char.name}" style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;object-fit:cover;">`;
+  }
+  return `<span style="font-size:${Math.round(sizePx * 0.6)}px;line-height:1;">${char.emoji}</span>`;
+}
+
 const ROOM_NAMES = [
   'The Antechamber', 'The Crypt Passage', 'The Bone Hall',
   'Chamber of Echoes', 'The Sulfur Pits', 'The Forsaken Vault',
@@ -6325,10 +6350,10 @@ function continueGame() {
   state.currentScreen = 'game';
 
   const char = CHARACTERS[state.selectedChar ?? 0];
-  document.getElementById('playerPortrait').textContent = char.emoji;
+  document.getElementById('playerPortrait').innerHTML = charLogoHtml(char, 60);
   document.getElementById('playerName').textContent     = char.name;
   document.getElementById('playerClass').textContent    = char.cls;
-  document.getElementById('topHpPortrait').textContent  = char.emoji;
+  document.getElementById('topHpPortrait').innerHTML = charLogoHtml(char, 28);
   document.getElementById('topHpName').textContent      = char.name;
 
   if (save.endlessActive) updateEndlessUI();
@@ -6467,7 +6492,7 @@ function renderStatsForChar(unlocked) {
   const char = unlocked[statsCharIndex];
   const data = loadCharStats(char.id);
 
-  document.getElementById('st-char-emoji').textContent = char.emoji;
+  document.getElementById('st-char-emoji').innerHTML = charLogoHtml(char, 40);
   document.getElementById('st-char-name').textContent  = char.name;
   document.getElementById('st-char-cls').textContent   = char.cls;
   document.getElementById('st-char-cls').style.color   = char.color;
@@ -6517,7 +6542,7 @@ function confirmExit() {
 // CHARACTER SELECT
 // ─────────────────────────────────────
 function openCharDetail(char) {
-  document.getElementById('charDetailEmoji').textContent = char.emoji;
+  document.getElementById('charDetailEmoji').innerHTML = charLogoHtml(char, 60);
   document.getElementById('charDetailName').textContent  = char.name;
   document.getElementById('charDetailCls').textContent   = char.cls;
   document.getElementById('charDetailCls').style.color   = char.color;
@@ -6563,7 +6588,7 @@ function buildCharGrid() {
       <div class="char-corner tr"></div>
       <div class="char-corner bl"></div>
       <div class="char-corner br"></div>
-      <div class="char-avatar" style="background:${c.bg}; box-shadow: 0 0 20px ${c.color}22;">${c.emoji}</div>
+      <div class="char-avatar" style="background:${c.bg}; box-shadow: 0 0 20px ${c.color}22;">${charLogoHtml(c, 72)}</div>
       <div class="char-text-col" style="flex:1;min-width:0;display:flex;flex-direction:column;">
         <div class="char-name">${c.name}</div>
         
@@ -6741,10 +6766,10 @@ function startGame() {
   }
 
   // Update player UI
-  document.getElementById('playerPortrait').textContent = char.emoji;
+  document.getElementById('playerPortrait').innerHTML = charLogoHtml(char, 60);
   document.getElementById('playerName').textContent = char.name;
   document.getElementById('playerClass').textContent = char.cls;
-  document.getElementById('topHpPortrait').textContent = char.emoji;
+  document.getElementById('topHpPortrait').innerHTML = charLogoHtml(char, 28);
   document.getElementById('topHpName').textContent = char.name;
   state.weaponKills = [];
   updateWeaponBar();
@@ -8835,10 +8860,10 @@ function startBossFight() {
   // Refresh portrait to starter character
   const starterChar = CHARACTERS[endless.starterIdx];
   if (starterChar) {
-    document.getElementById('playerPortrait').textContent  = starterChar.emoji;
+    document.getElementById('playerPortrait').innerHTML = charLogoHtml(starterChar, 60);
     document.getElementById('playerName').textContent      = starterChar.name;
     document.getElementById('playerClass').textContent     = starterChar.cls;
-    document.getElementById('topHpPortrait').textContent   = starterChar.emoji;
+    document.getElementById('topHpPortrait').innerHTML = charLogoHtml(starterChar, 28);
     document.getElementById('topHpName').textContent       = starterChar.name;
   }
 
@@ -9143,12 +9168,12 @@ function showCharSwap() {
   container.innerHTML = `
     <div style="text-align:center;margin-bottom:4px;">
       <div style="font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-dim);font-family:'Cinzel',serif;">Current</div>
-      <div style="font-size:2rem;margin:4px 0;">${current.emoji}</div>
+      <div style="margin:4px 0;">${charLogoHtml(current, 48)}</div>
       <div style="font-family:'Cinzel',serif;font-size:0.85rem;color:var(--parchment-light);letter-spacing:0.08em;">${current.name}</div>
     </div>
     <div style="font-size:1.8rem;color:var(--gold);line-height:1;">⇅</div>
     <div style="text-align:center;margin-bottom:4px;">
-      <div style="font-size:3.5rem;margin-bottom:8px;">${offered.emoji}</div>
+      <div style="margin-bottom:8px;">${charLogoHtml(offered, 72)}</div>
       <div style="font-family:'Cinzel Decorative',cursive;font-size:1.1rem;color:var(--parchment-light);letter-spacing:0.08em;margin-bottom:2px;">${offered.name}</div>
       <div style="font-family:'Crimson Text',serif;font-size:0.92rem;color:var(--text-light);line-height:1.5;margin-bottom:12px;text-align:left;">${offered.desc}</div>
       <div style="display:flex;flex-direction:column;gap:6px;width:100%;">${passiveHtml}</div>
@@ -9309,10 +9334,10 @@ function startNextEndlessLevel() {
   // Update portrait to current character
   const starterChar = CHARACTERS[endless.starterIdx];
   if (starterChar) {
-    document.getElementById('playerPortrait').textContent = starterChar.emoji;
+    document.getElementById('playerPortrait').innerHTML = charLogoHtml(starterChar, 60);
     document.getElementById('playerName').textContent     = starterChar.name;
     document.getElementById('playerClass').textContent    = starterChar.cls;
-    document.getElementById('topHpPortrait').textContent  = starterChar.emoji;
+    document.getElementById('topHpPortrait').innerHTML = charLogoHtml(starterChar, 28);
     document.getElementById('topHpName').textContent      = starterChar.name;
   }
 
@@ -9352,10 +9377,10 @@ function updatePartyList() {
           </div>`).join('');
     return `
       <div class="party-member">
-        <span class="party-member-emoji">${c.emoji}</span>
+        <span class="party-member-emoji">${charLogoHtml(c, 22)}</span>
         <span class="party-member-name" style="color:${c.color}">${c.name}</span>
         <div class="party-tooltip">
-          <div class="party-tooltip-name">${c.emoji} ${c.name}</div>
+          <div class="party-tooltip-name">${charLogoHtml(c, 18)} ${c.name}</div>
           ${passivesHtml}
         </div>
       </div>`;
@@ -10913,10 +10938,10 @@ function launchDebugBossFight() {
 
   // Set up UI
   const starterChar = CHARACTERS[starterIdx];
-  document.getElementById('playerPortrait').textContent = starterChar.emoji;
+  document.getElementById('playerPortrait').innerHTML = charLogoHtml(starterChar, 60);
   document.getElementById('playerName').textContent     = starterChar.name;
   document.getElementById('playerClass').textContent    = starterChar.cls;
-  document.getElementById('topHpPortrait').textContent  = starterChar.emoji;
+  document.getElementById('topHpPortrait').innerHTML = charLogoHtml(starterChar, 28);
   document.getElementById('topHpName').textContent      = starterChar.name;
 
   updateEndlessUI();
