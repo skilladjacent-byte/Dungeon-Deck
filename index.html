@@ -472,6 +472,8 @@ if ('serviceWorker' in navigator) {
     letter-spacing: 0.1em;
     margin-bottom: 8px;
   }
+  .char-vet-desktop { display: block; }
+  .char-vet-mobile { display: none; }
   .char-class {
     font-size: 0.7rem;
     letter-spacing: 0.2em;
@@ -2240,6 +2242,8 @@ if ('serviceWorker' in navigator) {
       text-overflow: ellipsis;
       width: 100%;
     }
+    .char-vet-desktop { display: none !important; }
+    .char-vet-mobile { display: block !important; }
     .char-class {
       font-size: 0.58rem;
       letter-spacing: 0.15em;
@@ -6845,7 +6849,8 @@ function buildCharGrid() {
 
     const el = document.createElement('div');
     el.className = 'char-card' + (myRenderIdx === 0 ? ' selected' : '');
-    const vetLabel = isVeteran ? `<div style="font-family:'Cinzel',serif;font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:#a080ff;margin-bottom:4px;text-shadow:0 0 8px rgba(160,128,255,0.5);">Veteran</div>` : '';
+    const vetLabel = isVeteran ? `<div class="char-vet-label char-vet-desktop" style="font-family:'Cinzel',serif;font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:#a080ff;margin-bottom:4px;text-shadow:0 0 8px rgba(160,128,255,0.5);">Veteran</div>` : '';
+    const vetLabelMobile = isVeteran ? `<div class="char-vet-label char-vet-mobile" style="font-family:'Cinzel',serif;font-size:0.5rem;letter-spacing:0.2em;text-transform:uppercase;color:#a080ff;text-shadow:0 0 8px rgba(160,128,255,0.5);margin-top:2px;">Veteran</div>` : '';
     el.innerHTML = `
       <div class="char-corner tl"></div>
       <div class="char-corner tr"></div>
@@ -6855,6 +6860,7 @@ function buildCharGrid() {
       <div class="char-avatar" style="background:${c.bg}; box-shadow: 0 0 20px ${c.color}22;">${charLogoHtml(c, 72)}</div>
       <div class="char-text-col" style="flex:1;min-width:0;display:flex;flex-direction:column;">
         <div class="char-name">${c.name}</div>
+        ${vetLabelMobile}
         
         <div class="char-desc">${c.desc}</div>
       </div>
