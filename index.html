@@ -14,6 +14,24 @@
 <link rel="apple-touch-icon" href="images/DeckDiverAppLogo.png"/>
 <link rel="icon" type="image/png" href="images/DeckDiverAppLogo.png"/>
 <title>Deck Diver</title>
+<!-- Firebase Analytics -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js"></script>
+<script>
+  firebase.initializeApp({
+    apiKey: "AIzaSyBeUYSOCnJFX5dTtgSAVKdhq1hFawAp1mk",
+    authDomain: "deckdiver-eaf89.firebaseapp.com",
+    projectId: "deckdiver-eaf89",
+    storageBucket: "deckdiver-eaf89.firebasestorage.app",
+    messagingSenderId: "422239542606",
+    appId: "1:422239542606:web:c5b8790cfa19dcc89c521f",
+    measurementId: "G-3HVPSGGPFM"
+  });
+  const fbAnalytics = firebase.analytics();
+  function logGameEvent(name, params) {
+    try { fbAnalytics.logEvent(name, params || {}); } catch(e) { console.warn('Analytics:', e); }
+  }
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
 <script>
 // Register inline service worker for PWA offline support
@@ -95,6 +113,17 @@ if ('serviceWorker' in navigator) {
     min-height: 100vh;
     overflow: hidden;
     position: relative;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  input, textarea {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
   }
 
   /* ─── NOISE OVERLAY ─── */
@@ -2678,6 +2707,32 @@ if ('serviceWorker' in navigator) {
   }
 
   /* ══════════════════════════════
+     COMPANY SPLASH SCREEN
+  ══════════════════════════════ */
+  .splash-screen {
+    position: fixed; inset: 0;
+    background: rgb(20, 20, 19);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 1.2s ease;
+  }
+  .splash-screen.fading { opacity: 0; }
+  .splash-logo {
+    width: clamp(180px, 50vw, 400px);
+    height: auto;
+    transform: scale(3);
+    opacity: 0;
+    animation: splashZoom 4.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+  @keyframes splashZoom {
+    0%   { transform: scale(3); opacity: 0; }
+    15%  { opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* ══════════════════════════════
      TITLE SCREEN
   ══════════════════════════════ */
   #title-screen {
@@ -4701,7 +4756,13 @@ if ('serviceWorker' in navigator) {
 <div class="room-transition-overlay" id="roomTransitionOverlay"></div>
 
 <!-- ══════════════ TITLE SCREEN ══════════════ -->
-<div class="screen active" id="title-screen" onclick="playMenuMusic(); goTo('profile-select')">
+<!-- ══════════════ COMPANY SPLASH ══════════════ -->
+<div class="splash-screen" id="splashScreen">
+  <img src="images/startup/logo_ffg.png" alt="Fox & Fairy Games" class="splash-logo" id="splashLogo">
+</div>
+
+<!-- ══════════════ TITLE SCREEN ══════════════ -->
+<div class="screen" id="title-screen" onclick="playMenuMusic(); goTo('profile-select')">
   <div class="home-bg-cards">
     <div class="bg-card"></div><div class="bg-card"></div>
     <div class="bg-card"></div><div class="bg-card"></div>
@@ -7234,6 +7295,7 @@ function startGame() {
   updateHpBar();
 
   setRoomBackground(false);
+  logGameEvent('game_start', { character: char.name, character_id: char.id, mode: endless.active ? 'endless' : 'standard' });
   drawRoom(null);
 }
 
@@ -9454,6 +9516,7 @@ function startBossFight() {
   endless.activeTags = tagCount > 0 ? assignBossTags(tagCount) : [];
 
   document.body.classList.add('is-boss');
+  logGameEvent('boss_start', { boss: boss.name, boss_number: endless.bossNumber, level: endless.level, tags: endless.activeTags.map(t => t.name).join(','), tag_count: endless.activeTags.length, character: CHARACTERS[endless.starterIdx].name });
   document.getElementById('bossBannerName').textContent = `⚔ ${boss.name}`;
   document.getElementById('bossBannerPassive').textContent = boss.passive;
   renderBossTagBadges();
@@ -9698,6 +9761,7 @@ function claimSelectedRewards() {
 
   sel.forEach(idx => {
     const reward = endless.pendingRewards[idx];
+    logGameEvent('reward_claimed', { reward_type: reward.type, level: endless.level });
     if (reward.type === 'crystal') {
       endless.crystalBalls++;
       addLog('🔮 Crystal Ball added!', 'gold');
@@ -10209,6 +10273,7 @@ function showLevelNumberScreen(onComplete) {
 function endlessLevelComplete() {
   endless.totalSlain += state.stats.slain;
   playVictorySE();
+  logGameEvent('level_complete', { level: endless.level, character: CHARACTERS[endless.starterIdx].name, hp_remaining: state.player.hp, max_hp: state.player.maxHp, was_boss: !!endless.currentBoss, boss: endless.currentBoss ? endless.currentBoss.name : 'none', party_size: (endless.partyMembers || []).length + 1 });
 
   // Track if this was a boss level before cleanup
   endless._lastLevelWasBoss = !!endless.currentBoss;
@@ -10292,6 +10357,7 @@ function showEndlessDefeated() {
     document.getElementById('endlessDefLevel').textContent = `${endless.level}`;
     document.getElementById('endlessDefeatedSub').textContent = `You reached Level ${endless.level}`;
     const currentChar = CHARACTERS[endless.starterIdx];
+    logGameEvent('endless_defeat', { character: currentChar.name, level: endless.level, rooms: state.roomNumber, total_slain: endless.totalSlain, boss: endless.currentBoss ? endless.currentBoss.name : 'none', party_size: (endless.partyMembers || []).length + 1 });
     const partyIndices = [endless.starterIdx, ...(endless.partyMembers || [])];
     const partyChars = partyIndices.map(idx => CHARACTERS[idx]).filter(Boolean);
     const portraitEl = document.getElementById('endlessDefPortrait');
@@ -10364,8 +10430,7 @@ function updateCrystalBallUI() {
 function useCrystalBall() {
   if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
   if (!endless.crystalBalls || endless.crystalBalls <= 0) return;
-
-  // Peek the top 3 cards of the deck without removing them
+  logGameEvent('item_used', { item: 'crystal_ball', level: endless.level });
   const peek = state.deck.slice(-3).reverse(); // deck is a stack, last = top
 
   const container = document.getElementById('crystalBallCards');
@@ -10465,6 +10530,7 @@ let _warpScrollPeek = []; // temp storage for the 2 peeked cards
 function useWarpScroll() {
   if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
   if (!endless.warpScrolls || endless.warpScrolls <= 0) return;
+  logGameEvent('item_used', { item: 'warp_scroll', level: endless.level });
 
   // Peek the top 2 cards of the deck without removing them
   _warpScrollPeek = state.deck.slice(-2).reverse(); // deck is a stack, last = top
@@ -10756,6 +10822,7 @@ function useCursedCharm() {
   if (state.cursedCharmActive) return; // already used this room
 
   endless.cursedCharms--;
+  logGameEvent('item_used', { item: 'cursed_charm', level: endless.level });
   state.cursedCharmActive = true;
   updateCursedCharmUI();
   updateTeleportWandUI();
@@ -10806,6 +10873,7 @@ function useTeleportWand() {
   if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
   if (!endless.teleportWands || endless.teleportWands <= 0) return;
   playTransitionSE();
+  logGameEvent('item_used', { item: 'teleport_wand', level: endless.level });
 
   endless.teleportWands--;
   updateTeleportWandUI();
@@ -10869,6 +10937,7 @@ function useHolyFlask() {
   }
 
   endless.holyFlasks--;
+  logGameEvent('item_used', { item: 'holy_flask', level: endless.level });
   const heal = Math.min(5, state.player.maxHp - state.player.hp);
   state.player.hp += heal;
   updateHolyFlaskUI();
@@ -10909,6 +10978,7 @@ function useShieldCharm() {
   if (!endless.shieldCharms || endless.shieldCharms <= 0) return;
 
   endless.shieldCharms--;
+  logGameEvent('item_used', { item: 'shield_charm', level: endless.level });
   state.shielded = true;
   updateShieldCharmUI();
   updateLuckCharmUI();
@@ -10951,6 +11021,7 @@ function useLuckCharm() {
     addLog('🍀 Not enough cards in the room.', '');
     return;
   }
+  logGameEvent('item_used', { item: 'luck_charm', level: endless.level });
 
   // Build mirrored cards in the panel
   const container = document.getElementById('luckCharmCards');
@@ -11096,6 +11167,7 @@ function useWhetstone() {
   }
 
   endless.whetstones--;
+  logGameEvent('item_used', { item: 'whetstone', level: endless.level });
   if (state.weaponKills.length > (state.stats.maxWeaponKillStreak || 0)) {
     state.stats.maxWeaponKillStreak = state.weaponKills.length;
   }
@@ -11115,6 +11187,7 @@ function useBag() {
 function usePonder() {
   if (!hasPassive('Ponder')) return;
   if (state._ponderCooldown) return;
+  logGameEvent('item_used', { item: 'ponder', level: endless.active ? endless.level : 1 });
 
   const peek = state.deck.slice(-4).reverse();
   const container = document.getElementById('ponderCards');
@@ -11310,6 +11383,8 @@ function showDefeated() {
     recordBestSkipRun();
     recordLoss(state.deck.length);
     checkFinalMonstersUnlock();
+    const _dChar = CHARACTERS[state.selectedChar ?? 0];
+    logGameEvent('run_defeat', { character: _dChar.name, rooms: state.roomNumber, slain: state.stats.slain, mode: endless.active ? 'endless' : 'standard', level: endless.active ? endless.level : 1, boss: endless.currentBoss ? endless.currentBoss.name : 'none' });
     document.getElementById('def-rooms').textContent   = state.roomNumber;
     document.getElementById('def-slain').textContent   = state.stats.slain;
     document.getElementById('def-potions').textContent = state.stats.potions;
@@ -11363,6 +11438,8 @@ function showVictory() {
   }
 
   playVictorySE();
+  const _vChar = CHARACTERS[state.selectedChar ?? 0];
+  logGameEvent('run_victory', { character: _vChar.name, hp_remaining: state.player.hp, max_hp: state.player.maxHp, rooms: state.roomNumber, slain: state.stats.slain, mode: 'standard' });
   document.getElementById('vic-hp').textContent      = `${state.player.hp} / ${state.player.maxHp}`;
   document.getElementById('vic-rooms').textContent   = state.roomNumber;
   document.getElementById('vic-slain').textContent   = state.stats.slain;
@@ -11391,6 +11468,7 @@ function fleeRoom() {
   if (state.consecutiveSkips >= maxSkips) return;
   if (bossTagNoFlee()) return;
   playTransitionSE();
+  logGameEvent('room_skipped', { room: state.roomNumber, level: endless.active ? endless.level : 1, character: CHARACTERS[state.selectedChar ?? 0].name });
 
   // Clear any selection and reset health bar preview instantly
   state.selected = [];
@@ -11767,6 +11845,7 @@ function tutorialAdvance() {
 
 function completeTutorial() {
   tutorial.active = false;
+  logGameEvent('tutorial_complete', { method: 'finished' });
   document.body.classList.remove('in-tutorial');
   document.querySelectorAll('.tutorial-highlight,.tutorial-highlight-multi,.tutorial-visible').forEach(el => el.classList.remove('tutorial-highlight','tutorial-highlight-multi','tutorial-visible','tut-spotlight'));
   document.getElementById('tutorialBackdrop').classList.remove('active');
@@ -11779,6 +11858,7 @@ function completeTutorial() {
 function skipTutorial() {
   closePause();
   tutorial.active = false;
+  logGameEvent('tutorial_complete', { method: 'skipped' });
   document.body.classList.remove('in-tutorial');
   document.querySelectorAll('.tutorial-highlight,.tutorial-highlight-multi,.tutorial-visible').forEach(el => el.classList.remove('tutorial-highlight','tutorial-highlight-multi','tutorial-visible','tut-spotlight'));
   document.getElementById('tutorialBackdrop').classList.remove('active');
@@ -12272,8 +12352,47 @@ function launchDebugBossFight() {
 (function init() {
   // Build profile screen on load
   buildProfileScreen();
-  // Endless button visibility handled per-profile in goTo('home')
-  // Title screen is the first active screen (set in HTML)
+
+  // Company splash sequence
+  const splash = document.getElementById('splashScreen');
+  const splashLogo = document.getElementById('splashLogo');
+  const LOGO_SE = 'audio/logo_se.mp3';
+
+  if (splash) {
+    // After zoom animation completes (4.2s), play SE
+    splashLogo.addEventListener('animationend', () => {
+      const se = new Audio(LOGO_SE);
+      se.volume = getMasterVolume();
+      se.play().catch(() => {});
+
+      let proceeded = false;
+      const proceed = () => {
+        if (proceeded) return;
+        proceeded = true;
+        splash.classList.add('fading');
+        setTimeout(() => {
+          splash.style.display = 'none';
+          document.getElementById('title-screen').classList.add('active');
+        }, 1200);
+      };
+      se.addEventListener('ended', proceed);
+      se.addEventListener('error', proceed);
+      setTimeout(proceed, 4000);
+    });
+
+    // Fallback if animation doesn't fire (e.g. prefers-reduced-motion)
+    setTimeout(() => {
+      if (!splash.classList.contains('fading') && splash.style.display !== 'none') {
+        splash.classList.add('fading');
+        setTimeout(() => {
+          splash.style.display = 'none';
+          document.getElementById('title-screen').classList.add('active');
+        }, 1200);
+      }
+    }, 8000);
+  } else {
+    document.getElementById('title-screen').classList.add('active');
+  }
 })();
 </script>
 </body>
