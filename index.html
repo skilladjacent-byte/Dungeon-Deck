@@ -797,8 +797,21 @@ if ('serviceWorker' in navigator) {
   }
   .play-card.bypassed {
     transform: translateY(-24px) scale(1.05);
-    box-shadow: 0 24px 48px rgba(0,0,0,0.7), 0 0 0 2px #c0392b, 0 0 24px rgba(192,57,43,0.5);
+    box-shadow: 0 24px 48px rgba(0,0,0,0.7), 0 0 0 3px #e03030, 0 0 30px rgba(220,40,40,0.6);
     z-index: 11;
+    animation: bypassPulse 1.4s ease-in-out infinite;
+  }
+  @keyframes bypassPulse {
+    0%, 100% { box-shadow: 0 24px 48px rgba(0,0,0,0.7), 0 0 0 3px #e03030, 0 0 30px rgba(220,40,40,0.6); }
+    50% { box-shadow: 0 24px 48px rgba(0,0,0,0.7), 0 0 0 3px #ff4040, 0 0 45px rgba(255,50,50,0.8); }
+  }
+  .play-card.bypassed::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: rgba(200,30,30,0.2);
+    border-radius: 4px;
+    z-index: 20;
+    pointer-events: none;
   }
   .play-card.bypassed .card-inner {
     background: linear-gradient(160deg, #fde8e8, #f5c6c6);
@@ -1063,33 +1076,121 @@ if ('serviceWorker' in navigator) {
     box-shadow: 0 0 20px rgba(192,57,43,0.4);
   }
 
-  /* Ponder button */
-  .btn-ponder {
+  /* Ponder button (in-game, like items) */
+  .ponder-btn {
+    display: none;
+    background: rgba(140,80,220,0.15);
+    border: 1px solid rgba(140,80,220,0.4);
+    border-radius: 8px;
+    padding: 8px 20px;
     color: #b080e0;
-    border-color: rgba(176,128,224,0.4);
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.25s;
     margin-top: 6px;
     align-self: center;
   }
-  .btn-ponder:hover {
-    background: rgba(176,128,224,0.15);
+  .ponder-btn:hover {
+    background: rgba(140,80,220,0.25);
     border-color: #b080e0;
-    box-shadow: 0 0 16px rgba(176,128,224,0.3);
+    box-shadow: 0 0 16px rgba(140,80,220,0.3);
   }
-
-  /* Purple fog overlay for pondered rooms */
-  .ponder-fog {
-    display: none;
-    position: fixed;
-    inset: 0;
+  .ponder-btn.on-cooldown {
+    opacity: 0.35;
     pointer-events: none;
-    z-index: 50;
-    box-shadow: inset 0 0 80px 30px rgba(140,80,220,0.25), inset 0 0 160px 60px rgba(100,40,180,0.15);
-    animation: ponderFogPulse 3s ease-in-out infinite;
   }
-  .ponder-fog.active { display: block; }
-  @keyframes ponderFogPulse {
-    0%, 100% { box-shadow: inset 0 0 80px 30px rgba(140,80,220,0.25), inset 0 0 160px 60px rgba(100,40,180,0.15); }
-    50% { box-shadow: inset 0 0 100px 40px rgba(140,80,220,0.35), inset 0 0 180px 70px rgba(100,40,180,0.2); }
+  body.has-ponder .ponder-btn { display: flex; align-items: center; gap: 6px; }
+
+  /* Ponder overlay (like Crystal Ball) */
+  .ponder-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(10,4,18,0.92);
+    z-index: 500;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(14px, 2.5vh, 24px);
+    padding: 20px;
+    box-shadow: inset 0 0 80px 30px rgba(140,80,220,0.2), inset 0 0 160px 60px rgba(100,40,180,0.12);
+  }
+  .ponder-overlay.open { display: flex; }
+  .ponder-preview-title {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: clamp(1rem, 2.5vw, 1.6rem);
+    letter-spacing: 0.2em;
+    color: #b080e0;
+    text-shadow: 0 0 20px rgba(140,80,220,0.6);
+  }
+  .ponder-preview-sub {
+    font-family: 'Crimson Text', serif;
+    font-size: clamp(0.8rem, 1.4vw, 1rem);
+    color: rgba(176,128,224,0.6);
+    margin-top: -8px;
+  }
+  .ponder-cards {
+    display: flex;
+    gap: clamp(10px, 1.8vw, 18px);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .ponder-card {
+    width: clamp(70px, 12vw, 110px);
+    height: clamp(98px, 16.8vw, 154px);
+    background: linear-gradient(160deg, #faf0d8, #ecddb5);
+    border: 2px solid rgba(140,80,220,0.6);
+    border-radius: 8px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 6px;
+    box-shadow: 0 0 20px rgba(140,80,220,0.3), 0 8px 24px rgba(0,0,0,0.5);
+    position: relative;
+    overflow: hidden;
+  }
+  .ponder-card.has-art { background: transparent; }
+  .ponder-card .po-art { position: absolute; inset: 2px; background-size: cover; background-position: center; z-index: 2; border-radius: 6px; }
+  .ponder-card .po-title { position: absolute; top: 3%; left: 50%; transform: translateX(-50%); width: 80%; z-index: 1; pointer-events: none; }
+  .ponder-card .po-title img { width: 100%; height: auto; display: block; }
+  .ponder-card .po-val { position: absolute; bottom: 3%; left: 50%; transform: translateX(-50%); width: 55%; z-index: 10; pointer-events: none; }
+  .ponder-card .po-val img { width: 100%; height: auto; display: block; }
+  .ponder-card-val {
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: clamp(1.4rem, 3vw, 2.2rem);
+    line-height: 1;
+  }
+  .ponder-card-suit {
+    font-size: clamp(1rem, 2.2vw, 1.6rem);
+    line-height: 1;
+  }
+  .ponder-card-label {
+    position: absolute;
+    bottom: 6px;
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.42rem, 0.8vw, 0.6rem);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 2px;
+  }
+  .ponder-close-btn {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #b080e0;
+    background: rgba(140,80,220,0.12);
+    border: 1px solid rgba(140,80,220,0.35);
+    border-radius: 4px;
+    padding: 10px 30px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .ponder-close-btn:hover {
+    background: rgba(140,80,220,0.25);
+    border-color: #b080e0;
   }
 
   /* Right panel — dungeon info (hidden, stats moved under HP bar) */
@@ -2832,13 +2933,13 @@ if ('serviceWorker' in navigator) {
     100% { transform: translate(var(--blast-x, 0px), var(--blast-y, -300px)) rotate(var(--blast-r, 45deg)); opacity: 0; }
   }
   .play-card.keg-shaking {
-    animation: kegShake 0.9s ease-in-out forwards, kegZoom 1.1s ease-in forwards;
+    animation: kegShake 0.9s ease-in-out forwards, kegZoom 1.1s ease-in forwards !important;
     z-index: 20;
     transition: none !important;
     pointer-events: none;
   }
   .play-card.keg-blasting {
-    animation: cardBlastOff 0.6s ease-in forwards;
+    animation: cardBlastOff 0.6s ease-in forwards !important;
     transition: none !important;
     pointer-events: none;
   }
@@ -2974,6 +3075,7 @@ if ('serviceWorker' in navigator) {
     flex-direction: column;
     gap: 20px;
     backdrop-filter: blur(6px);
+    box-shadow: inset 0 0 80px 30px rgba(140,80,220,0.2), inset 0 0 160px 60px rgba(100,40,180,0.12);
   }
   .crystal-ball-overlay.open { display: flex; }
   .crystal-ball-preview-title {
@@ -3635,7 +3737,14 @@ if ('serviceWorker' in navigator) {
     cursor: pointer;
     transition: all 0.25s ease;
     position: relative;
+    overflow: hidden;
   }
+  .luck-charm-card.has-art { background: transparent; }
+  .luck-charm-card .lc-art { position: absolute; inset: 2px; background-size: cover; background-position: center; z-index: 2; border-radius: 6px; }
+  .luck-charm-card .lc-title { position: absolute; top: 3%; left: 50%; transform: translateX(-50%); width: 80%; z-index: 1; pointer-events: none; }
+  .luck-charm-card .lc-title img { width: 100%; height: auto; display: block; }
+  .luck-charm-card .lc-val { position: absolute; bottom: 3%; left: 50%; transform: translateX(-50%); width: 55%; z-index: 10; pointer-events: none; }
+  .luck-charm-card .lc-val img { width: 100%; height: auto; display: block; }
   .luck-charm-card:hover {
     transform: translateY(-8px) scale(1.05);
     border-color: #c0b840;
@@ -3792,6 +3901,7 @@ if ('serviceWorker' in navigator) {
     color: #f09090;
     cursor: default;
     position: relative;
+    transition: background 0.2s, border-color 0.2s;
   }
   .boss-tag-badge:hover .boss-tag-tooltip { display: block; }
   .boss-tag-tooltip {
@@ -3863,15 +3973,6 @@ if ('serviceWorker' in navigator) {
   .play-card.corrosive .card-inner {
     border-color: rgba(40,255,40,0.6);
   }
-  .play-card.corrosive::after {
-    content: '🧪';
-    position: absolute;
-    top: 4px; right: 6px;
-    font-size: 0.7rem;
-    z-index: 15;
-    pointer-events: none;
-    filter: drop-shadow(0 0 6px rgba(40,255,40,1));
-  }
   /* Corrosive glow visible even when veiled */
   .play-card.veiled.corrosive {
     box-shadow: 0 6px 20px rgba(0,0,0,0.5), 0 0 18px rgba(40,255,40,0.6), 0 0 40px rgba(40,255,40,0.3);
@@ -3893,15 +3994,6 @@ if ('serviceWorker' in navigator) {
     0%, 100% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 18px rgba(255,40,40,0.6), 0 0 40px rgba(255,40,40,0.3); }
     50% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 24px rgba(255,40,40,0.8), 0 0 56px rgba(255,40,40,0.45); }
   }
-  .play-card.soul-rend::after {
-    content: '💀';
-    position: absolute;
-    top: 4px; right: 6px;
-    font-size: 0.7rem;
-    z-index: 15;
-    pointer-events: none;
-    filter: drop-shadow(0 0 6px rgba(255,40,40,1));
-  }
 
   /* ─── VIRULENT GLOW (green) ─── */
   .play-card.virulent {
@@ -3913,15 +4005,6 @@ if ('serviceWorker' in navigator) {
     0%, 100% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 18px rgba(80,220,40,0.6), 0 0 40px rgba(80,220,40,0.3); }
     50% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 24px rgba(80,220,40,0.8), 0 0 56px rgba(80,220,40,0.45); }
   }
-  .play-card.virulent::after {
-    content: '☠';
-    position: absolute;
-    top: 4px; right: 6px;
-    font-size: 0.7rem;
-    z-index: 15;
-    pointer-events: none;
-    filter: drop-shadow(0 0 6px rgba(80,220,40,1));
-  }
 
   /* ─── SOUL REND + VIRULENT (alternating pulse) ─── */
   .play-card.soul-rend.virulent {
@@ -3932,22 +4015,10 @@ if ('serviceWorker' in navigator) {
     0%, 100% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 20px rgba(255,40,40,0.7), 0 0 44px rgba(255,40,40,0.35); }
     50% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 20px rgba(80,220,40,0.7), 0 0 44px rgba(80,220,40,0.35); }
   }
-  .play-card.soul-rend.virulent::after {
-    content: '💀☠';
-  }
 
   /* ─── BOOMERANG WEAPON GLOW ─── */
   .play-card.boomerang {
     box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 14px rgba(96,160,224,0.5), 0 0 30px rgba(96,160,224,0.2);
-  }
-  .play-card.boomerang::after {
-    content: '🪃';
-    position: absolute;
-    top: 4px; right: 6px;
-    font-size: 0.7rem;
-    z-index: 15;
-    pointer-events: none;
-    filter: drop-shadow(0 0 4px rgba(96,160,224,0.8));
   }
 
   /* ─── MODIFIED VALUE GLOW ─── */
@@ -4505,10 +4576,118 @@ if ('serviceWorker' in navigator) {
   @media (max-width: 900px) and (orientation: landscape) {
     .landscape-lock { display: flex; }
   }
+  /* ══════ TUTORIAL ══════ */
+  .tutorial-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200; display: none;
+    pointer-events: all;
+  }
+  .tutorial-backdrop.active { display: block; }
+  .tutorial-backdrop.tap-catcher {
+    display: block;
+    background: transparent;
+    z-index: 505;
+    cursor: pointer;
+  }
+  .tutorial-text-box {
+    position: fixed; top: 15%; left: 50%; transform: translateX(-50%);
+    z-index: 510; background: rgba(8,6,4,0.94);
+    border: 1px solid rgba(200,169,110,0.35); border-radius: 10px;
+    padding: 18px 28px; max-width: min(88vw, 525px); text-align: center;
+    font-family: 'Crimson Text', serif; font-size: 1.7rem;
+    color: var(--parchment-light); line-height: 1.5;
+    display: none; pointer-events: all; cursor: pointer;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.8);
+    opacity: 0;
+  }
+  .tutorial-text-box.active {
+    display: block;
+    animation: tutTextIn 1.2s ease forwards;
+  }
+  .tutorial-text-box.fading-out {
+    animation: tutTextOut 0.8s ease forwards !important;
+  }
+  @keyframes tutTextIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+  @keyframes tutTextOut {
+    from { opacity: 1; transform: translateX(-50%) translateY(0); }
+    to { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  }
+  @media (max-width: 600px) {
+    .tutorial-text-box {
+      font-size: 1.08rem;
+      max-width: 96vw;
+      padding: 12px 16px;
+      top: 20%;
+    }
+  }
+  .tutorial-text-box.active { display: block; }
+  .tutorial-text-box .tap-hint {
+    font-size: 0.6rem; color: var(--text-dim);
+    margin-top: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+  }
+  .tutorial-highlight {
+    position: relative; z-index: 210 !important;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.75), 0 0 20px 6px rgba(212,160,23,0.7) !important;
+    border-radius: 6px;
+    animation: tutPulse 1.5s ease-in-out infinite !important;
+  }
+  @keyframes tutPulse {
+    0%, 100% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.75), 0 0 20px 6px rgba(212,160,23,0.7); }
+    50% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.75), 0 0 35px 12px rgba(212,160,23,0.9); }
+  }
+  .tutorial-highlight-multi {
+    position: relative; z-index: 210 !important;
+    box-shadow: 0 0 20px 6px rgba(212,160,23,0.7) !important;
+    border-radius: 6px;
+    animation: tutPulseMulti 1.5s ease-in-out infinite !important;
+  }
+  .tutorial-highlight-multi.tut-spotlight {
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.75), 0 0 20px 6px rgba(212,160,23,0.7) !important;
+    animation: tutPulseSpot 1.5s ease-in-out infinite !important;
+  }
+  @keyframes tutPulseMulti {
+    0%, 100% { box-shadow: 0 0 20px 6px rgba(212,160,23,0.7); }
+    50% { box-shadow: 0 0 35px 12px rgba(212,160,23,0.9); }
+  }
+  @keyframes tutPulseSpot {
+    0%, 100% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.75), 0 0 20px 6px rgba(212,160,23,0.7); }
+    50% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.75), 0 0 35px 12px rgba(212,160,23,0.9); }
+  }
+  .tutorial-visible {
+    position: relative; z-index: 210 !important;
+    border-radius: 6px;
+  }
+  .tutorial-visible.tut-spotlight {
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.75) !important;
+    animation: none !important;
+  }
+  .tutorial-fade-overlay {
+    position: fixed; inset: 0; background: #000;
+    z-index: 600; pointer-events: none;
+    transition: opacity 1.5s ease;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px;
+  }
+  @keyframes tutFadeIn {
+    from { opacity: 0; } to { opacity: 1; }
+  }
+  .tutorial-skip-btn {
+    display: none !important;
+  }
+  body.in-tutorial .tutorial-skip-btn { display: inline-block !important; }
+  body.in-tutorial .game-top-zone .menu-btn { display: none; }
 </style>
 </head>
 <body>
 
+<!-- LANDSCAPE LOCK OVERLAY -->
+<div class="tutorial-backdrop" id="tutorialBackdrop"></div>
+<div class="tutorial-text-box" id="tutorialTextBox"></div>
+<div class="tutorial-fade-overlay" id="tutorialFade" style="opacity:0;display:none;"></div>
 <!-- LANDSCAPE LOCK OVERLAY -->
 <div class="landscape-lock" id="landscapeLock">
   <div class="landscape-lock-icon">📱</div>
@@ -4712,7 +4891,6 @@ if ('serviceWorker' in navigator) {
     </div>
 
     <!-- PARTY INFO PANEL -->
-    <div class="ponder-fog" id="ponderFog"></div>
     <div class="party-panel-backdrop" id="partyPanelBackdrop" onclick="closePartyPanel()"></div>
     <div class="party-panel" id="partyPanel">
       <div id="partyPanelContent"></div>
@@ -4769,7 +4947,7 @@ if ('serviceWorker' in navigator) {
           <button class="btn-action btn-confirm" id="confirmBtn" disabled onclick="confirmRoom()">Continue</button>
           <button class="btn-action btn-flee flee-ready" id="fleeBtn" onclick="fleeRoom()">Skip</button>
         </div>
-        <button class="btn-action btn-ponder" id="ponderBtn" onclick="usePonder()" style="display:none;">Ponder</button>
+        <button class="ponder-btn" id="ponderGameBtn" onclick="usePonder()">🔮 Ponder</button>
       </div>
 
       <div style="display:flex;gap:6px;" id="roomDots"></div>
@@ -5238,6 +5416,14 @@ if ('serviceWorker' in navigator) {
   <button class="crystal-ball-close-btn" onclick="closeCrystalBall()">Close</button>
 </div>
 
+<!-- ══════════════ PONDER OVERLAY ══════════════ -->
+<div class="ponder-overlay" id="ponderOverlay">
+  <div class="ponder-preview-title">🔮 Claire Ponders...</div>
+  <p class="ponder-preview-sub">Next 4 cards entering the room</p>
+  <div class="ponder-cards" id="ponderCards"></div>
+  <button class="ponder-close-btn" onclick="closePonder()">Close</button>
+</div>
+
 <!-- ══════════════ WARP SCROLL OVERLAY ══════════════ -->
 <div class="warp-scroll-overlay" id="warpScrollOverlay">
   <div class="warp-scroll-preview-title">📜 The Warp Scroll Unfurls...</div>
@@ -5492,6 +5678,7 @@ if ('serviceWorker' in navigator) {
       <button class="btn-ghost"   style="width:240px;" onclick="restartGame()">⚔ Restart</button>
       <button class="btn-ghost"   style="width:240px;" onclick="pauseOpenSettings()">⚙ Settings</button>
       <div style="width:180px;height:1px;background:linear-gradient(90deg,transparent,rgba(200,169,110,0.3),transparent);margin:4px 0;"></div>
+      <button class="btn-ghost tutorial-skip-btn" style="width:240px;color:#e06030;border-color:rgba(224,96,48,0.4);" onclick="skipTutorial()">Skip Tutorial</button>
       <button class="btn-ghost"   style="width:240px;" onclick="saveAndGoHome()">↩ Save &amp; Main Menu</button>
     </div>
   </div>
@@ -5686,7 +5873,7 @@ const CHARACTERS = [
     passives: [
       {
         name: 'Refined Retreat',
-        desc: 'When you skip a room, all red cards (♥ potions and ♦ weapons) in that room gain +1 to their value. Stacks with repeated skips.'
+        desc: 'When you skip a room, all potions and weapons in that room gain +1 to their value. Stacks with repeated skips.'
       }
     ],
     hp: 20, maxHp: 20,
@@ -5731,13 +5918,13 @@ const CHARACTERS = [
   {
     id: 'claire',
     emoji: '🔮', name: 'Claire the Seer', cls: 'Oracle',
-    desc: 'A mystic who sees through the fog of indecision. After skipping a room, she can Ponder — undoing the skip and returning to face what she fled from.',
+    desc: 'A mystic who peers into the future. She can Ponder — revealing the next 4 cards that will enter the room.',
     bg: 'linear-gradient(135deg,#140a1e,#0a0514)',
     color: '#b080e0',
     passives: [
       {
         name: 'Ponder',
-        desc: 'After skipping a room, a Ponder button appears. Press it to undo the skip and return to the previous room. Can only Ponder once per skip — resolving a room normally resets it.'
+        desc: 'Peek at the next 4 cards in the deck. Available every other room (2 room cooldown after use).'
       }
     ],
     hp: 20, maxHp: 20,
@@ -6411,6 +6598,7 @@ function goTo(screenId) {
       document.body.classList.remove('has-whetstone');
       document.body.classList.remove('has-level-tags');
       document.body.classList.remove('items-disabled');
+      document.body.classList.remove('has-ponder');
       document.querySelectorAll('.boss-tag-tooltip').forEach(t => t.remove());
       document.getElementById('bossTagRow').innerHTML = '';
     }
@@ -6597,10 +6785,8 @@ function continueGame() {
   state.weaponsThisRoom     = save.weaponsThisRoom     || 0;
   state.stats               = save.stats;
   state.discardViewsThisRun = save.discardViewsThisRun || 0;
-  state._hasPondered = false;
-  state._canPonder = false;
-  state._ponderSnapshot = null;
-  state._inSkippedRoom = false;
+  state._ponderCooldown = false;
+  state._ponderCooldownRoom = 0;
 
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('game').classList.add('active');
@@ -6639,8 +6825,7 @@ function continueGame() {
   updatePips();
   updateConfirmBtn();
   updateFleeButton();
-  document.getElementById('ponderBtn').style.display = 'none';
-  document.getElementById('ponderFog').classList.remove('active');
+  updatePonderBtn();
 
   const required = requiredSelections();
   document.getElementById('actionHint').textContent = state.selected.length >= required
@@ -6850,7 +7035,7 @@ function buildCharGrid() {
     const el = document.createElement('div');
     el.className = 'char-card' + (myRenderIdx === 0 ? ' selected' : '');
     const vetLabel = isVeteran ? `<div class="char-vet-label char-vet-desktop" style="font-family:'Cinzel',serif;font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:#a080ff;margin-bottom:4px;text-shadow:0 0 8px rgba(160,128,255,0.5);">Veteran</div>` : '';
-    const vetLabelMobile = isVeteran ? `<div class="char-vet-label char-vet-mobile" style="font-family:'Cinzel',serif;font-size:0.5rem;letter-spacing:0.2em;text-transform:uppercase;color:#a080ff;text-shadow:0 0 8px rgba(160,128,255,0.5);margin-top:2px;">Veteran</div>` : '';
+    const vetLabelMobile = isVeteran ? `<div class="char-vet-label char-vet-mobile" style="font-family:'Cinzel',serif;font-size:0.5rem;letter-spacing:0.2em;text-transform:uppercase;color:#a080ff;text-shadow:0 0 8px rgba(160,128,255,0.5);margin-bottom:2px;">Veteran</div>` : '';
     el.innerHTML = `
       <div class="char-corner tl"></div>
       <div class="char-corner tr"></div>
@@ -6859,8 +7044,8 @@ function buildCharGrid() {
       ${vetLabel}
       <div class="char-avatar" style="background:${c.bg}; box-shadow: 0 0 20px ${c.color}22;">${charLogoHtml(c, 72)}</div>
       <div class="char-text-col" style="flex:1;min-width:0;display:flex;flex-direction:column;">
-        <div class="char-name">${c.name}</div>
         ${vetLabelMobile}
+        <div class="char-name">${c.name}</div>
         
         <div class="char-desc">${c.desc}</div>
       </div>
@@ -7029,10 +7214,8 @@ function startGame() {
   state.potionUsedThisRoom = 0;
   state.directBypassCount = 0;
   state.weaponsThisRoom = 0;
-  state._hasPondered = false;
-  state._canPonder = false;
-  state._ponderSnapshot = null;
-  state._inSkippedRoom = false;
+  state._ponderCooldown = false;
+  state._ponderCooldownRoom = 0;
   state.discardViewsThisRun = 0;
 
   // Ashton starts with a Monster Trap equipped
@@ -7142,13 +7325,14 @@ function drawRoom(carryOver) {
   updateFleeButton();
   syncMobileStats();
 
-  // Claire's Ponder: show button and fog after room is set
-  if (state._canPonder && state._inSkippedRoom) {
-    document.getElementById('ponderBtn').style.display = '';
-    document.getElementById('ponderFog').classList.add('active');
-  } else {
-    document.getElementById('ponderBtn').style.display = 'none';
+  // Claire's Ponder: reset cooldown after 2 rooms (available every other room)
+  if (state._ponderCooldown && state._ponderCooldownRoom && state.roomNumber > state._ponderCooldownRoom + 1) {
+    state._ponderCooldown = false;
   }
+  if (state._ponderCooldown && !state._ponderCooldownRoom) {
+    state._ponderCooldownRoom = state.roomNumber;
+  }
+  updatePonderBtn();
 
   const required = requiredSelections();
   document.getElementById('actionHint').textContent = `Select ${required} card${required !== 1 ? 's' : ''} to continue`;
@@ -7197,14 +7381,6 @@ function powderKegCleanup() {
   state.selectionOrder = [];
   state.bypassed = [];
   state.skipped = null;
-
-  // Clear ponder state — room was resolved by explosion
-  state._inSkippedRoom = false;
-  state._canPonder = false;
-  state._hasPondered = false;
-  state._ponderSnapshot = null;
-  document.getElementById('ponderBtn').style.display = 'none';
-  document.getElementById('ponderFog').classList.remove('active');
 
   state.roomNumber++;
   setTimeout(() => transitionToNextRoom(null), 300);
@@ -7517,6 +7693,36 @@ function preloadCardArt() {
 }
 preloadCardArt();
 
+// Reward card art
+const REWARD_ART_MAP = {
+  diamond: 'images/reward/reward_weapon_increase.png',
+  heart:   'images/reward/reward_potion_increase.png',
+  charm:   'images/reward/reward_curse_charm.png',
+  crystal: 'images/reward/reward_crystal_ball.png',
+  warp:    'images/reward/reward_warp_scroll.png',
+  wand:    'images/reward/reward_wand_of_teleportation.png',
+  flask:   'images/reward/reward_holy_flask.png',
+  shield:  'images/reward/reward_shield_charm.png',
+  luck:    'images/reward/reward_luck_charm.png',
+  elixir:  'images/reward/reward_life_elixir.png',
+  whetstone:'images/reward/reward_whetstone.png',
+  rest:    'images/reward/reward_rest.png'
+};
+let _validRewardArt = {};
+function preloadRewardArt() {
+  Object.entries(REWARD_ART_MAP).forEach(([type, src]) => {
+    const img = new Image();
+    img.onload = () => { _validRewardArt[type] = src; };
+    img.src = src;
+  });
+}
+preloadRewardArt();
+function rewardArtHtml(type) {
+  const src = _validRewardArt[type];
+  if (!src) return null;
+  return `<img src="${src}" style="width:clamp(50px,10vw,80px);height:auto;object-fit:contain;border-radius:4px;">`;
+}
+
 // Returns the boomerang weapon to the deck if it has returns remaining
 function returnBoomerangToDeck(weapon) {
   if (!weapon || !weapon.isBoomerang || weapon.boomerangReturns <= 0) return false;
@@ -7532,7 +7738,6 @@ function getEffectiveVal(card) {
   const raw = numericValue(card.val);
   if (card.type === 'monster') {
     let val = raw + bossTagMonsterBonus();
-    if (state.cursedCharmActive) val -= 2;
     return Math.max(0, val);
   }
   if (card.type === 'weapon' && !card.isTrap) {
@@ -7797,6 +8002,7 @@ function renderCards() {
 
 
 function rightClickCard(idx) {
+  if (tutorial.active && tutorial.allowedBypass !== idx) return;
   if (state.skipped === idx) return;
   const card = state.hand[idx];
 
@@ -7836,9 +8042,14 @@ function rightClickCard(idx) {
   updatePips();
   updateConfirmBtn();
   previewHpBar();
+  if (tutorial.active && tutorial.allowedBypass != null) {
+    tutorial.allowedBypass = null;
+    setTimeout(() => tutorialAdvance(), 400);
+  }
 }
 
 function toggleCard(idx) {
+  if (tutorial.active && !tutorial.allowedCards.includes(idx)) return;
   if (state.skipped === idx) return;
 
   // Luck Charm mode — clicking a card sends it to deck bottom
@@ -7874,6 +8085,10 @@ function toggleCard(idx) {
   updatePips();
   updateConfirmBtn();
   previewHpBar();
+  if (tutorial.active && tutorial.allowedCards.length > 0) {
+    tutorial.allowedCards = [];
+    setTimeout(() => tutorialAdvance(), 400);
+  }
 }
 
 function roomSize() {
@@ -8349,9 +8564,11 @@ function addLog(msg, cls = '') {
 }
 
 function confirmRoom() {
+  if (tutorial.active && tutorial.allowedButton !== 'confirmBtn') return;
   const btn = document.getElementById('confirmBtn');
-  if (btn.disabled) return; // prevent double-click
+  if (btn.disabled) return;
   btn.disabled = true;
+  if (tutorial.active) { tutorial.allowedButton = null; }
   playTransitionSE();
 
   if (state.isVeiled) {
@@ -8380,7 +8597,7 @@ function resolveRoom() {
   // Cursed Charm applies via state.cursedCharmActive which is read by getEffectiveVal
   let diedMidResolution = false;
   const phoenixActive = hasPassive('Phoenix Rise');
-  let corrosiveHitWeapon = false; // Track if any corrosive monster was blocked by weapon
+  let corrosiveHitWeapon = null; // Track the specific weapon that blocked a corrosive monster
   const sfxQueue = []; // Queue SFX as { fn, isEquip } to play sequentially after resolution
   for (let resolveIdx = 0; resolveIdx < resolved.length; resolveIdx++) {
     const card    = resolved[resolveIdx];
@@ -8461,7 +8678,7 @@ function resolveRoom() {
         else sfxQueue.push({ fn: () => { playPartialBlockSE(); flashPartialSlash(); triggerScreenShake(); } });
         // Corrosive: flag weapon for destruction after room resolves
         if (card.isCorrosive) {
-          corrosiveHitWeapon = true;
+          corrosiveHitWeapon = state.player.weapon;
           addLog(`🧪 Corrosive! Your weapon will corrode after this room.`, 'danger');
         }
         state.discard.push(card);
@@ -8609,7 +8826,7 @@ function resolveRoom() {
   finalSfx.forEach((entry, i) => setTimeout(entry.fn, i * 300));
 
   // Corrosive tag: destroy weapon after room resolves if it blocked a corrosive monster
-  if (corrosiveHitWeapon && !diedMidResolution) {
+  if (corrosiveHitWeapon && !diedMidResolution && state.player.weapon === corrosiveHitWeapon) {
     // If it's a boomerang, return it to deck before destroying
     returnBoomerangToDeck(state.player.weapon);
     if (state.weaponKills.length > (state.stats.maxWeaponKillStreak || 0)) {
@@ -8649,6 +8866,11 @@ function resolveRoom() {
   void flash.offsetWidth;
   flash.classList.add('animate');
 
+  if (tutorial.active) {
+    setTimeout(() => tutorialAdvance(), 800);
+    return;
+  }
+
   if (state.player.hp <= 0 || diedMidResolution) {
     setTimeout(() => showDefeated(), 600);
     return;
@@ -8682,14 +8904,6 @@ function resolveRoom() {
       addLog(`💀 The Necromancer resurrects ${names} from the discard!`, 'danger');
     }
   }
-
-  // Clear Claire's ponder state — entering a room via resolve, not skip
-  state._inSkippedRoom = false;
-  state._canPonder = false;
-  state._hasPondered = false;
-  state._ponderSnapshot = null;
-  document.getElementById('ponderBtn').style.display = 'none';
-  document.getElementById('ponderFog').classList.remove('active');
 
   setTimeout(() => transitionToNextRoom(carryOver), 600);
 }
@@ -8739,92 +8953,92 @@ const BOSS_TAGS = [
     id: 'spade_drain',
     icon: '💀',
     name: 'Soul Rend',
+    color: '#ff4040',
     desc: 'Monsters valued 2–4, when dealing damage, permanently reduce your Max HP by the amount dealt.',
-    // Applied in resolveRoom after spade damage
   },
   {
     id: 'poison',
     icon: '☠',
     name: 'Virulent',
+    color: '#50dc28',
     desc: 'Monsters valued 2–4 poison you on unblocked hit. Poison deals 1 damage each time a room resolves. Cured by any Health Potion.',
-    // Applied in resolveRoom; persists via endless.poisoned
   },
   {
     id: 'monster_plus1',
     icon: '👹',
     name: 'Empowered',
+    color: '#e06060',
     desc: 'All monsters have +1 to their value.',
-    // Applied via bossTagMonsterBonus()
   },
   {
     id: 'weapon_minus1',
     icon: '🪨',
     name: 'Dulled Blades',
+    color: '#8090a0',
     desc: 'All weapons have -1 to their effective value (minimum 0).',
-    // Applied via bossTagWeaponPenalty()
   },
   {
     id: 'no_flee',
     icon: '🔒',
     name: 'Cornered',
+    color: '#c08040',
     desc: 'Skip is disabled for this boss fight.',
-    // Applied in updateFleeButton
   },
   {
     id: 'room_shrink',
     icon: '🔽',
     name: 'Cramped',
+    color: '#a080c0',
     desc: 'Room size reduced by 1 — draw one fewer card and resolve one fewer.',
-    // Applied via roomSize() override
   },
   {
     id: 'room_grow',
     icon: '🔼',
     name: 'Overwhelming',
+    color: '#c060a0',
     desc: 'Room size increased by 1 — draw one extra card and resolve one extra.',
-    // Applied via roomSize() override
   },
   {
     id: 'explosive',
     icon: '💣',
     name: 'Explosive',
+    color: '#ff6622',
     desc: 'A Powder Keg is shuffled into the boss deck.',
-    // Applied after deck is built in startBossFight
   },
   {
     id: 'unpredictable',
     icon: '🔀',
     name: 'Unpredictable',
+    color: '#50c0d0',
     desc: 'Skipped rooms shuffle cards randomly back into the deck instead of placing them at the bottom.',
-    // Applied in fleeRoom
   },
   {
     id: 'corrosive',
     icon: '🧪',
     name: 'Corrosive',
-    desc: '4 random monsters in the deck are Corrosive (green glow). When a Corrosive monster is blocked by a weapon, the weapon is destroyed after the room resolves.',
-    // Applied after deck is built; checked in resolveRoom
+    color: '#28ff28',
+    desc: '3 random monsters in the deck are Corrosive (green glow). When a Corrosive monster is blocked by a weapon, the weapon is destroyed after the room resolves.',
   },
   {
     id: 'deceptive',
     icon: '🎭',
     name: 'Deceptive',
+    color: '#c088ff',
     desc: 'The discard pile lies to you — normal cards show as random fakes. Card count is accurate but you can\'t tell what\'s been discarded.',
-    // Applied in buildDiscardGrid
   },
   {
     id: 'growing',
     icon: '📈',
     name: 'Growing',
-    desc: 'When you skip a room, all black cards (monsters) in that room gain +1 to their value. Stacks with repeated skips.',
-    // Applied in fleeRoom
+    color: '#60c040',
+    desc: 'When you skip a room, all monsters in that room gain +1 to their value. Stacks with repeated skips.',
   },
   {
     id: 'cutpurse',
     icon: '🔒',
     name: 'Cutpurse',
+    color: '#d0a030',
     desc: 'All items are disabled for this level. You cannot use Crystal Balls, Warp Scrolls, Cursed Charms, Wands, Flasks, Shields, or Luck Charms.',
-    // Applied via itemsDisabled() check
   },
 ];
 
@@ -8893,11 +9107,13 @@ function renderBossTagBadges() {
   const row = document.getElementById('bossTagRow');
   if (!row) return;
   const tags = endless.activeTags || [];
-  row.innerHTML = tags.map(t => `
-    <div class="boss-tag-badge" data-name="${t.name}" data-desc="${t.desc}">
+  row.innerHTML = tags.map(t => {
+    const c = t.color || '#f09090';
+    return `
+    <div class="boss-tag-badge" data-name="${t.name}" data-desc="${t.desc}" style="background:${c}22;border-color:${c}70;color:${c};">
       ${t.name}
     </div>
-  `).join('');
+  `}).join('');
 
   // Position tooltips via JS so they never go off-screen
   row.querySelectorAll('.boss-tag-badge').forEach(badge => {
@@ -9268,7 +9484,7 @@ function startBossFight() {
 
   // Corrosive tag: mark 4 random monsters as corrosive
   if (endless.activeTags && endless.activeTags.some(t => t.id === 'corrosive')) {
-    markCorrosiveMonsters(state.deck, 4);
+    markCorrosiveMonsters(state.deck, 3);
   }
 
   // Gale's Boomerang Blade
@@ -9352,78 +9568,89 @@ function showBossReward() {
 
   container.innerHTML = rewards.map((r, i) => {
     if (r.type === 'diamond') {
-      return `<div class="reward-card" data-reward-idx="${i}" onclick="toggleRewardSelect(${i})">
-        <div class="reward-card-suit" style="color:#8b1a1a;">♦</div>
-        <div class="reward-card-val" style="color:#8b1a1a;">+1</div>
-        <div class="reward-card-name">Weapon Upgrade</div>
-        <div class="reward-card-desc">Increases the lowest ♦ card in your deck by 1 value.</div>
+      const art = rewardArtHtml('diamond');
+      return `<div class="reward-card" style="background:linear-gradient(160deg,#1a1018,#120a10);border-color:rgba(180,100,60,0.5);" data-reward-idx="${i}" onclick="toggleRewardSelect(${i})">
+        <div class="reward-card-suit">${art || '⚔'}</div>
+        <div class="reward-card-val" style="color:#d08040;">+1</div>
+        <div class="reward-card-name" style="color:#d08040;">Weapon Upgrade</div>
+        <div class="reward-card-desc" style="color:#a06030;">Increases the lowest weapon in your deck by 1 value.</div>
       </div>`;
     } else if (r.type === 'heart') {
-      return `<div class="reward-card" data-reward-idx="${i}" onclick="toggleRewardSelect(${i})">
-        <div class="reward-card-suit" style="color:#8b1a1a;">♥</div>
-        <div class="reward-card-val" style="color:#8b1a1a;">+1</div>
-        <div class="reward-card-name">Potion Upgrade</div>
-        <div class="reward-card-desc">Increases the lowest ♥ card in your deck by 1 value.</div>
+      const art = rewardArtHtml('heart');
+      return `<div class="reward-card" style="background:linear-gradient(160deg,#1a0a0a,#120606);border-color:rgba(180,60,60,0.5);" data-reward-idx="${i}" onclick="toggleRewardSelect(${i})">
+        <div class="reward-card-suit">${art || '❤'}</div>
+        <div class="reward-card-val" style="color:#d06060;">+1</div>
+        <div class="reward-card-name" style="color:#d06060;">Potion Upgrade</div>
+        <div class="reward-card-desc" style="color:#a04040;">Increases the lowest potion in your deck by 1 value.</div>
       </div>`;
     } else if (r.type === 'charm') {
+      const art = rewardArtHtml('charm');
       return `<div class="reward-card charm" data-reward-idx="${i}" onclick="toggleRewardSelect(${i})">
-        <div class="reward-card-suit">☠</div>
+        <div class="reward-card-suit">${art || '☠'}</div>
         <div class="reward-card-val">Charm</div>
         <div class="reward-card-name">Cursed Charm</div>
         <div class="reward-card-desc">One-time use item. Activate before confirming to reduce all monsters in the room by 2.</div>
       </div>`;
     } else if (r.type === 'crystal') {
+      const art = rewardArtHtml('crystal');
       return `<div class="reward-card" style="background:linear-gradient(160deg,#1a0f2e,#0f0820);border-color:rgba(160,100,255,0.5);" data-reward-idx="${i}" onclick="toggleRewardSelect(${i})">
-        <div class="reward-card-suit">🔮</div>
+        <div class="reward-card-suit">${art || '🔮'}</div>
         <div class="reward-card-val" style="color:#c090ff;">Ball</div>
         <div class="reward-card-name" style="color:#c090ff;">Crystal Ball</div>
         <div class="reward-card-desc" style="color:#9060cc;">Peek at the next 3 cards entering the room.</div>
       </div>`;
     } else if (r.type === 'warp') {
+      const art = rewardArtHtml('warp');
       return `<div class="reward-card" style="background:linear-gradient(160deg,#0a1a1e,#061214);border-color:rgba(60,200,220,0.5);" data-reward-idx="${i}" onclick="toggleRewardSelect(${i})">
-        <div class="reward-card-suit">📜</div>
+        <div class="reward-card-suit">${art || '📜'}</div>
         <div class="reward-card-val" style="color:#60d0e0;">Warp</div>
         <div class="reward-card-name" style="color:#60d0e0;">Warp Scroll</div>
         <div class="reward-card-desc" style="color:#408090;">See the top 2 cards. Send one to the bottom.</div>
       </div>`;
     } else if (r.type === 'wand') {
+      const art = rewardArtHtml('wand');
       return `<div class="reward-card" style="background:linear-gradient(160deg,#1a1a0a,#12120a);border-color:rgba(220,180,60,0.5);" data-reward-idx="${i}" onclick="toggleRewardSelect(${i})">
-        <div class="reward-card-suit">🪄</div>
+        <div class="reward-card-suit">${art || '🪄'}</div>
         <div class="reward-card-val" style="color:#e0c040;">Teleport</div>
         <div class="reward-card-name" style="color:#e0c040;">Wand of Teleportation</div>
         <div class="reward-card-desc" style="color:#a09030;">Activate to instantly skip the current room, ignoring cooldowns.</div>
       </div>`;
     } else if (r.type === 'flask') {
+      const art = rewardArtHtml('flask');
       return `<div class="reward-card" style="background:linear-gradient(160deg,#1a1a0a,#0f1208);border-color:rgba(120,200,80,0.5);" data-reward-idx="${i}" onclick="toggleRewardSelect(${i})">
-        <div class="reward-card-suit">🧴</div>
+        <div class="reward-card-suit">${art || '🧴'}</div>
         <div class="reward-card-val" style="color:#80cc50;">+5 HP</div>
         <div class="reward-card-name" style="color:#80cc50;">Holy Flask</div>
         <div class="reward-card-desc" style="color:#609040;">One-time use. Consume to heal 5 HP, up to your maximum.</div>
       </div>`;
     } else if (r.type === 'shield') {
+      const art = rewardArtHtml('shield');
       return `<div class="reward-card" style="background:linear-gradient(160deg,#141a1e,#0a1014);border-color:rgba(100,180,220,0.5);" data-reward-idx="${i}" onclick="toggleRewardSelect(${i})">
-        <div class="reward-card-suit">🛡️</div>
+        <div class="reward-card-suit">${art || '🛡️'}</div>
         <div class="reward-card-val" style="color:#70b8e0;">Shield</div>
         <div class="reward-card-name" style="color:#70b8e0;">Shield Charm</div>
         <div class="reward-card-desc" style="color:#508090;">Activate to become shielded. The next hit that would deal damage is reduced to zero.</div>
       </div>`;
     } else if (r.type === 'luck') {
+      const art = rewardArtHtml('luck');
       return `<div class="reward-card" style="background:linear-gradient(160deg,#1a180a,#14120a);border-color:rgba(200,180,60,0.5);" data-reward-idx="${i}" onclick="toggleRewardSelect(${i})">
-        <div class="reward-card-suit">🍀</div>
+        <div class="reward-card-suit">${art || '🍀'}</div>
         <div class="reward-card-val" style="color:#c0b840;">Luck</div>
         <div class="reward-card-name" style="color:#c0b840;">Luck Charm</div>
         <div class="reward-card-desc" style="color:#908830;">Pick any card in the room and send it to the bottom of the deck. Select one fewer card this room.</div>
       </div>`;
     } else if (r.type === 'elixir') {
+      const art = rewardArtHtml('elixir');
       return `<div class="reward-card" style="background:linear-gradient(160deg,#1a0a1a,#120812);border-color:rgba(200,80,200,0.5);" data-reward-idx="${i}" onclick="toggleRewardSelect(${i})">
-        <div class="reward-card-suit">🧪</div>
+        <div class="reward-card-suit">${art || '🧪'}</div>
         <div class="reward-card-val" style="color:#d080d0;">+3 Max</div>
         <div class="reward-card-name" style="color:#d080d0;">Elixir of Life</div>
         <div class="reward-card-desc" style="color:#a060a0;">One-time use. Permanently increases your max HP by 3 and heals the same amount.</div>
       </div>`;
     } else if (r.type === 'whetstone') {
+      const art = rewardArtHtml('whetstone');
       return `<div class="reward-card" style="background:linear-gradient(160deg,#1a1410,#120e0a);border-color:rgba(180,140,80,0.5);" data-reward-idx="${i}" onclick="toggleRewardSelect(${i})">
-        <div class="reward-card-suit">🪨</div>
+        <div class="reward-card-suit">${art || '🪨'}</div>
         <div class="reward-card-val" style="color:#c0a060;">Sharpen</div>
         <div class="reward-card-name" style="color:#c0a060;">Whetstone</div>
         <div class="reward-card-desc" style="color:#907840;">One-time use. Clears your weapon's kill chain, making it fresh again.</div>
@@ -9439,8 +9666,9 @@ function showBossReward() {
         <div class="reward-card-desc" style="color:${rc.color}99;">${passiveName} — joins your party. Both passives active.</div>
       </div>`;
     } else {
+      const art = rewardArtHtml('rest');
       return `<div class="reward-card" style="background:linear-gradient(160deg,#1a1008,#120a04);border-color:rgba(220,140,40,0.5);" data-reward-idx="${i}" onclick="toggleRewardSelect(${i})">
-        <div class="reward-card-suit">🔥</div>
+        <div class="reward-card-suit">${art || '🔥'}</div>
         <div class="reward-card-val" style="color:#e0a030;">Full HP</div>
         <div class="reward-card-name" style="color:#e0a030;">Rest & Recover</div>
         <div class="reward-card-desc" style="color:#b08020;">Rest by the campfire. Fully restores your health.</div>
@@ -9530,7 +9758,7 @@ function claimSelectedRewards() {
       }
     } else {
       endless.rewardCards.push(reward);
-      const rewardName = reward.type === 'diamond' ? '♦ Weapon Upgrade (+1)' : '♥ Potion Upgrade (+1)';
+      const rewardName = reward.type === 'diamond' ? 'Weapon Upgrade (+1)' : 'Potion Upgrade (+1)';
       addLog(`Reward claimed: ${rewardName}`, 'gold');
     }
   });
@@ -9781,7 +10009,7 @@ function startNextEndlessLevel() {
     }
   }
   if (endless.activeTags.some(t => t.id === 'corrosive')) {
-    markCorrosiveMonsters(state.deck, 4);
+    markCorrosiveMonsters(state.deck, 3);
   }
 
   // Gale's Boomerang Blade — add to boss decks (normal buildDeck handles it itself)
@@ -9807,18 +10035,20 @@ function startNextEndlessLevel() {
   state.weaponsThisRoom = 0;
   state.stats = { rooms:1, slain:0, gold:0, potions:0, cardsResolved:0, weapons:0, unblockedDmgRun:0 };
 
+  state._ponderCooldown = false;
+  state._ponderCooldownRoom = 0;
   state.player.hp = savedHp;
   state.player.maxHp = savedMaxHp;
 
   // Preserve weapon and kill chain from previous level
   // Only reset to default if player had no weapon (unarmed/val 0 and not a trap)
   const w = state.player.weapon;
-  if (!w || (w.val === 0 && !w.isTrap)) {
-    if (hasPassive('Monster Trap')) {
-      state.player.weapon = { name: 'Monster Trap', val: 0, isTrap: true, trapped: null };
-    } else {
-      state.player.weapon = { name: 'Unarmed', val: 0 };
-    }
+  // Ashton always gets a fresh Monster Trap at the start of each endless level
+  if (hasPassive('Monster Trap')) {
+    state.player.weapon = { name: 'Monster Trap', val: 0, isTrap: true, trapped: null };
+    state.weaponKills = [];
+  } else if (!w || (w.val === 0 && !w.isTrap)) {
+    state.player.weapon = { name: 'Unarmed', val: 0 };
     state.weaponKills = [];
   }
   // Otherwise keep state.player.weapon and state.weaponKills as-is
@@ -10523,7 +10753,7 @@ function updateCursedCharmUI() {
 function useCursedCharm() {
   if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
   if (!endless.cursedCharms || endless.cursedCharms <= 0) return;
-  if (state.cursedCharmActive) return; // already active this room
+  if (state.cursedCharmActive) return; // already used this room
 
   endless.cursedCharms--;
   state.cursedCharmActive = true;
@@ -10534,15 +10764,23 @@ function useCursedCharm() {
   updateLuckCharmUI();
   updateWhetstoneUI();
 
+  // Permanently reduce all monsters in this room by 2
+  state.hand.forEach(c => {
+    if (c.type === 'monster') {
+      decrementCardVal(c);
+      decrementCardVal(c);
+    }
+  });
+
   // Show active glow on button
   const btn = document.getElementById('cursedCharmBtn');
   if (btn) btn.classList.add('charm-active');
 
-  // Re-render cards to show updated values with yellow glow
+  // Re-render cards to show updated values
   renderCards();
   previewHpBar();
 
-  addLog('☠ Cursed Charm activated — all monsters in this room weakened by 2!', 'gold');
+  addLog('☠ Cursed Charm activated — all monsters in this room permanently weakened by 2!', 'gold');
 }
 
 // ─────────────────────────────────────
@@ -10719,12 +10957,24 @@ function useLuckCharm() {
   container.innerHTML = state.hand.map((card, idx) => {
     // Veiled: show face-down card
     if (state.isVeiled) {
+      const hint = veilSuitHint(card);
+      if (hint.backImg) {
+        return `<div class="luck-charm-card has-art" style="border-color:rgba(200,180,60,0.3);" onclick="luckCharmSelect(${idx})">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;background:linear-gradient(135deg,#1a0f2e,#0f0820);border-radius:6px;">
+            <img src="${hint.backImg}" style="width:40%;height:auto;object-fit:contain;opacity:0.85;">
+          </div>
+        </div>`;
+      }
       return `<div class="luck-charm-card" style="background:linear-gradient(160deg,#2a2018,#1a1410);border-color:rgba(200,180,60,0.3);cursor:pointer;" onclick="luckCharmSelect(${idx})">
         <div class="luck-charm-card-val" style="color:#c0b840;">?</div>
         <div class="luck-charm-card-suit" style="color:#c0b840;">🍀</div>
       </div>`;
     }
     if (card.isTrap) {
+      const trapArt = 'images/deck/control_scroll.png';
+      if (_validCardArt[trapArt]) {
+        return `<div class="luck-charm-card has-art" onclick="luckCharmSelect(${idx})"><div class="lc-art" style="background-image:url('${trapArt}');"></div></div>`;
+      }
       return `<div class="luck-charm-card special-card" onclick="luckCharmSelect(${idx})">
         <div class="luck-charm-card-val">T</div>
         <div class="luck-charm-card-suit">⚙</div>
@@ -10732,6 +10982,10 @@ function useLuckCharm() {
       </div>`;
     }
     if (card.isKeg) {
+      const bombArt = 'images/deck/bomb.png';
+      if (_validCardArt[bombArt]) {
+        return `<div class="luck-charm-card has-art" onclick="luckCharmSelect(${idx})"><div class="lc-art" style="background-image:url('${bombArt}');"></div></div>`;
+      }
       return `<div class="luck-charm-card keg-card" onclick="luckCharmSelect(${idx})">
         <div class="luck-charm-card-val">💣</div>
         <div class="luck-charm-card-suit"></div>
@@ -10745,6 +10999,23 @@ function useLuckCharm() {
         <div class="luck-charm-card-label" style="color:#cc88ff;">Curse</div>
       </div>`;
     }
+
+    // Try full art
+    const artUrl = getCardArtUrl(card);
+    if (artUrl && _validCardArt[artUrl]) {
+      const titleUrl = getCardTitleImageUrl(card);
+      const effVal = getEffectiveVal(card);
+      const modified = isCardModified(card);
+      const toggle = document.getElementById('faceCardToggle');
+      const useFace = toggle && toggle.classList.contains('on');
+      const faceMap = { 11: 'j', 12: 'q', 13: 'k', 14: 'a' };
+      const valFile = (useFace && faceMap[effVal]) ? faceMap[effVal] : String(effVal);
+      const prefix = modified ? 'alt_value' : 'value';
+      const valUrl = `images/value/${prefix}_${valFile}.png`;
+      return `<div class="luck-charm-card has-art" onclick="luckCharmSelect(${idx})">${titleUrl ? `<div class="lc-title"><img src="${titleUrl}" alt=""></div>` : ''}<div class="lc-art" style="background-image:url('${artUrl}');"></div><div class="lc-val"><img src="${valUrl}" alt=""></div></div>`;
+    }
+
+    // Fallback to text
     const colorCls = card.isRed ? 'red-suit' : 'black-suit';
     const effDisplay = getEffectiveDisplayVal(card);
     const modCls = isCardModified(card) ? ' val-modified' : '';
@@ -10839,55 +11110,70 @@ function useBag() {
 }
 
 // ─────────────────────────────────────
-// CLAIRE'S PONDER
+// CLAIRE'S PONDER (peek next 4 cards)
 // ─────────────────────────────────────
 function usePonder() {
-  if (!state._canPonder || !state._ponderSnapshot) return;
-  playTransitionSE();
+  if (!hasPassive('Ponder')) return;
+  if (state._ponderCooldown) return;
 
-  const snap = state._ponderSnapshot;
-  state.hand = snap.hand;
-  state.deck = snap.deck;
-  state.roomNumber = snap.roomNumber;
-  state.consecutiveSkips = snap.consecutiveSkips;
-  state.totalSkipsThisRun = snap.totalSkipsThisRun;
-  state.fleeUsedLastRoom = snap.fleeUsedLastRoom;
+  const peek = state.deck.slice(-4).reverse();
+  const container = document.getElementById('ponderCards');
+  container.innerHTML = peek.length === 0
+    ? `<div style="font-family:'Crimson Text',serif;color:rgba(176,128,224,0.6);font-size:1rem;">The deck is empty.</div>`
+    : peek.map(card => {
+        if (card.isTrap) {
+          const trapArt = 'images/deck/control_scroll.png';
+          if (_validCardArt[trapArt]) return `<div class="ponder-card has-art"><div class="po-art" style="background-image:url('${trapArt}');"></div></div>`;
+          return `<div class="ponder-card" style="background:linear-gradient(160deg,#e8f5e0,#d0eac0);"><div style="font-family:'Cinzel',serif;font-weight:700;font-size:0.85rem;color:#2a6a1a;text-align:center;">Monster<br>Trap</div></div>`;
+        }
+        if (card.isKeg) {
+          const bombArt = 'images/deck/bomb.png';
+          if (_validCardArt[bombArt]) return `<div class="ponder-card has-art"><div class="po-art" style="background-image:url('${bombArt}');"></div></div>`;
+          return `<div class="ponder-card" style="background:linear-gradient(160deg,#2e1a0a,#1e0f04);"><div class="ponder-card-val" style="color:#ff6622;">💣</div></div>`;
+        }
+        if (card.isCurse) {
+          return `<div class="ponder-card" style="background:linear-gradient(160deg,#2e1a2e,#1e0f1e);"><div class="ponder-card-val" style="color:#cc88ff;">☠</div></div>`;
+        }
+        const artUrl = getCardArtUrl(card);
+        if (artUrl && _validCardArt[artUrl]) {
+          const titleUrl = getCardTitleImageUrl(card);
+          const effVal = getEffectiveVal(card);
+          const modified = isCardModified(card);
+          const toggle = document.getElementById('faceCardToggle');
+          const useFace = toggle && toggle.classList.contains('on');
+          const faceMap = { 11:'j', 12:'q', 13:'k', 14:'a' };
+          const valFile = (useFace && faceMap[effVal]) ? faceMap[effVal] : String(effVal);
+          const prefix = modified ? 'alt_value' : 'value';
+          const valUrl = `images/value/${prefix}_${valFile}.png`;
+          return `<div class="ponder-card has-art">${titleUrl ? `<div class="po-title"><img src="${titleUrl}" alt=""></div>` : ''}<div class="po-art" style="background-image:url('${artUrl}');"></div><div class="po-val"><img src="${valUrl}" alt=""></div></div>`;
+        }
+        const colorCls = card.isRed ? 'color:#8b1a1a' : 'color:#1a1410';
+        let valDisplay = displayVal(card.val);
+        let labelText = card.type === 'monster' ? 'Monster' : card.type === 'weapon' ? 'Weapon' : 'Potion';
+        let labelColor = card.type === 'monster' ? '#8b1a1a' : card.type === 'weapon' ? '#3a4060' : '#1a501a';
+        let labelBg = card.type === 'monster' ? 'rgba(139,26,26,0.12)' : card.type === 'weapon' ? 'rgba(58,64,96,0.1)' : 'rgba(26,80,26,0.1)';
+        return `<div class="ponder-card"><div class="ponder-card-val" style="${colorCls}">${valDisplay}</div><div class="ponder-card-suit" style="${colorCls}">${card.suit}</div><div class="ponder-card-label" style="color:${labelColor};background:${labelBg};">${labelText}</div></div>`;
+      }).join('');
 
-  // Restore previous room background
-  _currentBg = snap.bg;
-  const gameEl = document.getElementById('game');
-  if (snap.bgStyle) gameEl.style.backgroundImage = snap.bgStyle;
+  document.getElementById('ponderOverlay').classList.add('open');
+  state._ponderCooldown = true;
+  state._ponderCooldownRoom = state.roomNumber;
+  updatePonderBtn();
+  addLog('🔮 Claire ponders... glimpsing the cards ahead.', 'gold');
+}
 
-  // Reset selection state
-  state.selected = [];
-  state.selectionOrder = [];
-  state.bypassed = [];
-  state.skipped = null;
-  state.isVeiled = false;
-  state.potionUsedThisRoom = 0;
-  state.weaponsThisRoom = 0;
-  state.cursedCharmActive = false;
+function closePonder() {
+  document.getElementById('ponderOverlay').classList.remove('open');
+}
 
-  // Clear ponder state
-  state._canPonder = false;
-  state._hasPondered = true;
-  state._ponderSnapshot = null;
-  state._inSkippedRoom = false;
-
-  // Hide button and fog
-  document.getElementById('ponderBtn').style.display = 'none';
-  document.getElementById('ponderFog').classList.remove('active');
-
-  // Update UI
-  document.getElementById('roomDepth').textContent = `Room ${state.roomNumber} — Floor B${endless.active ? endless.level : 1}`;
-  document.getElementById('deckCount').textContent = state.deck.length;
-  updateHpBar();
-  renderCards();
-  updateFleeButton();
-  updateConfirmBtn();
-  updatePips();
-  syncMobileStats();
-  addLog('🔮 Claire ponders... and returns to the room she fled.', 'gold');
+function updatePonderBtn() {
+  const btn = document.getElementById('ponderGameBtn');
+  if (!btn) return;
+  const show = hasPassive('Ponder');
+  document.body.classList.toggle('has-ponder', show);
+  if (show) {
+    btn.classList.toggle('on-cooldown', !!state._ponderCooldown);
+  }
 }
 
 // ─────────────────────────────────────
@@ -10980,6 +11266,7 @@ function buildDiscardGrid(containerId) {
 }
 
 function openMobileDiscard() {
+  if (tutorial.active) return;
   buildDiscardGrid('mobileDiscardCards');
   document.getElementById('mobileDiscardOverlay').classList.add('open');
   if (state.currentScreen === 'game') {
@@ -11086,6 +11373,16 @@ function showVictory() {
 }
 
 function fleeRoom() {
+  if (tutorial.active) {
+    if (tutorial.allowedButton !== 'fleeBtn') return;
+    playTransitionSE();
+    tutorial.allowedButton = null;
+    state.hand = []; state.selected = []; state.selectionOrder = []; state.bypassed = [];
+    const row = document.getElementById('cardRow');
+    if (row) row.innerHTML = '';
+    setTimeout(() => tutorialAdvance(), 600);
+    return;
+  }
   const hasTrap = hasPassive('Monster Trap');
   const hasQuick = hasPassive('Quick Feet');
   const skipDisabled = hasTrap && !hasQuick;
@@ -11094,20 +11391,6 @@ function fleeRoom() {
   if (state.consecutiveSkips >= maxSkips) return;
   if (bossTagNoFlee()) return;
   playTransitionSE();
-
-  // Save snapshot for Ponder (before any modifications)
-  if (hasPassive('Ponder') && !state._hasPondered) {
-    state._ponderSnapshot = {
-      hand: JSON.parse(JSON.stringify(state.hand)),
-      deck: JSON.parse(JSON.stringify(state.deck)),
-      roomNumber: state.roomNumber,
-      consecutiveSkips: state.consecutiveSkips,
-      totalSkipsThisRun: state.totalSkipsThisRun,
-      fleeUsedLastRoom: state.fleeUsedLastRoom,
-      bg: _currentBg,
-      bgStyle: document.getElementById('game').style.backgroundImage,
-    };
-  }
 
   // Clear any selection and reset health bar preview instantly
   state.selected = [];
@@ -11189,13 +11472,335 @@ function fleeRoom() {
     if (state.player.hp <= 0) return;
   }
 
-  // Claire's Ponder: set flags (UI shown after room is drawn)
-  if (hasPassive('Ponder') && state._ponderSnapshot && !state._hasPondered) {
-    state._canPonder = true;
-    state._inSkippedRoom = true;
-  }
-
   setTimeout(() => transitionToNextRoom(null), 400);
+}
+
+// ─────────────────────────────────────
+// TUTORIAL SYSTEM
+// ─────────────────────────────────────
+let tutorial = { active: false, step: 0, roomIdx: 0, allowedCards: [], allowedButton: null };
+
+const TUTORIAL_HANDS = [
+  [{ suit:'♠', val:'12', isRed:false, type:'monster', _originalVal:'12' },
+   { suit:'♣', val:'3',  isRed:false, type:'monster', _originalVal:'3' },
+   { suit:'♣', val:'4',  isRed:false, type:'monster', _originalVal:'4' },
+   { suit:'♥', val:'8',  isRed:true,  type:'potion',  _originalVal:'8' }],
+  [{ suit:'♠', val:'12', isRed:false, type:'monster', _originalVal:'12', _isCarryOver:true },
+   { suit:'♣', val:'10', isRed:false, type:'monster', _originalVal:'10' },
+   { suit:'♠', val:'14', isRed:false, type:'monster', _originalVal:'14' },
+   { suit:'♣', val:'9',  isRed:false, type:'monster', _originalVal:'9' }],
+  [{ suit:'♦', val:'6',  isRed:true,  type:'weapon',  _originalVal:'6' },
+   { suit:'♣', val:'11', isRed:false, type:'monster', _originalVal:'11' },
+   { suit:'♣', val:'9',  isRed:false, type:'monster', _originalVal:'9' },
+   { suit:'♣', val:'6',  isRed:false, type:'monster', _originalVal:'6' }],
+  [{ suit:'♣', val:'11', isRed:false, type:'monster', _originalVal:'11', _isCarryOver:true },
+   { suit:'♠', val:'2',  isRed:false, type:'monster', _originalVal:'2' },
+   { suit:'♠', val:'14', isRed:false, type:'monster', _originalVal:'14' },
+   { suit:'♦', val:'10', isRed:true,  type:'weapon',  _originalVal:'10' }],
+  [{ suit:'♣', val:'11', isRed:false, type:'monster', _originalVal:'11' }],
+];
+
+const TUTORIAL_STEPS = [
+  { type:'fade_in' },
+  { type:'text', msg:'Wake up...', auto:3500 },
+  { type:'text', msg:"It's not safe here...", auto:3500 },
+  { type:'text', msg:"We are not alone.", tap:true },
+  { type:'highlight_el', target:'.game-top-bar', msg:'This is your health.' },
+  { type:'deal', roomIdx:0 },
+  { type:'text', msg:'This is the current dungeon room.', tap:true },
+  { type:'highlight_card', cardIdx:3, msg:'This is a Potion.' },
+  { type:'force_card', cardIdx:3, msg:'Select it to recover missing HP.' },
+  { type:'highlight_cards', cardIndices:[0,1,2], msg:'These are Monsters.', noGlow:true },
+  { type:'text', msg:'They deal damage to you equal to the value displayed.', tap:true },
+  { type:'text', msg:"12 is a lot of damage, let's take on the weaker ones.", tap:true },
+  { type:'force_card', cardIdx:1 },
+  { type:'force_card', cardIdx:2 },
+  { type:'force_btn', btn:'confirmBtn', msg:"Once you've selected 3 cards, click Continue to resolve your choices." },
+  { type:'deal', roomIdx:1 },
+  { type:'highlight_card', cardIdx:0, msg:'The unselected card each room is carried over to the next room.' },
+  { type:'text', msg:"There's too many of them, we have to run away.", tap:true },
+  { type:'text', msg:"Press Skip to avoid this room.", tap:true },
+  { type:'force_btn', btn:'fleeBtn' },
+  { type:'deal', roomIdx:2 },
+  { type:'text', msg:"You can't skip two rooms in a row.", tap:true },
+  { type:'highlight_card', cardIdx:0, msg:'This is a Weapon.' },
+  { type:'force_card', cardIdx:0, msg:'Select it to equip.' },
+  { type:'text', msg:"Weapons reduce a monster's damage by the weapon's value.", tap:true },
+  { type:'text', msg:"Monsters must be slain in descending value order.", tap:true },
+  { type:'text', msg:"Fighting a monster of larger or equal value to the last slain monster deals full damage.", tap:true },
+  { type:'text', msg:"Let's fight the weaker monsters to preserve our health.", tap:true },
+  { type:'force_card', cardIdx:2 },
+  { type:'force_card', cardIdx:3 },
+  { type:'force_btn', btn:'confirmBtn' },
+  { type:'deal', roomIdx:3 },
+  { type:'text', msg:'Equipping a new weapon discards the previous one.', tap:true },
+  { type:'force_card', cardIdx:3, msg:'Select the Weapon to equip.' },
+  { type:'text', msg: ('ontouchstart' in window) ? 'Tap and hold a monster to bypass your weapon and take full damage.' : 'Right-click a monster to bypass your weapon and take full damage.', tap:true },
+  { type:'force_bypass', cardIdx:1, msg: ('ontouchstart' in window) ? 'Tap and hold this monster to bypass.' : 'Right-click this monster to bypass.' },
+  { type:'text', msg:'This keeps your weapon chain intact for bigger threats.', tap:true },
+  { type:'force_card', cardIdx:2 },
+  { type:'force_btn', btn:'confirmBtn' },
+  { type:'deal', roomIdx:4 },
+  { type:'text', msg:"I think that's the last one, finish it off!", tap:true },
+  { type:'force_card', cardIdx:0 },
+  { type:'force_btn', btn:'confirmBtn' },
+  { type:'text', msg:'You did it!', auto:3500 },
+  { type:'fade_out' },
+  { type:'show_logo' },
+  { type:'slide_to_home' },
+];
+
+function startTutorial() {
+  tutorial = { active: true, step: 0, roomIdx: 0, allowedCards: [], allowedButton: null };
+  document.body.classList.add('in-tutorial');
+
+  state.selectedChar = 0;
+  const char = CHARACTERS[0];
+  state.player = { ...char, hp: 10, maxHp: 20 };
+  state.deck = []; state.discard = []; state.selected = []; state.hand = [];
+  state.roomNumber = 1; state.weaponKills = [];
+  state.stats = { rooms:1, slain:0, gold:0, potions:0, cardsResolved:0, weapons:0, unblockedDmgRun:0 };
+  state.fleeUsedLastRoom = false; state.consecutiveSkips = 0;
+  state.totalSkipsThisRun = 0; state.potionUsedThisRoom = 0;
+  state.directBypassCount = 0; state.weaponsThisRoom = 0;
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('game').classList.add('active');
+  state.currentScreen = 'game';
+
+  document.getElementById('playerPortrait').innerHTML = charLogoHtml(char, 60);
+  document.getElementById('playerName').textContent = char.name;
+  document.getElementById('topHpPortrait').innerHTML = charLogoHtml(char, 46);
+  document.getElementById('topHpName').textContent = char.name;
+  updateHpBar(); updateWeaponBar();
+  document.getElementById('deckCount').textContent = '';
+  document.getElementById('roomDepth').textContent = '';
+  document.getElementById('fleeBtn').style.display = 'none';
+  const row = document.getElementById('cardRow');
+  if (row) row.innerHTML = '';
+
+  // Show fade
+  const fade = document.getElementById('tutorialFade');
+  fade.style.display = 'flex'; fade.style.opacity = '1'; fade.innerHTML = '';
+  runTutorialStep();
+}
+
+function tutorialDealRoom(roomIdx) {
+  tutorial.roomIdx = roomIdx;
+  state.hand = TUTORIAL_HANDS[roomIdx].map(c => ({...c}));
+  state.selected = []; state.selectionOrder = []; state.bypassed = [];
+  state.skipped = null; state.potionUsedThisRoom = 0; state.weaponsThisRoom = 0;
+  state.roomNumber = roomIdx + 1;
+  dealCardsAnimated();
+  updatePips(); updateConfirmBtn(); updateFleeButton(); syncMobileStats();
+  document.getElementById('roomDepth').textContent = `Room ${state.roomNumber}`;
+  document.getElementById('deckCount').textContent = '';
+}
+
+function runTutorialStep() {
+  if (tutorial.step >= TUTORIAL_STEPS.length) { completeTutorial(); return; }
+  const step = TUTORIAL_STEPS[tutorial.step];
+  const textBox = document.getElementById('tutorialTextBox');
+  const backdrop = document.getElementById('tutorialBackdrop');
+  // Clear previous
+  tutorial.allowedCards = []; tutorial.allowedButton = null; tutorial.allowedBypass = null;
+  document.querySelectorAll('.tutorial-highlight,.tutorial-highlight-multi,.tutorial-visible').forEach(el => {
+    el.classList.remove('tutorial-highlight','tutorial-highlight-multi','tutorial-visible','tut-spotlight');
+  });
+  backdrop.classList.remove('active');
+  backdrop.classList.remove('tap-catcher');
+  backdrop.onclick = null;
+  textBox.classList.remove('active');
+  textBox.onclick = null;
+  void textBox.offsetWidth; // force reflow to retrigger fade animation
+
+  switch (step.type) {
+    case 'fade_in': {
+      const fade = document.getElementById('tutorialFade');
+      fade.style.transition = 'opacity 2.5s ease';
+      fade.style.opacity = '1';
+      setTimeout(() => { fade.style.opacity = '0'; setTimeout(() => { fade.style.display = 'none'; tutorialAdvance(); }, 2500); }, 1200);
+      break;
+    }
+    case 'text': {
+      textBox.innerHTML = step.msg + (step.tap ? '<div class="tap-hint">tap to continue</div>' : '');
+      textBox.classList.add('active');
+      if (step.auto) { setTimeout(() => tutorialAdvance(), step.auto); }
+      else {
+        backdrop.classList.add('tap-catcher');
+        backdrop.onclick = () => { backdrop.onclick = null; tutorialAdvance(); };
+      }
+      break;
+    }
+    case 'highlight_el': {
+      const el = document.querySelector(step.target);
+      if (el) el.classList.add('tutorial-highlight');
+      textBox.innerHTML = step.msg + '<div class="tap-hint">tap to continue</div>';
+      textBox.classList.add('active');
+      backdrop.classList.add('tap-catcher');
+      backdrop.onclick = () => { backdrop.onclick = null; tutorialAdvance(); };
+      break;
+    }
+    case 'highlight_card': {
+      const el = document.querySelectorAll('#cardRow .play-card')[step.cardIdx];
+      if (el) el.classList.add('tutorial-highlight');
+      textBox.innerHTML = step.msg + '<div class="tap-hint">tap to continue</div>';
+      textBox.classList.add('active');
+      backdrop.classList.add('tap-catcher');
+      backdrop.onclick = () => { backdrop.onclick = null; tutorialAdvance(); };
+      break;
+    }
+    case 'highlight_cards': {
+      const cardEls = document.querySelectorAll('#cardRow .play-card');
+      const cls = step.noGlow ? 'tutorial-visible' : 'tutorial-highlight-multi';
+      step.cardIndices.forEach((idx, i) => {
+        const el = cardEls[idx];
+        if (el) {
+          el.classList.add(cls);
+          if (i === 0) el.classList.add('tut-spotlight');
+        }
+      });
+      textBox.innerHTML = step.msg + '<div class="tap-hint">tap to continue</div>';
+      textBox.classList.add('active');
+      backdrop.classList.add('tap-catcher');
+      backdrop.onclick = () => { backdrop.onclick = null; tutorialAdvance(); };
+      break;
+    }
+    case 'deal': {
+      tutorialDealRoom(step.roomIdx);
+      const handSize = TUTORIAL_HANDS[step.roomIdx].length;
+      const dealTime = (handSize - 1) * 203 + 900;
+      setTimeout(() => tutorialAdvance(), dealTime);
+      break;
+    }
+    case 'force_card': {
+      tutorial.allowedCards = [step.cardIdx];
+      const el = document.querySelectorAll('#cardRow .play-card')[step.cardIdx];
+      if (el) el.classList.add('tutorial-highlight');
+      if (step.msg) { textBox.innerHTML = step.msg; textBox.classList.add('active'); }
+      break;
+    }
+    case 'force_bypass': {
+      tutorial.allowedBypass = step.cardIdx;
+      const el = document.querySelectorAll('#cardRow .play-card')[step.cardIdx];
+      if (el) el.classList.add('tutorial-highlight');
+      if (step.msg) { textBox.innerHTML = step.msg; textBox.classList.add('active'); }
+      break;
+    }
+    case 'force_btn': {
+      tutorial.allowedButton = step.btn;
+      const btn = document.getElementById(step.btn);
+      if (btn) {
+        btn.style.display = '';
+        btn.classList.add('tutorial-highlight');
+        if (step.btn === 'fleeBtn') btn.classList.add('flee-ready');
+        if (step.btn === 'confirmBtn') btn.disabled = false;
+      }
+      if (step.msg) { textBox.innerHTML = step.msg; textBox.classList.add('active'); }
+      break;
+    }
+    case 'fade_out': {
+      const fade = document.getElementById('tutorialFade');
+      fade.style.display = 'flex'; fade.innerHTML = ''; fade.style.opacity = '0';
+      requestAnimationFrame(() => { fade.style.opacity = '1'; });
+      setTimeout(() => tutorialAdvance(), 2000);
+      break;
+    }
+    case 'show_logo': {
+      const fade = document.getElementById('tutorialFade');
+      fade.innerHTML = `
+        <img src="images/DeckDiverLogo.png" style="max-width:min(70vw,300px);height:auto;opacity:0;animation:tutFadeIn 1.5s ease forwards;">
+        <div style="font-family:'Cinzel Decorative',cursive;font-size:1.3rem;color:var(--parchment);letter-spacing:0.15em;opacity:0;animation:tutFadeIn 1.5s ease 0.5s forwards;">Loot to Survive</div>
+      `;
+      setTimeout(() => tutorialAdvance(), 3500);
+      break;
+    }
+    case 'slide_to_home': {
+      const fade = document.getElementById('tutorialFade');
+      // Switch to home screen behind the fade BEFORE sliding
+      tutorial.active = false;
+      document.body.classList.remove('in-tutorial');
+      saveTutorialDone();
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('home').classList.add('active');
+      state.currentScreen = 'home';
+      // Now slide the fade overlay up to reveal home
+      requestAnimationFrame(() => {
+        fade.style.transition = 'transform 1.2s ease-in-out, opacity 1s ease 0.8s';
+        fade.style.transform = 'translateY(-100%)';
+        fade.style.opacity = '0';
+      });
+      setTimeout(() => {
+        fade.style.display = 'none'; fade.style.transform = '';
+        fade.style.transition = 'opacity 1.5s ease'; fade.innerHTML = '';
+        document.querySelectorAll('.tutorial-highlight,.tutorial-highlight-multi,.tutorial-visible').forEach(el => el.classList.remove('tutorial-highlight','tutorial-highlight-multi','tutorial-visible','tut-spotlight'));
+        document.getElementById('tutorialBackdrop').classList.remove('active');
+        document.getElementById('tutorialTextBox').classList.remove('active');
+        document.getElementById('fleeBtn').style.display = '';
+        // Trigger home screen setup
+        stopBossMusic(); playMenuMusic();
+      }, 1800);
+      break;
+    }
+  }
+}
+
+function tutorialAdvance() {
+  const textBox = document.getElementById('tutorialTextBox');
+  const backdrop = document.getElementById('tutorialBackdrop');
+  backdrop.classList.remove('tap-catcher');
+  backdrop.onclick = null;
+  if (textBox.classList.contains('active') && !textBox.classList.contains('fading-out')) {
+    textBox.classList.add('fading-out');
+    setTimeout(() => {
+      textBox.classList.remove('active', 'fading-out');
+      void textBox.offsetWidth;
+      tutorial.step++;
+      runTutorialStep();
+    }, 800);
+  } else {
+    textBox.classList.remove('active', 'fading-out');
+    tutorial.step++;
+    runTutorialStep();
+  }
+}
+
+function completeTutorial() {
+  tutorial.active = false;
+  document.body.classList.remove('in-tutorial');
+  document.querySelectorAll('.tutorial-highlight,.tutorial-highlight-multi,.tutorial-visible').forEach(el => el.classList.remove('tutorial-highlight','tutorial-highlight-multi','tutorial-visible','tut-spotlight'));
+  document.getElementById('tutorialBackdrop').classList.remove('active');
+  document.getElementById('tutorialTextBox').classList.remove('active');
+  document.getElementById('fleeBtn').style.display = '';
+  saveTutorialDone();
+  goTo('home');
+}
+
+function skipTutorial() {
+  closePause();
+  tutorial.active = false;
+  document.body.classList.remove('in-tutorial');
+  document.querySelectorAll('.tutorial-highlight,.tutorial-highlight-multi,.tutorial-visible').forEach(el => el.classList.remove('tutorial-highlight','tutorial-highlight-multi','tutorial-visible','tut-spotlight'));
+  document.getElementById('tutorialBackdrop').classList.remove('active');
+  document.getElementById('tutorialTextBox').classList.remove('active');
+  document.getElementById('fleeBtn').style.display = '';
+  const fade = document.getElementById('tutorialFade');
+  fade.style.display = 'none'; fade.style.opacity = '0'; fade.innerHTML = '';
+  fade.style.transform = ''; fade.style.transition = 'opacity 1.5s ease';
+  saveTutorialDone();
+  goTo('home');
+}
+
+function isTutorialDone() {
+  if (typeof isAdminProfile === 'function' && isAdminProfile()) return true;
+  if (activeProfile === null) return true;
+  try { return localStorage.getItem(profilePrefix(activeProfile) + 'tutorialDone') === 'true'; }
+  catch { return true; }
+}
+
+function saveTutorialDone() {
+  if (activeProfile === null) return;
+  try { localStorage.setItem(profilePrefix(activeProfile) + 'tutorialDone', 'true'); } catch {}
 }
 
 // ─────────────────────────────────────
@@ -11421,11 +12026,14 @@ function selectProfile(slot) {
   activeProfile = slot;
   const meta = getProfilesMeta();
   const name = meta[slot]?.name || `Adventurer ${slot + 1}`;
-  // Update profile name displays
   ['titleProfileName','homeProfileName'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.textContent = name; el.style.display = ''; }
   });
+  if (!isTutorialDone()) {
+    startTutorial();
+    return;
+  }
   goTo('home');
 }
 
@@ -11585,7 +12193,7 @@ function launchDebugBossFight() {
 
   // Corrosive tag: mark 4 random monsters as corrosive
   if (endless.activeTags && endless.activeTags.some(t => t.id === 'corrosive')) {
-    markCorrosiveMonsters(state.deck, 4);
+    markCorrosiveMonsters(state.deck, 3);
   }
 
   // Gale's Boomerang Blade
