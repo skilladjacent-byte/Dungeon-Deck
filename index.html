@@ -2711,7 +2711,7 @@ if ('serviceWorker' in navigator) {
   ══════════════════════════════ */
   .splash-screen {
     position: fixed; inset: 0;
-    background: rgb(20, 20, 19);
+    background: rgb(20, 20, 20);
     z-index: 9999;
     display: flex;
     align-items: center;
@@ -2722,12 +2722,12 @@ if ('serviceWorker' in navigator) {
   .splash-logo {
     width: clamp(180px, 50vw, 400px);
     height: auto;
-    transform: scale(3);
+    transform: scale(1.8);
     opacity: 0;
     animation: splashZoom 4.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   }
   @keyframes splashZoom {
-    0%   { transform: scale(3); opacity: 0; }
+    0%   { transform: scale(1.8); opacity: 0; }
     15%  { opacity: 1; }
     100% { transform: scale(1); opacity: 1; }
   }
@@ -12359,12 +12359,13 @@ function launchDebugBossFight() {
   const LOGO_SE = 'audio/logo_se.mp3';
 
   if (splash) {
-    // After zoom animation completes (4.2s), play SE
-    splashLogo.addEventListener('animationend', () => {
-      const se = new Audio(LOGO_SE);
-      se.volume = getMasterVolume();
-      se.play().catch(() => {});
+    // Play SE as the logo animation begins
+    const se = new Audio(LOGO_SE);
+    se.volume = getMasterVolume();
+    se.play().catch(() => {});
 
+    // After zoom animation completes, fade out splash and show title
+    splashLogo.addEventListener('animationend', () => {
       let proceeded = false;
       const proceed = () => {
         if (proceeded) return;
@@ -12375,9 +12376,14 @@ function launchDebugBossFight() {
           document.getElementById('title-screen').classList.add('active');
         }, 1200);
       };
-      se.addEventListener('ended', proceed);
-      se.addEventListener('error', proceed);
-      setTimeout(proceed, 4000);
+      // Wait for SE to finish if it's still playing, otherwise proceed immediately
+      if (se.ended || se.paused) {
+        proceed();
+      } else {
+        se.addEventListener('ended', proceed);
+        se.addEventListener('error', proceed);
+        setTimeout(proceed, 4000);
+      }
     });
 
     // Fallback if animation doesn't fire (e.g. prefers-reduced-motion)
