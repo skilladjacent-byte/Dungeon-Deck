@@ -6,7 +6,7 @@
   "display": "standalone",
   "background_color": "#090705",
   "theme_color": "#090705",
-  "orientation": "any",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "icon-192.png",
@@ -18,7 +18,13 @@
       "src": "images/DeckDiverAppLogo.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "images/DeckDiverAppLogo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
