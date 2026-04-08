@@ -763,10 +763,10 @@ if ('serviceWorker' in navigator) {
   /* Bottom zone: weapon card — proportional to remaining space */
   .game-bottom-zone {
     flex: 0 0 auto;
-    display: flex; align-items: center; justify-content: center;
+    display: flex; align-items: center; justify-content: flex-start;
     width: 100%;
     min-height: 0;
-    padding: clamp(4px, 0.8vh, 10px) 0;
+    padding: clamp(4px, 0.8vh, 10px) 0 clamp(4px, 0.8vh, 10px) clamp(8px, 2vw, 24px);
   }
 
   .room-header {
@@ -1733,7 +1733,7 @@ if ('serviceWorker' in navigator) {
 
   /* ─── WEAPON ZONE (bottom zone of center) ─── */
   .weapon-zone {
-    display: flex; align-items: center; justify-content: center;
+    display: flex; align-items: center; justify-content: flex-start;
     gap: 28px;
   }
   .weapon-zone-label {
@@ -2428,8 +2428,8 @@ if ('serviceWorker' in navigator) {
     .action-hint { font-size: 0.85rem; }
 
     /* Weapon zone */
-    .game-bottom-zone { padding: 16px 0 12px; }
-    .weapon-zone { flex-direction: row; gap: 12px; align-items: center; justify-content: center; flex-wrap: nowrap; }
+    .game-bottom-zone { padding: 16px 0 12px 10px; }
+    .weapon-zone { flex-direction: row; gap: 12px; align-items: center; justify-content: flex-start; flex-wrap: nowrap; }
     .weapon-card { width: clamp(56px, 14vw, 90px); height: clamp(78px, 19.6vw, 126px); }
     .weapon-card-center-suit { font-size: 3rem !important; }
 
@@ -5602,6 +5602,13 @@ if ('serviceWorker' in navigator) {
       </div>
       <div class="toggle on" id="hpNotchToggle" onclick="this.classList.toggle('on'); updateHpBar();"></div>
     </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-name">Stack Slain Monsters</div>
+        <div class="setting-sub">Show all defeated monsters, or just the most recent</div>
+      </div>
+      <div class="toggle on" id="stackKillsToggle" onclick="this.classList.toggle('on'); updateWeaponBar();"></div>
+    </div>
 
     <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(200,169,110,0.15);text-align:center;">
       <button class="btn-ghost" style="width:100%;font-size:0.7rem;letter-spacing:0.15em;" onclick="document.getElementById('creditsModal').classList.add('open')">Credits</button>
@@ -5609,7 +5616,7 @@ if ('serviceWorker' in navigator) {
 
     <div class="modal-actions">
       <button class="btn-ghost" onclick="closeSettings()">Close</button>
-      <button class="btn-primary" onclick="closeSettings()">Save</button>
+      <button class="btn-primary" id="settingsSaveBtn" onclick="closeSettings()">Save</button>
     </div>
   </div>
 </div>
@@ -6721,6 +6728,8 @@ function updateHtpVisibility() {
 
 function openSettings() {
   updateFullscreenBtn();
+  const saveBtn = document.getElementById('settingsSaveBtn');
+  if (saveBtn) saveBtn.style.display = state.currentScreen === 'game' ? '' : 'none';
   document.getElementById('settingsModal').classList.add('open');
 }
 function closeSettings() {
@@ -6732,7 +6741,8 @@ function closeSettings() {
     screen_shake: document.getElementById('screenShakeToggle').classList.contains('on'),
     scene_transition: document.getElementById('sceneTransitionToggle').classList.contains('on'),
     card_anim: document.getElementById('cardAnimToggle').classList.contains('on'),
-    hp_notches: document.getElementById('hpNotchToggle').classList.contains('on')
+    hp_notches: document.getElementById('hpNotchToggle').classList.contains('on'),
+    stack_kills: document.getElementById('stackKillsToggle').classList.contains('on')
   });
 }
 
@@ -6786,7 +6796,7 @@ function restartGame() {
 
 function pauseOpenSettings() {
   // Open settings on top of the pause modal
-  document.getElementById('settingsModal').classList.add('open');
+  openSettings();
 }
 
 function saveAndGoHome() {
@@ -8362,11 +8372,15 @@ function updateWeaponBar() {
   const badgesEl = document.getElementById('killBadges');
   const countEl  = document.getElementById('killCountNum');
   const hasWeapon = w && (w.val > 0 || w.isTrap);
+  const stackToggle = document.getElementById('stackKillsToggle');
+  const showAll = stackToggle && stackToggle.classList.contains('on');
+
   if (kills.length === 0) {
     badgesEl.innerHTML = '';
     countEl.textContent = hasWeapon ? 'No kills yet' : '—';
   } else {
-    badgesEl.innerHTML = kills.map(k => {
+    const killsToShow = showAll ? kills : [kills[kills.length - 1]];
+    badgesEl.innerHTML = killsToShow.map(k => {
       const colorCls = (k.suit === '♥' || k.suit === '♦') ? 'red-suit' : 'black-suit';
       const effVal = k.effectiveVal != null ? k.effectiveVal : numericValue(k.val);
       const origVal = numericValue(k.originalVal || k.val);
@@ -8398,7 +8412,12 @@ function updateWeaponBar() {
           <span class="${modCls}">${dispVal}</span><span style="font-size:0.7em">${k.suit}</span>
         </div>`;
     }).join('');
-    countEl.textContent = `${kills.length} monster${kills.length !== 1 ? 's' : ''} slain`;
+    if (showAll) {
+      countEl.textContent = `${kills.length} monster${kills.length !== 1 ? 's' : ''} slain`;
+    } else {
+      badgesEl.innerHTML += `<div style="font-family:'Cinzel',serif;font-size:clamp(0.5rem,1.2vw,0.7rem);color:var(--text-dim);letter-spacing:0.1em;text-align:center;margin-top:2px;width:100%;">${kills.length} slain</div>`;
+      countEl.textContent = '';
+    }
   }
 }
 
