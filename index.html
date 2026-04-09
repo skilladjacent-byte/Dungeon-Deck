@@ -13,6 +13,7 @@
 <!-- Apple touch icon -->
 <link rel="apple-touch-icon" href="images/DeckDiverAppLogo.png"/>
 <link rel="icon" type="image/png" href="images/DeckDiverAppLogo.png"/>
+<link rel="preload" href="audio/logo_se.mp3" as="fetch" crossorigin/>
 <title>Deck Diver</title>
 <!-- Firebase Analytics -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -327,11 +328,21 @@ if ('serviceWorker' in navigator) {
 
   .char-grid {
     display: flex; gap: 24px;
-    justify-content: center;
-    flex-wrap: wrap;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
     margin-bottom: 32px;
     max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 8px 24px 16px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(200,169,110,0.3) transparent;
   }
+  .char-grid::-webkit-scrollbar { height: 6px; }
+  .char-grid::-webkit-scrollbar-track { background: transparent; }
+  .char-grid::-webkit-scrollbar-thumb { background: rgba(200,169,110,0.3); border-radius: 3px; }
+  .char-grid::-webkit-scrollbar-thumb:hover { background: rgba(200,169,110,0.5); }
 
   /* On screens 768px and below, stack characters vertically and scroll up/down */
   @media (max-width: 768px) {
@@ -386,6 +397,7 @@ if ('serviceWorker' in navigator) {
 
   .char-card {
     width: 180px;
+    flex-shrink: 0;
     background: linear-gradient(160deg, #1e1812, #150f0a);
     border: 1px solid rgba(200,169,110,0.2);
     border-radius: 4px;
@@ -416,14 +428,15 @@ if ('serviceWorker' in navigator) {
   }
   .char-card.selected .char-corner { opacity: 1; }
   .char-card.locked {
-    opacity: 0.45;
-    cursor: not-allowed;
-    filter: grayscale(0.6);
+    opacity: 0.55;
+    cursor: default;
+    filter: grayscale(0.8) brightness(0.7);
+    pointer-events: none;
   }
   .char-card.locked:hover {
     transform: none;
     box-shadow: none;
-    border-color: rgba(200,169,110,0.2);
+    border-color: rgba(200,169,110,0.1);
   }
   .char-info-btn {
     position: absolute;
@@ -763,10 +776,10 @@ if ('serviceWorker' in navigator) {
   /* Bottom zone: weapon card — proportional to remaining space */
   .game-bottom-zone {
     flex: 0 0 auto;
-    display: flex; align-items: center; justify-content: center;
+    display: flex; align-items: center; justify-content: flex-start;
     width: 100%;
     min-height: 0;
-    padding: clamp(4px, 0.8vh, 10px) 0;
+    padding: clamp(4px, 0.8vh, 10px) 0 clamp(4px, 0.8vh, 10px) clamp(8px, 2vw, 24px);
   }
 
   .room-header {
@@ -1105,6 +1118,15 @@ if ('serviceWorker' in navigator) {
     box-shadow: 0 0 20px rgba(192,57,43,0.4);
   }
 
+  /* Ability buttons row (Ponder + Keg side by side) */
+  .ability-btn-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 6px;
+    align-self: center;
+  }
+
   /* Ponder button (in-game, like items) */
   .ponder-btn {
     display: none;
@@ -1118,8 +1140,7 @@ if ('serviceWorker' in navigator) {
     letter-spacing: 0.1em;
     cursor: pointer;
     transition: all 0.25s;
-    margin-top: 6px;
-    align-self: center;
+    align-items: center; gap: 6px;
   }
   .ponder-btn:hover {
     background: rgba(140,80,220,0.25);
@@ -1130,7 +1151,33 @@ if ('serviceWorker' in navigator) {
     opacity: 0.35;
     pointer-events: none;
   }
-  body.has-ponder .ponder-btn { display: flex; align-items: center; gap: 6px; }
+  body.has-ponder .ponder-btn { display: flex; }
+
+  /* Keg button */
+  .keg-btn {
+    display: none;
+    background: rgba(220,100,20,0.15);
+    border: 1px solid rgba(220,100,20,0.4);
+    border-radius: 8px;
+    padding: 8px 20px;
+    color: #e08030;
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.25s;
+    align-items: center; gap: 6px;
+  }
+  .keg-btn:hover {
+    background: rgba(220,100,20,0.25);
+    border-color: #e08030;
+    box-shadow: 0 0 16px rgba(220,100,20,0.3);
+  }
+  .keg-btn.used {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+  body.has-keg .keg-btn { display: flex; }
 
   /* Ponder overlay (like Crystal Ball) */
   .ponder-overlay {
@@ -1373,6 +1420,12 @@ if ('serviceWorker' in navigator) {
   .modal-overlay.open { opacity: 1; pointer-events: all; }
   /* Settings must always appear above pause modal */
   #settingsModal { z-index: 600; }
+  #settingsModal .modal-box {
+    max-height: 85vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #creditsModal { z-index: 700; }
 
   .modal-box {
     background: linear-gradient(160deg, #1e1812, #150f0a);
@@ -1727,8 +1780,8 @@ if ('serviceWorker' in navigator) {
 
   /* ─── WEAPON ZONE (bottom zone of center) ─── */
   .weapon-zone {
-    display: flex; align-items: center; justify-content: center;
-    gap: 28px;
+    display: flex; align-items: center; justify-content: flex-start;
+    gap: 16px;
   }
   .weapon-zone-label {
     font-family: 'Cinzel', serif;
@@ -1800,6 +1853,28 @@ if ('serviceWorker' in navigator) {
   .kill-badges {
     display: flex; flex-wrap: wrap; gap: clamp(5px, 1vh, 12px);
     max-width: 600px;
+    position: relative;
+  }
+  .kill-history-panel {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 12px;
+    background: linear-gradient(160deg, #1e1812, #150f0a);
+    border: 1px solid rgba(200,169,110,0.3);
+    border-radius: 6px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+    z-index: 50;
+    max-width: 400px;
+    min-width: 120px;
+  }
+  .kill-history-panel .kill-badge {
+    width: clamp(36px, 6vh, 64px);
+    height: clamp(50px, 8.4vh, 90px);
+    font-size: clamp(0.7rem, 1.5vh, 1.4rem);
   }
   .kill-badge {
     width: clamp(47px, 9.1vh, 96px);
@@ -2279,7 +2354,9 @@ if ('serviceWorker' in navigator) {
     /* Home screen */
     .home-emblem   { width: 60px; height: 60px; }
     .home-title    { font-size: 2.4rem; }
-    .home-subtitle { font-size: 0.75rem; margin-bottom: 12px; }
+    .home-subtitle { font-size: 1.5rem; margin-bottom: 12px; }
+    .home-logo-img { width: clamp(300px, 90vw, 500px); }
+    .title-click-hint { position: absolute; bottom: 25%; margin-top: 0; }
     .menu-btn  { width: 200px; padding: 10px 0; font-size: 0.65rem; }
     .menu-list { gap: 8px; }
 
@@ -2420,8 +2497,8 @@ if ('serviceWorker' in navigator) {
     .action-hint { font-size: 0.85rem; }
 
     /* Weapon zone */
-    .game-bottom-zone { padding: 16px 0 12px; }
-    .weapon-zone { flex-direction: row; gap: 12px; align-items: center; justify-content: center; flex-wrap: nowrap; }
+    .game-bottom-zone { padding: 16px 0 12px 10px; }
+    .weapon-zone { flex-direction: row; gap: 6px; align-items: center; justify-content: flex-start; flex-wrap: nowrap; }
     .weapon-card { width: clamp(56px, 14vw, 90px); height: clamp(78px, 19.6vw, 126px); }
     .weapon-card-center-suit { font-size: 3rem !important; }
 
@@ -2497,6 +2574,7 @@ if ('serviceWorker' in navigator) {
     #statsModal #st-char-cls  { font-size: 0.55rem !important; }
 
     .modal-box   { width: 92vw; min-width: 0; padding: 20px 16px; }
+    #settingsModal .modal-box { max-height: 80vh; }
     .modal-title { font-size: 1.1rem; }
     .setting-name { font-size: 0.75rem; }
     .setting-sub  { font-size: 0.62rem; }
@@ -2583,7 +2661,7 @@ if ('serviceWorker' in navigator) {
     }
 
     /* Weapon zone side-by-side, smaller card */
-    .weapon-zone { gap: 16px; flex-wrap: nowrap; justify-content: center; align-items: center; }
+    .weapon-zone { gap: 10px; flex-wrap: nowrap; justify-content: flex-start; align-items: center; }
     .weapon-card {
       width: clamp(90px, 12vw, 160px);
       height: clamp(126px, 16.8vw, 224px);
@@ -2722,14 +2800,18 @@ if ('serviceWorker' in navigator) {
   .splash-logo {
     width: clamp(180px, 50vw, 400px);
     height: auto;
-    transform: scale(1.8);
-    opacity: 0;
-    animation: splashZoom 4.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    transform: scale(3);
+    -webkit-mask-image: linear-gradient(135deg, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 50%);
+    mask-image: linear-gradient(135deg, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 50%);
+    -webkit-mask-size: 350% 350%;
+    mask-size: 350% 350%;
+    -webkit-mask-position: 100% 100%;
+    mask-position: 100% 100%;
+    animation: splashReveal 6.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   }
-  @keyframes splashZoom {
-    0%   { transform: scale(1.8); opacity: 0; }
-    15%  { opacity: 1; }
-    100% { transform: scale(1); opacity: 1; }
+  @keyframes splashReveal {
+    0%   { -webkit-mask-position: 100% 100%; mask-position: 100% 100%; }
+    100% { -webkit-mask-position: 0% 0%; mask-position: 0% 0%; }
   }
 
   /* ══════════════════════════════
@@ -4014,7 +4096,7 @@ if ('serviceWorker' in navigator) {
 
   /* ─── CORROSIVE MONSTER GLOW ─── */
   .play-card.corrosive {
-    box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 18px rgba(40,255,40,0.6), 0 0 40px rgba(40,255,40,0.3);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 18px rgba(160,60,255,0.6), 0 0 40px rgba(160,60,255,0.3);
     animation: corrosivePulse 1.8s ease-in-out infinite;
   }
   /* During deal-in, use the deal animation — pulse starts after */
@@ -4022,19 +4104,19 @@ if ('serviceWorker' in navigator) {
     animation: cardDealIn 0.465s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   }
   @keyframes corrosivePulse {
-    0%, 100% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 18px rgba(40,255,40,0.6), 0 0 40px rgba(40,255,40,0.3); }
-    50% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 24px rgba(40,255,40,0.8), 0 0 56px rgba(40,255,40,0.45); }
+    0%, 100% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 18px rgba(160,60,255,0.6), 0 0 40px rgba(160,60,255,0.3); }
+    50% { box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4), 0 0 24px rgba(160,60,255,0.8), 0 0 56px rgba(160,60,255,0.45); }
   }
   .play-card.corrosive .card-inner {
-    border-color: rgba(40,255,40,0.6);
+    border-color: rgba(160,60,255,0.6);
   }
   /* Corrosive glow visible even when veiled */
   .play-card.veiled.corrosive {
-    box-shadow: 0 6px 20px rgba(0,0,0,0.5), 0 0 18px rgba(40,255,40,0.6), 0 0 40px rgba(40,255,40,0.3);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5), 0 0 18px rgba(160,60,255,0.6), 0 0 40px rgba(160,60,255,0.3);
     animation: corrosivePulse 1.8s ease-in-out infinite;
   }
   .play-card.veiled.corrosive .card-veil-back {
-    border: 1px solid rgba(40,255,40,0.5);
+    border: 1px solid rgba(160,60,255,0.5);
   }
 
   /* ─── BOOMERANG WEAPON GLOW ─── */
@@ -4808,7 +4890,6 @@ if ('serviceWorker' in navigator) {
     <button class="menu-btn" onclick="continueGame()">Continue</button>
     <button class="menu-btn" id="endlessModeBtn" style="display:none;" onclick="startEndlessMode()">∞ Endless Mode</button>
     <div class="menu-divider"></div>
-    <button class="menu-btn" onclick="goTo('how-to-play')">How to Play</button>
     <button class="menu-btn" onclick="openStats()">Stats</button>
     <button class="menu-btn" onclick="openSettings()">Settings</button>
     <button class="menu-btn danger" onclick="confirmExit()">Exit Game</button>
@@ -4849,56 +4930,56 @@ if ('serviceWorker' in navigator) {
 
     <!-- Crystal Ball item button -->
     <button class="crystal-ball-btn" id="crystalBallBtn" onclick="useCrystalBall()">
-      <div class="crystal-ball-icon">🔮</div>
+      <div class="crystal-ball-icon"><img src="images/reward/reward_crystal_ball.png" alt="" style="width:1.8rem;height:auto;"></div>
       <div class="crystal-ball-label">Crystal Ball</div>
       <div class="crystal-ball-count" id="crystalBallCount">1</div>
     </button>
 
     <!-- Warp Scroll item button -->
     <button class="warp-scroll-btn" id="warpScrollBtn" onclick="useWarpScroll()">
-      <div class="warp-scroll-icon">📜</div>
+      <div class="warp-scroll-icon"><img src="images/reward/reward_warp_scroll.png" alt="" style="width:1.8rem;height:auto;"></div>
       <div class="warp-scroll-label">Warp Scroll</div>
       <div class="warp-scroll-count" id="warpScrollCount">1</div>
     </button>
 
     <!-- Cursed Charm item button -->
     <button class="cursed-charm-btn" id="cursedCharmBtn" onclick="useCursedCharm()">
-      <div class="cursed-charm-icon">☠</div>
+      <div class="cursed-charm-icon"><img src="images/reward/reward_curse_charm.png" alt="" style="width:1.8rem;height:auto;"></div>
       <div class="cursed-charm-label">Cursed Charm</div>
       <div class="cursed-charm-count" id="cursedCharmCount">1</div>
     </button>
 
     <!-- Wand of Teleportation button -->
     <button class="teleport-wand-btn" id="teleportWandBtn" onclick="useTeleportWand()">
-      <div class="teleport-wand-icon">🪄</div>
+      <div class="teleport-wand-icon"><img src="images/reward/reward_wand_of_teleportation.png" alt="" style="width:1.8rem;height:auto;"></div>
       <div class="teleport-wand-label">Teleport Wand</div>
       <div class="teleport-wand-count" id="teleportWandCount">1</div>
     </button>
 
     <!-- Holy Flask button -->
     <button class="holy-flask-btn" id="holyFlaskBtn" onclick="useHolyFlask()">
-      <div class="holy-flask-icon">🧴</div>
+      <div class="holy-flask-icon"><img src="images/reward/reward_holy_flask.png" alt="" style="width:1.8rem;height:auto;"></div>
       <div class="holy-flask-label">Holy Flask</div>
       <div class="holy-flask-count" id="holyFlaskCount">1</div>
     </button>
 
     <!-- Shield Charm button -->
     <button class="shield-charm-btn" id="shieldCharmBtn" onclick="useShieldCharm()">
-      <div class="shield-charm-icon">🛡️</div>
+      <div class="shield-charm-icon"><img src="images/reward/reward_shield_charm.png" alt="" style="width:1.8rem;height:auto;"></div>
       <div class="shield-charm-label">Shield Charm</div>
       <div class="shield-charm-count" id="shieldCharmCount">1</div>
     </button>
 
     <!-- Luck Charm button -->
     <button class="luck-charm-btn" id="luckCharmBtn" onclick="useLuckCharm()">
-      <div class="luck-charm-icon">🍀</div>
+      <div class="luck-charm-icon"><img src="images/reward/reward_luck_charm.png" alt="" style="width:1.8rem;height:auto;"></div>
       <div class="luck-charm-label">Luck Charm</div>
       <div class="luck-charm-count" id="luckCharmCount">1</div>
     </button>
 
     <!-- Whetstone button -->
     <button class="whetstone-btn" id="whetstoneBtn" onclick="useWhetstone()">
-      <div class="whetstone-icon">🪨</div>
+      <div class="whetstone-icon"><img src="images/reward/reward_whetstone.png" alt="" style="width:1.8rem;height:auto;"></div>
       <div class="whetstone-label">Whetstone</div>
       <div class="whetstone-count" id="whetstoneCount">1</div>
     </button>
@@ -5008,14 +5089,17 @@ if ('serviceWorker' in navigator) {
           <button class="btn-action btn-confirm" id="confirmBtn" disabled onclick="confirmRoom()">Continue</button>
           <button class="btn-action btn-flee flee-ready" id="fleeBtn" onclick="fleeRoom()">Skip</button>
         </div>
-        <button class="ponder-btn" id="ponderGameBtn" onclick="usePonder()">🔮 Ponder</button>
+        <div class="ability-btn-row" id="abilityBtnRow">
+          <button class="keg-btn" id="kegGameBtn" onclick="useKeg()">Powder Keg</button>
+          <button class="ponder-btn" id="ponderGameBtn" onclick="usePonder()">Ponder</button>
+        </div>
       </div>
 
       <div style="display:flex;gap:6px;" id="roomDots"></div>
     </div>
 
     <!-- MOBILE ITEMS BUTTON (phone only, hidden when no items) -->
-    <button class="mobile-items-btn" id="mobileItemsBtn" onclick="toggleMobileItems(event)">🎒</button>
+    <button class="mobile-items-btn" id="mobileItemsBtn" onclick="toggleMobileItems(event)"><img src="images/reward/bag.png" alt="" style="width:1.6rem;height:auto;"></button>
     <div class="mobile-items-panel" id="mobileItemsPanel">
       <div class="mobile-items-title">Items</div>
       <div class="mobile-items-list" id="mobileItemsList"></div>
@@ -5578,13 +5662,6 @@ if ('serviceWorker' in navigator) {
     </div>
     <div class="setting-row">
       <div>
-        <div class="setting-name">Display Face Cards</div>
-        <div class="setting-sub">Show 11/12/13/14 as J/Q/K/A</div>
-      </div>
-      <div class="toggle" id="faceCardToggle" onclick="this.classList.toggle('on'); if(state.currentScreen==='game') renderCards();"></div>
-    </div>
-    <div class="setting-row">
-      <div>
         <div class="setting-name">Card Deal Animation</div>
         <div class="setting-sub">Cards slide in one by one when a room is drawn</div>
       </div>
@@ -5597,10 +5674,39 @@ if ('serviceWorker' in navigator) {
       </div>
       <div class="toggle on" id="hpNotchToggle" onclick="this.classList.toggle('on'); updateHpBar();"></div>
     </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-name">Stack Slain Monsters</div>
+        <div class="setting-sub">Show up to 5 defeated monsters, or just the most recent. Auto-stacks above 5.</div>
+      </div>
+      <div class="toggle on" id="stackKillsToggle" onclick="this.classList.toggle('on'); updateWeaponBar();"></div>
+    </div>
+
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(200,169,110,0.15);text-align:center;">
+      <button class="btn-ghost" style="width:100%;font-size:0.7rem;letter-spacing:0.15em;" onclick="document.getElementById('creditsModal').classList.add('open')">Credits</button>
+    </div>
 
     <div class="modal-actions">
       <button class="btn-ghost" onclick="closeSettings()">Close</button>
-      <button class="btn-primary" onclick="closeSettings()">Save</button>
+      <button class="btn-primary" id="settingsSaveBtn" onclick="closeSettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ CREDITS MODAL ══════════════ -->
+<div class="modal-overlay" id="creditsModal">
+  <div class="modal-box" style="min-width:300px;max-width:400px;text-align:center;">
+    <button class="modal-close" onclick="document.getElementById('creditsModal').classList.remove('open')">✕</button>
+    <div class="modal-title" style="font-size:1.1rem;letter-spacing:0.2em;">Credits</div>
+    <div style="font-family:'Crimson Text',serif;font-size:0.9rem;color:rgba(200,169,110,0.6);line-height:1.8;padding:10px 0;">
+      <div style="color:rgba(200,169,110,0.9);font-family:'Cinzel',serif;font-size:0.85rem;letter-spacing:0.12em;margin-bottom:14px;">Developed by Fox & Fairy Games</div>
+      <div style="margin-bottom:10px;"><span style="color:rgba(200,169,110,0.75);font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.1em;">Fonts</span><br>Cinzel & Cinzel Decorative by Natanael Gama<br>Crimson Text by Sebastian Kosch<br><span style="font-size:0.78rem;opacity:0.6;">SIL Open Font License</span></div>
+      <div style="margin-bottom:10px;"><span style="color:rgba(200,169,110,0.75);font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.1em;">Sound Effects</span><br>Pixabay</div>
+      <div style="margin-bottom:10px;"><span style="color:rgba(200,169,110,0.75);font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.1em;">Contact</span><br><a href="/cdn-cgi/l/email-protection#cfabaaaca4aba6b9aabd8fa9a0b7aea1aba9aea6bdb6a8aea2aabce1aca0a2" style="color:rgba(200,169,110,0.5);text-decoration:none;"><span class="__cf_email__" data-cfemail="d3b7b6b0b8b7baa5b6a193b5bcabb2bdb7b5b2baa1aab4b2beb6a0fdb0bcbe">[email&#160;protected]</span></a></div>
+      <div style="margin-top:16px;font-size:0.75rem;opacity:0.45;">© 2026 Fox & Fairy Games. All rights reserved.</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="document.getElementById('creditsModal').classList.remove('open')">Close</button>
     </div>
   </div>
 </div>
@@ -5745,7 +5851,7 @@ if ('serviceWorker' in navigator) {
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ─────────────────────────────────────
 // MOBILE DETECTION
 // ─────────────────────────────────────
@@ -5832,7 +5938,7 @@ const CHARACTERS = [
     passives: [
       {
         name: 'Escalating Valor',
-        desc: 'Your weapon only reduces damage from monsters strictly greater than the last one you defeated with it. The King of Diamonds replaces the 2 of Diamonds in the deck.'
+        desc: 'Your weapon only reduces damage from monsters strictly greater than the last one you defeated with it. The Level 13 Weapon replaces the Level 2 Weapon in the deck.'
       }
     ],
     hp: 20, maxHp: 20,
@@ -5860,13 +5966,13 @@ const CHARACTERS = [
   {
     id: 'ashton',
     emoji: '🧑‍🤝‍🧑', name: 'Ashton the Tamer', cls: 'Monster Tamer',
-    desc: 'A fearless tamer who captures monsters and turns them against their kin. No diamonds, no skipping — just strategy and a sturdy cage.',
+    desc: 'A fearless tamer who captures monsters and turns them against their kin. No weapons, no skipping — just strategy and a sturdy cage.',
     bg: 'linear-gradient(135deg,#0a1a0a,#061006)',
     color: '#44bb44',
     passives: [
       {
         name: 'Monster Trap',
-        desc: 'No Diamonds in the deck — instead 4 Monster Trap cards are added. The first Monster defeated with a Trap is captured and fights for you. Skip is disabled. Begins with a Trap equipped.'
+        desc: 'No Weapons in the deck — instead 4 Monster Trap cards are added. The first Monster defeated with a Trap is captured and fights for you. Skip is disabled. Begins with a Trap equipped.'
       }
     ],
     hp: 15, maxHp: 15,
@@ -5910,14 +6016,14 @@ const CHARACTERS = [
   },
   {
     id: 'gobbo',
-    emoji: '💣', name: 'Gobbo the Reckless', cls: 'Demolisher',
-    desc: 'A chaos-loving goblin who plays by no one\'s rules. He stashes a Powder Keg in the deck — and when it blows, everything goes.',
+    emoji: '💣', name: 'Grik the Reckless', cls: 'Demolisher',
+    desc: 'A chaos-loving goblin who plays by no one\'s rules. Once per level, he plants a Powder Keg on top of the deck — and when it blows, everything goes.',
     bg: 'linear-gradient(135deg,#1a1008,#0e0805)',
     color: '#ff6622',
     passives: [
       {
         name: 'Powder Keg',
-        desc: 'A Powder Keg is shuffled into the deck. When it enters a room, it explodes — destroying all cards in the room including itself. The room is skipped entirely.'
+        desc: 'Once per level, place a Powder Keg on top of the deck. The next room draws +1 card (keg + normal room). When the Keg enters, it explodes — destroying all cards in the room.'
       }
     ],
     hp: 20, maxHp: 20,
@@ -5928,7 +6034,7 @@ const CHARACTERS = [
   {
     id: 'jet',
     emoji: '🔧', name: 'Jet the Craftsman', cls: 'Craftsman',
-    desc: 'A resourceful tinkerer who sees opportunity in retreat. When he skips a room, the red cards left behind grow stronger — better potions and sharper weapons await.',
+    desc: 'A resourceful tinkerer who sees opportunity in retreat. When he skips a room, the potions and weapons left behind grow stronger.',
     bg: 'linear-gradient(135deg,#0a1a1a,#051210)',
     color: '#40c8c8',
     passives: [
@@ -5961,7 +6067,7 @@ const CHARACTERS = [
   },
   {
     id: 'corvo',
-    emoji: '🦇', name: 'Corvo the Cursed', cls: 'Hexblade',
+    emoji: '🦇', name: 'Crowe the Cursed', cls: 'Hexblade',
     desc: 'A cursed warrior whose dark aura weakens monsters that escape his presence. When he skips a room, all monsters in it lose strength.',
     bg: 'linear-gradient(135deg,#10081a,#080410)',
     color: '#9060cc',
@@ -6147,6 +6253,8 @@ function saveVeteran(charId) {
   if (!vets.includes(charId)) {
     vets.push(charId);
     try { localStorage.setItem(getVeteranKey(), JSON.stringify(vets)); } catch {}
+    const char = CHARACTERS.find(c => c.id === charId);
+    logGameEvent('veteran_earned', { character: char ? char.name : charId, character_id: charId, boss_beaten: endless.currentBoss ? endless.currentBoss.name : 'unknown', level: endless.level, total_veterans: vets.length });
   }
 }
 
@@ -6692,9 +6800,23 @@ function updateHtpVisibility() {
 
 function openSettings() {
   updateFullscreenBtn();
+  const saveBtn = document.getElementById('settingsSaveBtn');
+  if (saveBtn) saveBtn.style.display = state.currentScreen === 'game' ? '' : 'none';
   document.getElementById('settingsModal').classList.add('open');
 }
-function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
+function closeSettings() {
+  document.getElementById('settingsModal').classList.remove('open');
+  logGameEvent('settings_saved', {
+    anim_sfx: document.getElementById('animSfxToggle').classList.contains('on'),
+    combat_sfx: document.getElementById('combatSfxToggle').classList.contains('on'),
+    resolve_anim: document.getElementById('resolveAnimToggle').classList.contains('on'),
+    screen_shake: document.getElementById('screenShakeToggle').classList.contains('on'),
+    scene_transition: document.getElementById('sceneTransitionToggle').classList.contains('on'),
+    card_anim: document.getElementById('cardAnimToggle').classList.contains('on'),
+    hp_notches: document.getElementById('hpNotchToggle').classList.contains('on'),
+    stack_kills: document.getElementById('stackKillsToggle').classList.contains('on')
+  });
+}
 
 // ─────────────────────────────────────
 // FULLSCREEN
@@ -6746,7 +6868,7 @@ function restartGame() {
 
 function pauseOpenSettings() {
   // Open settings on top of the pause modal
-  document.getElementById('settingsModal').classList.add('open');
+  openSettings();
 }
 
 function saveAndGoHome() {
@@ -6848,6 +6970,8 @@ function continueGame() {
   state.discardViewsThisRun = save.discardViewsThisRun || 0;
   state._ponderCooldown = false;
   state._ponderCooldownRoom = 0;
+  state._kegUsedThisLevel = save._kegUsedThisLevel || false;
+  state._kegNextRoomBigger = save._kegNextRoomBigger || false;
 
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('game').classList.add('active');
@@ -6887,6 +7011,7 @@ function continueGame() {
   updateConfirmBtn();
   updateFleeButton();
   updatePonderBtn();
+  updateKegBtn();
 
   const required = requiredSelections();
   document.getElementById('actionHint').textContent = state.selected.length >= required
@@ -6972,7 +7097,7 @@ function getUnlockedCharacters() {
   const claireUnlocked = allStats.some(d => (d.discardCheck10Win || 0) >= 1);
   const graciaUnlocked = allStats.some(d => (d.finish1hp || 0) >= 1);
 
-  return CHARACTERS.filter(c => {
+  const result = CHARACTERS.filter(c => {
     if (!c.unlockRequires) return true;
     if (c.unlockRequires === 'admin')          return false;
     if (c.unlockRequires === 'win')           return hasWon;
@@ -6989,6 +7114,20 @@ function getUnlockedCharacters() {
     if (c.unlockRequires === 'finish1hp') return graciaUnlocked;
     return false;
   });
+
+  // Track new unlocks
+  const currentIds = result.map(c => c.id).sort().join(',');
+  if (typeof getUnlockedCharacters._prev === 'string' && currentIds !== getUnlockedCharacters._prev) {
+    const prevSet = new Set(getUnlockedCharacters._prev.split(','));
+    result.forEach(c => {
+      if (!prevSet.has(c.id)) {
+        logGameEvent('character_unlocked', { character: c.name, character_id: c.id });
+      }
+    });
+  }
+  getUnlockedCharacters._prev = currentIds;
+
+  return result;
 }
 
 function openStats() {
@@ -7020,9 +7159,9 @@ function renderStatsForChar(unlocked) {
     document.getElementById('st-best-label').textContent = 'Closest to clearing the dungeon';
   }
 
-  // Endless best level (global, not per character)
+  // Endless best level (per character)
   try {
-    const endlessBest = parseInt(localStorage.getItem(activeProfile !== null ? profilePrefix(activeProfile) + 'endless-best' : 'deckdiver-endless-best') || '0');
+    const endlessBest = data.endlessBest || 0;
     const endlessRow = document.getElementById('st-endless-row');
     if (endlessBest > 0) {
       endlessRow.style.display = '';
@@ -7082,75 +7221,120 @@ function buildCharGrid() {
   document.getElementById('beginBtn').disabled = true;
 
   const unlocked = getUnlockedCharacters();
+  const unlockedIds = unlocked.map(c => c.id);
 
   let renderIdx = 0;
+  let firstUnlockedRenderIdx = -1;
   const veterans = loadVeterans();
-  unlocked.forEach((c) => {
+
+  // Show all characters except admin
+  const visibleChars = CHARACTERS.filter(c => c.id !== 'naktuk' || isAdminProfile());
+
+  visibleChars.forEach((c) => {
     const charIdx = CHARACTERS.indexOf(c);
+    const isLocked = !unlockedIds.includes(c.id);
     const isVeteran = veterans.includes(c.id);
 
     const myRenderIdx = renderIdx++;
+    if (!isLocked && firstUnlockedRenderIdx === -1) firstUnlockedRenderIdx = myRenderIdx;
+
     const row = document.createElement('div');
     row.className = 'char-card-row';
 
     const el = document.createElement('div');
-    el.className = 'char-card' + (myRenderIdx === 0 ? ' selected' : '');
-    const vetLabel = isVeteran ? `<div class="char-vet-label char-vet-desktop" style="font-family:'Cinzel',serif;font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:#a080ff;margin-bottom:4px;text-shadow:0 0 8px rgba(160,128,255,0.5);">Veteran</div>` : '';
-    const vetLabelMobile = isVeteran ? `<div class="char-vet-label char-vet-mobile" style="font-family:'Cinzel',serif;font-size:0.5rem;letter-spacing:0.2em;text-transform:uppercase;color:#a080ff;text-shadow:0 0 8px rgba(160,128,255,0.5);margin-bottom:2px;">Veteran</div>` : '';
-    el.innerHTML = `
-      <div class="char-corner tl"></div>
-      <div class="char-corner tr"></div>
-      <div class="char-corner bl"></div>
-      <div class="char-corner br"></div>
-      ${vetLabel}
-      <div class="char-avatar" style="background:${c.bg}; box-shadow: 0 0 20px ${c.color}22;">${charLogoHtml(c, 72)}</div>
-      <div class="char-text-col" style="flex:1;min-width:0;display:flex;flex-direction:column;">
-        ${vetLabelMobile}
-        <div class="char-name">${c.name}</div>
-        
-        <div class="char-desc">${c.desc}</div>
-      </div>
-      <div class="char-passives">
-        <div class="section-label" style="justify-content:center;margin-bottom:8px;"><span>Passive Abilities</span></div>
-        ${c.passives.length === 0
-          ? `<div class="passive-empty">No passive abilities</div>`
-          : c.passives.map(p => `<div class="passive-entry"><span class="passive-name">${p.name}</span><span class="passive-desc">${p.desc}</span></div>`).join('')
-        }
-      </div>
-    `;
+    el.className = 'char-card' + (isLocked ? ' locked' : '') + (!isLocked && myRenderIdx === firstUnlockedRenderIdx ? ' selected' : '');
 
-    // Outside (i) button — sits to the right of the card on mobile only
-    const infoBtn = document.createElement('button');
-    infoBtn.className = 'char-info-btn char-info-btn-outside';
-    infoBtn.title = 'Character details';
-    infoBtn.textContent = 'ⓘ';
-    infoBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      openCharDetail(c);
-    });
+    if (isLocked) {
+      el.innerHTML = `
+        <div class="char-corner tl"></div>
+        <div class="char-corner tr"></div>
+        <div class="char-corner bl"></div>
+        <div class="char-corner br"></div>
+        <div class="char-avatar" style="background:#111; box-shadow: none;">
+          <div style="font-size:2.5rem;filter:brightness(0);opacity:0.3;">${c.emoji}</div>
+        </div>
+        <div class="char-text-col" style="flex:1;min-width:0;display:flex;flex-direction:column;">
+          <div class="char-name" style="color:var(--parchment-light);">???</div>
+          <div class="char-desc" style="color:rgba(200,169,110,0.6);font-style:italic;">Locked</div>
+        </div>
+      `;
+    } else {
+      const vetLabel = isVeteran ? `<div class="char-vet-label char-vet-desktop" style="font-family:'Cinzel',serif;font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:#a080ff;margin-bottom:4px;text-shadow:0 0 8px rgba(160,128,255,0.5);">Veteran</div>` : '';
+      const vetLabelMobile = isVeteran ? `<div class="char-vet-label char-vet-mobile" style="font-family:'Cinzel',serif;font-size:0.5rem;letter-spacing:0.2em;text-transform:uppercase;color:#a080ff;text-shadow:0 0 8px rgba(160,128,255,0.5);margin-bottom:2px;">Veteran</div>` : '';
+      el.innerHTML = `
+        <div class="char-corner tl"></div>
+        <div class="char-corner tr"></div>
+        <div class="char-corner bl"></div>
+        <div class="char-corner br"></div>
+        ${vetLabel}
+        <div class="char-avatar" style="background:${c.bg}; box-shadow: 0 0 20px ${c.color}22;">${charLogoHtml(c, 72)}</div>
+        <div class="char-text-col" style="flex:1;min-width:0;display:flex;flex-direction:column;">
+          ${vetLabelMobile}
+          <div class="char-name">${c.name}</div>
+          
+          <div class="char-desc">${c.desc}</div>
+        </div>
+        <div class="char-passives">
+          <div class="section-label" style="justify-content:center;margin-bottom:8px;"><span>Passive Abilities</span></div>
+          ${c.passives.length === 0
+            ? `<div class="passive-empty">No passive abilities</div>`
+            : c.passives.map(p => `<div class="passive-entry"><span class="passive-name">${p.name}</span><span class="passive-desc">${p.desc}</span></div>`).join('')
+          }
+        </div>
+      `;
+    }
 
-    // Desktop right-click still works on the card itself
-    el.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      openCharDetail(c);
-    });
-
-    el.addEventListener('click', () => {
-      state.selectedChar = charIdx;
-      document.querySelectorAll('.char-card').forEach((card, domIdx) => {
-        card.classList.toggle('selected', domIdx === myRenderIdx);
+    if (!isLocked) {
+      // Outside (i) button — sits to the right of the card on mobile only
+      const infoBtn = document.createElement('button');
+      infoBtn.className = 'char-info-btn char-info-btn-outside';
+      infoBtn.title = 'Character details';
+      infoBtn.textContent = 'ⓘ';
+      infoBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openCharDetail(c);
       });
-      document.getElementById('beginBtn').disabled = false;
-    });
 
-    row.appendChild(el);
-    row.appendChild(infoBtn);
+      // Desktop right-click still works on the card itself
+      el.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        openCharDetail(c);
+      });
+
+      el.addEventListener('click', () => {
+        state.selectedChar = charIdx;
+        document.querySelectorAll('.char-card').forEach((card, domIdx) => {
+          card.classList.toggle('selected', domIdx === myRenderIdx);
+        });
+        document.getElementById('beginBtn').disabled = false;
+      });
+
+      row.appendChild(el);
+      row.appendChild(infoBtn);
+    } else {
+      row.appendChild(el);
+    }
+
     grid.appendChild(row);
-    if (myRenderIdx === 0) {
+    if (!isLocked && myRenderIdx === firstUnlockedRenderIdx) {
+      state.selectedChar = charIdx;
       document.getElementById('beginBtn').disabled = false;
     }
   });
 }
+
+// Desktop: convert vertical mouse wheel to horizontal scroll on character grid
+(function() {
+  const grid = document.getElementById('charGrid');
+  if (grid) {
+    grid.addEventListener('wheel', (e) => {
+      if (grid.scrollWidth > grid.clientWidth) {
+        e.preventDefault();
+        grid.scrollLeft += e.deltaY;
+      }
+    }, { passive: false });
+  }
+})();
 
 // ─────────────────────────────────────
 // DECK / GAME
@@ -7239,11 +7423,6 @@ function buildDeck() {
     });
   }
 
-  // Gobbo: add one Powder Keg per deck (always 1, regardless of level)
-  if (hasPassive('Powder Keg')) {
-    deck.push({ suit: '💣', val: 'K', isRed: false, type: 'keg', isKeg: true });
-  }
-
   // Shuffle (Fisher-Yates)
   for (let i = deck.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -7277,6 +7456,8 @@ function startGame() {
   state.weaponsThisRoom = 0;
   state._ponderCooldown = false;
   state._ponderCooldownRoom = 0;
+  state._kegUsedThisLevel = false;
+  state._kegNextRoomBigger = false;
   state.discardViewsThisRun = 0;
 
   // Ashton starts with a Monster Trap equipped
@@ -7395,6 +7576,12 @@ function drawRoom(carryOver) {
     state._ponderCooldownRoom = state.roomNumber;
   }
   updatePonderBtn();
+  updateKegBtn();
+
+  // Reset keg room size boost after the room was drawn with it
+  if (state._kegNextRoomBigger) {
+    state._kegNextRoomBigger = false;
+  }
 
   const required = requiredSelections();
   document.getElementById('actionHint').textContent = `Select ${required} card${required !== 1 ? 's' : ''} to continue`;
@@ -8085,6 +8272,7 @@ function rightClickCard(idx) {
       state.selectionOrder.push(idx);
     }
     state.bypassed.push(idx);
+    logGameEvent('weapon_bypass', { monster_value: getEffectiveVal(card), room: state.roomNumber, level: endless.active ? endless.level : 1 });
   }
 
   // Recompute skipped
@@ -8155,7 +8343,8 @@ function toggleCard(idx) {
 
 function roomSize() {
   const base = hasPassive('Greedy Hands') ? 5 : 4;
-  return Math.max(2, base + bossTagRoomDelta());
+  const kegBoost = state._kegNextRoomBigger ? 1 : 0;
+  return Math.max(2, base + bossTagRoomDelta() + kegBoost);
 }
 
 function requiredSelections() {
@@ -8307,17 +8496,22 @@ function updateWeaponBar() {
   const badgesEl = document.getElementById('killBadges');
   const countEl  = document.getElementById('killCountNum');
   const hasWeapon = w && (w.val > 0 || w.isTrap);
+  const stackToggle = document.getElementById('stackKillsToggle');
+  const showAll = stackToggle && stackToggle.classList.contains('on');
+  // Auto-stack if more than 5 kills regardless of toggle
+  const shouldStack = !showAll || kills.length > 5;
+
   if (kills.length === 0) {
     badgesEl.innerHTML = '';
     countEl.textContent = hasWeapon ? 'No kills yet' : '—';
   } else {
-    badgesEl.innerHTML = kills.map(k => {
+    const killsToShow = shouldStack ? [kills[kills.length - 1]] : kills;
+
+    function renderKillBadge(k) {
       const colorCls = (k.suit === '♥' || k.suit === '♦') ? 'red-suit' : 'black-suit';
       const effVal = k.effectiveVal != null ? k.effectiveVal : numericValue(k.val);
       const origVal = numericValue(k.originalVal || k.val);
       const isModified = effVal !== origVal;
-
-      // Try full art for monster kills
       const fakeCard = { type: 'monster', val: k.val, suit: k.suit, isRed: (k.suit === '♥' || k.suit === '♦'), _originalVal: k.originalVal || k.val };
       const artUrl = getCardArtUrl(fakeCard);
       if (artUrl && _validCardArt[artUrl]) {
@@ -8328,22 +8522,68 @@ function updateWeaponBar() {
         const valFile = (useFace && faceMap[effVal]) ? faceMap[effVal] : String(effVal);
         const prefix = isModified ? 'alt_value' : 'value';
         const valUrl = `images/value/${prefix}_${valFile}.png`;
-        return `
-          <div class="kill-badge has-art" title="${effVal}${k.suit}">
+        return `<div class="kill-badge has-art" title="${effVal}${k.suit}">
             ${titleUrl ? `<div class="kill-title"><img src="${titleUrl}" alt=""></div>` : ''}
             <div class="kill-art" style="background-image:url('${artUrl}');"></div>
             <div class="kill-val"><img src="${valUrl}" alt=""></div>
           </div>`;
       }
-
       const modCls = isModified ? ' val-modified' : '';
       const dispVal = effVal === 11 ? 'J' : effVal === 12 ? 'Q' : effVal === 13 ? 'K' : effVal === 14 ? 'A' : String(effVal);
-      return `
-        <div class="kill-badge ${colorCls}" title="${dispVal}${k.suit}">
+      return `<div class="kill-badge ${colorCls}" title="${dispVal}${k.suit}">
           <span class="${modCls}">${dispVal}</span><span style="font-size:0.7em">${k.suit}</span>
         </div>`;
-    }).join('');
-    countEl.textContent = `${kills.length} monster${kills.length !== 1 ? 's' : ''} slain`;
+    }
+
+    badgesEl.innerHTML = killsToShow.map(k => renderKillBadge(k)).join('');
+
+    if (shouldStack) {
+      badgesEl.innerHTML += `<div style="font-family:'Cinzel',serif;font-size:clamp(0.5rem,1.2vw,0.7rem);color:var(--text-dim);letter-spacing:0.1em;text-align:center;margin-top:2px;width:100%;">${kills.length} slain</div>`;
+      countEl.textContent = '';
+
+      // Add hover/tap panel for full kill history
+      const wrapper = badgesEl.querySelector('.kill-badge');
+      if (wrapper && kills.length > 1) {
+        wrapper.style.cursor = 'pointer';
+        const panelHtml = `<div class="kill-history-panel">${kills.map(k => renderKillBadge(k)).join('')}</div>`;
+
+        // Desktop: hover
+        wrapper.addEventListener('mouseenter', () => {
+          let panel = document.querySelector('.kill-history-panel');
+          if (panel) panel.remove();
+          wrapper.insertAdjacentHTML('afterend', panelHtml);
+          const newPanel = document.querySelector('.kill-history-panel');
+          if (newPanel) {
+            newPanel.addEventListener('mouseleave', () => { newPanel.remove(); });
+          }
+        });
+        wrapper.addEventListener('mouseleave', () => {
+          setTimeout(() => {
+            const panel = document.querySelector('.kill-history-panel');
+            if (panel && !panel.matches(':hover')) panel.remove();
+          }, 150);
+        });
+
+        // Mobile: tap toggle
+        wrapper.addEventListener('click', (e) => {
+          e.stopPropagation();
+          let panel = document.querySelector('.kill-history-panel');
+          if (panel) { panel.remove(); return; }
+          wrapper.insertAdjacentHTML('afterend', panelHtml);
+          // Close on tap outside
+          const closeHandler = (ev) => {
+            if (!ev.target.closest('.kill-history-panel') && !ev.target.closest('.kill-badge')) {
+              const p = document.querySelector('.kill-history-panel');
+              if (p) p.remove();
+              document.removeEventListener('click', closeHandler);
+            }
+          };
+          setTimeout(() => document.addEventListener('click', closeHandler), 10);
+        });
+      }
+    } else {
+      countEl.textContent = `${kills.length} monster${kills.length !== 1 ? 's' : ''} slain`;
+    }
   }
 }
 
@@ -8415,8 +8655,8 @@ function previewHpBar() {
         simTrap = { isTrap: true, val: 0, trapped: null };
         simWeaponVal = 0;
       } else {
-        // Apply weapon -1 tag when equipping
-        simWeaponVal = Math.max(0, nv - bossTagWeaponPenalty());
+        // nv from getEffectiveVal already includes weapon penalty
+        simWeaponVal = nv;
         simTrap = null;
       }
       simKills = [];
@@ -8632,6 +8872,7 @@ function confirmRoom() {
   btn.disabled = true;
   if (tutorial.active) { tutorial.allowedButton = null; }
   playTransitionSE();
+  if (state.roomNumber === 1 && !tutorial.active) logGameEvent('first_room_decision', { action: 'resolved', character: CHARACTERS[state.selectedChar ?? 0].name, mode: endless.active ? 'endless' : 'standard' });
 
   if (state.isVeiled) {
     document.getElementById('confirmBtn').disabled = true;
@@ -9078,8 +9319,8 @@ const BOSS_TAGS = [
     id: 'corrosive',
     icon: '🧪',
     name: 'Corrosive',
-    color: '#28ff28',
-    desc: '3 random monsters in the deck are Corrosive (green glow). When a Corrosive monster is blocked by a weapon, the weapon is destroyed after the room resolves.',
+    color: '#b050ff',
+    desc: '3 random monsters in the deck are Corrosive (purple glow). When a Corrosive monster is blocked by a weapon, the weapon is destroyed after the room resolves.',
   },
   {
     id: 'deceptive',
@@ -9263,10 +9504,6 @@ const BOSSES = [
           deck.push({ suit: 'trap', val: 'T', isRed: false, type: 'weapon', isTrap: true });
         }
       }
-      // Gobbo Powder Keg
-      if (isGobbo) {
-        deck.push({ suit: '💣', val: 'K', isRed: false, type: 'keg', isKeg: true });
-      }
       // Shuffle
       for (let i = deck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -9312,9 +9549,6 @@ const BOSSES = [
         for (let i = 0; i < 4; i++) {
           deck.push({ suit: 'trap', val: 'T', isRed: false, type: 'weapon', isTrap: true });
         }
-      }
-      if (isGobbo) {
-        deck.push({ suit: '💣', val: 'K', isRed: false, type: 'keg', isKeg: true });
       }
       for (let i = deck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -9363,9 +9597,6 @@ const BOSSES = [
         deck.push({ suit: '💣', val: 'K', isRed: false, type: 'keg', isKeg: true });
       }
       // Gobbo adds 1 more on top of Krell's 3
-      if (isGobbo) {
-        deck.push({ suit: '💣', val: 'K', isRed: false, type: 'keg', isKeg: true });
-      }
       // Shuffle
       for (let i = deck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -9405,9 +9636,6 @@ const BOSSES = [
           deck.push({ suit: 'trap', val: 'T', isRed: false, type: 'weapon', isTrap: true });
         }
       }
-      if (isGobbo) {
-        deck.push({ suit: '💣', val: 'K', isRed: false, type: 'keg', isKeg: true });
-      }
       for (let i = deck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -9446,9 +9674,6 @@ const BOSSES = [
           deck.push({ suit: 'trap', val: 'T', isRed: false, type: 'weapon', isTrap: true });
         }
       }
-      if (isGobbo) {
-        deck.push({ suit: '💣', val: 'K', isRed: false, type: 'keg', isKeg: true });
-      }
       for (let i = deck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -9460,7 +9685,7 @@ const BOSSES = [
     }
   },
   {
-    name: 'Zombie Hoard',
+    name: 'Zombie Horde',
     emoji: '🧟',
     passive: 'The hoard swarms with low-value undead. Monsters are all 3s, 4s, 5s, and a pair of 6s — relentless but individually weak.',
     buildDeck(isMilo, isSerena, isAshton, isGobbo) {
@@ -9489,9 +9714,6 @@ const BOSSES = [
         for (let i = 0; i < 4; i++) {
           deck.push({ suit: 'trap', val: 'T', isRed: false, type: 'weapon', isTrap: true });
         }
-      }
-      if (isGobbo) {
-        deck.push({ suit: '💣', val: 'K', isRed: false, type: 'keg', isKeg: true });
       }
       // Shuffle
       for (let i = deck.length - 1; i > 0; i--) {
@@ -9798,7 +10020,13 @@ function claimSelectedRewards() {
         state.player.hp = state.player.maxHp;
         updateHpBar();
       }
-      addLog('🔥 You rest by the campfire — fully healed!', 'gold');
+      if (endless.poisoned) {
+        endless.poisoned = false;
+        document.body.classList.remove('is-poisoned');
+        addLog('🔥 You rest by the campfire — fully healed and poison cured!', 'gold');
+      } else {
+        addLog('🔥 You rest by the campfire — fully healed!', 'gold');
+      }
     } else if (reward.type === 'recruit') {
       const rc = CHARACTERS[reward.charIdx];
       if (rc && !endless.partyMembers.includes(reward.charIdx)) {
@@ -9807,6 +10035,7 @@ function claimSelectedRewards() {
         const bonusHp = state.player.maxHp - oldBase;
 
         endless.partyMembers.push(reward.charIdx);
+        logGameEvent('party_recruit', { character: rc.name, character_id: rc.id, level: endless.level, party_size: endless.partyMembers.length });
 
         // Recalculate maxHP using new highest base + existing bonuses
         const newBase = getPartyBaseMaxHp();
@@ -9861,11 +10090,11 @@ function generateRewards() {
   }
   const rewards = all.slice(0, 4);
 
-  // 5% chance to replace one reward with a recruit (only after boss fights)
+  // 10% chance to replace one reward with a recruit (only after boss fights)
   // Debug toggle: 100% chance after every level
   const forceRecruit = document.getElementById('debugForceRecruitToggle');
   const forceOn = forceRecruit && forceRecruit.classList.contains('on');
-  if (forceOn || (endless._lastLevelWasBoss && Math.random() < 0.05)) {
+  if (forceOn || (endless._lastLevelWasBoss && Math.random() < 0.10)) {
     const candidates = getRecruitCandidates();
     if (candidates.length > 0) {
       const pick = candidates[Math.floor(Math.random() * candidates.length)];
@@ -10101,6 +10330,8 @@ function startNextEndlessLevel() {
 
   state._ponderCooldown = false;
   state._ponderCooldownRoom = 0;
+  state._kegUsedThisLevel = false;
+  state._kegNextRoomBigger = false;
   state.player.hp = savedHp;
   state.player.maxHp = savedMaxHp;
 
@@ -10139,6 +10370,7 @@ function startNextEndlessLevel() {
   updateWeaponBar();
   updateHpBar();
   setRoomBackground(isBossLevel && !!endless.currentBoss);
+  logGameEvent('endless_level_start', { level: endless.level, character: CHARACTERS[endless.starterIdx].name, hp: state.player.hp, max_hp: state.player.maxHp, is_boss: isBossLevel, party_size: (endless.partyMembers || []).length + 1, party: [endless.starterIdx, ...(endless.partyMembers || [])].map(i => CHARACTERS[i]?.id).join(',') });
   drawRoom(null);
   addLog(`Level ${endless.level} begins.`, 'new');
   if (isBossLevel) addLog(`⚔ Boss fight — ${endless.currentBoss.name}!`, 'danger');
@@ -10348,11 +10580,16 @@ function showEndlessDefeated() {
     playDefeatSE();
     playMenuMusic();
     checkFinalMonstersUnlock();
-    const endlessKey = activeProfile !== null ? profilePrefix(activeProfile) + 'endless-best' : 'deckdiver-endless-best';
-    try {
-      const prev = parseInt(localStorage.getItem(endlessKey) || '0');
-      if (endless.level > prev) localStorage.setItem(endlessKey, String(endless.level));
-    } catch(e) {}
+    const mainChar = CHARACTERS[endless.starterIdx];
+    if (mainChar) {
+      const cData = loadCharStats(mainChar.id);
+      const prev = cData.endlessBest || 0;
+      if (endless.level > prev) {
+        cData.endlessBest = endless.level;
+        saveCharStats(mainChar.id, cData);
+        logGameEvent('endless_new_record', { level: endless.level, previous_record: prev, character: mainChar.name, party_size: (endless.partyMembers || []).length + 1 });
+      }
+    }
 
     document.getElementById('endlessDefLevel').textContent = `${endless.level}`;
     document.getElementById('endlessDefeatedSub').textContent = `You reached Level ${endless.level}`;
@@ -10668,7 +10905,7 @@ function buildMobileItemsList() {
   if (crystalCount > 0) {
     html += `
       <div class="mobile-item-row" onclick="closeMobileItems(); useCrystalBall();">
-        <div class="mobile-item-icon">🔮</div>
+        <div class="mobile-item-icon"><img src="images/reward/reward_crystal_ball.png" alt="" style="width:1.4rem;height:auto;"></div>
         <div class="mobile-item-info">
           <div class="mobile-item-name">Crystal Ball</div>
           <div class="mobile-item-desc">Peek at next 3 cards</div>
@@ -10681,7 +10918,7 @@ function buildMobileItemsList() {
   if (warpCount > 0) {
     html += `
       <div class="mobile-item-row" onclick="closeMobileItems(); useWarpScroll();">
-        <div class="mobile-item-icon">📜</div>
+        <div class="mobile-item-icon"><img src="images/reward/reward_warp_scroll.png" alt="" style="width:1.4rem;height:auto;"></div>
         <div class="mobile-item-info">
           <div class="mobile-item-name">Warp Scroll</div>
           <div class="mobile-item-desc">See top 2, send 1 to bottom</div>
@@ -10694,7 +10931,7 @@ function buildMobileItemsList() {
   if (charmCount > 0) {
     html += `
       <div class="mobile-item-row" onclick="closeMobileItems(); useCursedCharm();" style="border-color:rgba(180,50,220,0.2);">
-        <div class="mobile-item-icon">☠</div>
+        <div class="mobile-item-icon"><img src="images/reward/reward_curse_charm.png" alt="" style="width:1.4rem;height:auto;"></div>
         <div class="mobile-item-info">
           <div class="mobile-item-name" style="color:#cc88ff;">Cursed Charm</div>
           <div class="mobile-item-desc">Weaken all monsters by 2</div>
@@ -10707,7 +10944,7 @@ function buildMobileItemsList() {
   if (wandCount > 0) {
     html += `
       <div class="mobile-item-row" onclick="closeMobileItems(); useTeleportWand();" style="border-color:rgba(220,180,60,0.2);">
-        <div class="mobile-item-icon">🪄</div>
+        <div class="mobile-item-icon"><img src="images/reward/reward_wand_of_teleportation.png" alt="" style="width:1.4rem;height:auto;"></div>
         <div class="mobile-item-info">
           <div class="mobile-item-name" style="color:#e0c040;">Teleport Wand</div>
           <div class="mobile-item-desc">Skip this room instantly</div>
@@ -10720,7 +10957,7 @@ function buildMobileItemsList() {
   if (flaskCount > 0) {
     html += `
       <div class="mobile-item-row" onclick="closeMobileItems(); useHolyFlask();" style="border-color:rgba(120,200,80,0.2);">
-        <div class="mobile-item-icon">🧴</div>
+        <div class="mobile-item-icon"><img src="images/reward/reward_holy_flask.png" alt="" style="width:1.4rem;height:auto;"></div>
         <div class="mobile-item-info">
           <div class="mobile-item-name" style="color:#80cc50;">Holy Flask</div>
           <div class="mobile-item-desc">Heal 5 HP</div>
@@ -10734,7 +10971,7 @@ function buildMobileItemsList() {
     const shieldStatus = state.shielded ? '🛡️ Active' : shieldCount;
     html += `
       <div class="mobile-item-row" onclick="closeMobileItems(); useShieldCharm();" style="border-color:rgba(100,180,220,0.2);">
-        <div class="mobile-item-icon">🛡️</div>
+        <div class="mobile-item-icon"><img src="images/reward/reward_shield_charm.png" alt="" style="width:1.4rem;height:auto;"></div>
         <div class="mobile-item-info">
           <div class="mobile-item-name" style="color:#70b8e0;">Shield Charm</div>
           <div class="mobile-item-desc">${state.shielded ? 'Shield is active' : 'Block next hit'}</div>
@@ -10747,7 +10984,7 @@ function buildMobileItemsList() {
   if (luckCount > 0) {
     html += `
       <div class="mobile-item-row" onclick="closeMobileItems(); useLuckCharm();" style="border-color:rgba(200,180,60,0.2);">
-        <div class="mobile-item-icon">🍀</div>
+        <div class="mobile-item-icon"><img src="images/reward/reward_luck_charm.png" alt="" style="width:1.4rem;height:auto;"></div>
         <div class="mobile-item-info">
           <div class="mobile-item-name" style="color:#c0b840;">Luck Charm</div>
           <div class="mobile-item-desc">Banish a card from the room</div>
@@ -10760,7 +10997,7 @@ function buildMobileItemsList() {
   if (whetstoneCount > 0) {
     html += `
       <div class="mobile-item-row" onclick="closeMobileItems(); useWhetstone();" style="border-color:rgba(180,140,80,0.2);">
-        <div class="mobile-item-icon">🪨</div>
+        <div class="mobile-item-icon"><img src="images/reward/reward_whetstone.png" alt="" style="width:1.4rem;height:auto;"></div>
         <div class="mobile-item-info">
           <div class="mobile-item-name" style="color:#c0a060;">Whetstone</div>
           <div class="mobile-item-desc">Clear weapon kill chain</div>
@@ -10778,7 +11015,7 @@ function buildMobileItemsList() {
     const countDisplay = bagStored ? '✦' : bagCount;
     html += `
       <div class="mobile-item-row" onclick="closeMobileItems(); useBag();">
-        <div class="mobile-item-icon">👜</div>
+        <div class="mobile-item-icon"><img src="images/reward/bag.png" alt="" style="width:1.4rem;height:auto;"></div>
         <div class="mobile-item-info">
           <div class="mobile-item-name">Bag of Holding</div>
           <div class="mobile-item-desc">${desc}</div>
@@ -11247,6 +11484,57 @@ function updatePonderBtn() {
   if (show) {
     btn.classList.toggle('on-cooldown', !!state._ponderCooldown);
   }
+  updateAbilityBtnOrder();
+}
+
+function useKeg() {
+  if (state._kegUsedThisLevel) return;
+  if (!hasPassive('Powder Keg')) return;
+
+  // Place keg on top of deck (deck.pop() draws from end, so push = top)
+  state.deck.push({ suit: '💣', val: 'K', isRed: false, type: 'keg', isKeg: true });
+  state._kegUsedThisLevel = true;
+  state._kegNextRoomBigger = true;
+
+  updateKegBtn();
+  logGameEvent('item_used', { item: 'powder_keg', room: state.roomNumber, level: endless.active ? endless.level : 1 });
+  addLog('💣 Grik plants a Powder Keg on top of the deck!', 'gold');
+}
+
+function updateKegBtn() {
+  const btn = document.getElementById('kegGameBtn');
+  if (!btn) return;
+  const show = hasPassive('Powder Keg');
+  document.body.classList.toggle('has-keg', show);
+  if (show) {
+    btn.classList.toggle('used', !!state._kegUsedThisLevel);
+  }
+  updateAbilityBtnOrder();
+}
+
+function updateAbilityBtnOrder() {
+  const kegBtn = document.getElementById('kegGameBtn');
+  const ponderBtn = document.getElementById('ponderGameBtn');
+  if (!kegBtn || !ponderBtn) return;
+
+  // Default: keg left, ponder right (HTML order)
+  let kegOrder = 0, ponderOrder = 1;
+
+  // In endless with party, order by who joined first
+  if (endless.active && endless.partyMembers && endless.partyMembers.length > 0) {
+    const starterChar = CHARACTERS[endless.starterIdx];
+    const starterHasKeg = starterChar && starterChar.passives.some(p => p.name === 'Powder Keg');
+    const starterHasPonder = starterChar && starterChar.passives.some(p => p.name === 'Ponder');
+
+    if (starterHasPonder && !starterHasKeg) {
+      // Claire is starter, Grik recruited later — ponder left
+      kegOrder = 1; ponderOrder = 0;
+    }
+    // If Grik is starter, default order is already correct (keg left)
+  }
+
+  kegBtn.style.order = kegOrder;
+  ponderBtn.style.order = ponderOrder;
 }
 
 // ─────────────────────────────────────
@@ -11344,6 +11632,7 @@ function openMobileDiscard() {
   document.getElementById('mobileDiscardOverlay').classList.add('open');
   if (state.currentScreen === 'game') {
     state.discardViewsThisRun = (state.discardViewsThisRun || 0) + 1;
+    logGameEvent('discard_viewed', { room: state.roomNumber, level: endless.active ? endless.level : 1, views_this_run: state.discardViewsThisRun });
   }
 }
 
@@ -11359,6 +11648,10 @@ function closeMobileDiscard() {
       buildDiscardGrid('discardHoverCards');
       if (state.currentScreen === 'game') {
         state.discardViewsThisRun = (state.discardViewsThisRun || 0) + 1;
+        if (!section._lastLogRoom || section._lastLogRoom !== state.roomNumber) {
+          section._lastLogRoom = state.roomNumber;
+          logGameEvent('discard_viewed', { room: state.roomNumber, level: endless.active ? endless.level : 1, views_this_run: state.discardViewsThisRun });
+        }
       }
     });
   }
@@ -11469,6 +11762,7 @@ function fleeRoom() {
   if (bossTagNoFlee()) return;
   playTransitionSE();
   logGameEvent('room_skipped', { room: state.roomNumber, level: endless.active ? endless.level : 1, character: CHARACTERS[state.selectedChar ?? 0].name });
+  if (state.roomNumber === 1) logGameEvent('first_room_decision', { action: 'skipped', character: CHARACTERS[state.selectedChar ?? 0].name, mode: endless.active ? 'endless' : 'standard' });
 
   // Clear any selection and reset health bar preview instantly
   state.selected = [];
@@ -11509,7 +11803,7 @@ function fleeRoom() {
         incrementCardVal(c);
       }
     });
-    addLog('🔧 Refined Retreat — red cards in the skipped room were improved!', 'gold');
+    addLog('🔧 Refined Retreat — potions and weapons in the skipped room were improved!', 'gold');
   }
 
   // Corvo's Cursed Aura: -1 to all monster cards in this room
@@ -11556,7 +11850,12 @@ function fleeRoom() {
 // ─────────────────────────────────────
 // TUTORIAL SYSTEM
 // ─────────────────────────────────────
-let tutorial = { active: false, step: 0, roomIdx: 0, allowedCards: [], allowedButton: null };
+let tutorial = { active: false, step: 0, roomIdx: 0, allowedCards: [], allowedButton: null, _timeouts: [] };
+function tutorialTimeout(fn, ms) {
+  const id = setTimeout(fn, ms);
+  tutorial._timeouts.push(id);
+  return id;
+}
 
 const TUTORIAL_HANDS = [
   [{ suit:'♠', val:'12', isRed:false, type:'monster', _originalVal:'12' },
@@ -11676,6 +11975,7 @@ function tutorialDealRoom(roomIdx) {
 }
 
 function runTutorialStep() {
+  if (!tutorial.active) return;
   if (tutorial.step >= TUTORIAL_STEPS.length) { completeTutorial(); return; }
   const step = TUTORIAL_STEPS[tutorial.step];
   const textBox = document.getElementById('tutorialTextBox');
@@ -11824,6 +12124,7 @@ function runTutorialStep() {
 }
 
 function tutorialAdvance() {
+  if (!tutorial.active) return;
   const textBox = document.getElementById('tutorialTextBox');
   const backdrop = document.getElementById('tutorialBackdrop');
   backdrop.classList.remove('tap-catcher');
@@ -11861,8 +12162,12 @@ function skipTutorial() {
   logGameEvent('tutorial_complete', { method: 'skipped' });
   document.body.classList.remove('in-tutorial');
   document.querySelectorAll('.tutorial-highlight,.tutorial-highlight-multi,.tutorial-visible').forEach(el => el.classList.remove('tutorial-highlight','tutorial-highlight-multi','tutorial-visible','tut-spotlight'));
-  document.getElementById('tutorialBackdrop').classList.remove('active');
-  document.getElementById('tutorialTextBox').classList.remove('active');
+  const _backdrop = document.getElementById('tutorialBackdrop');
+  _backdrop.classList.remove('active', 'tap-catcher');
+  _backdrop.onclick = null;
+  const _textBox = document.getElementById('tutorialTextBox');
+  _textBox.classList.remove('active', 'fading-out');
+  _textBox.onclick = null;
   document.getElementById('fleeBtn').style.display = '';
   const fade = document.getElementById('tutorialFade');
   fade.style.display = 'none'; fade.style.opacity = '0'; fade.innerHTML = '';
@@ -11944,6 +12249,8 @@ saveRun = function() {
     endlessLuckCharms: endless.luckCharms,
     endlessWhetstones: endless.whetstones,
     discardViewsThisRun: state.discardViewsThisRun || 0,
+    _kegUsedThisLevel: state._kegUsedThisLevel || false,
+    _kegNextRoomBigger: state._kegNextRoomBigger || false,
   };
   try { localStorage.setItem(getSaveKey(), JSON.stringify(save)); }
   catch(e) { console.warn('Save failed:', e); }
@@ -11971,9 +12278,9 @@ function getProfileSummary(slot) {
     } catch { return { wins: 0, losses: 0, bestRun: null }; }
   });
   const totalAttempts = allData.reduce((sum, d) => sum + (d.wins||0) + (d.losses||0), 0);
-  // Endless attempts
+  // Endless best: find highest across all characters
   let endlessBest = 0;
-  try { endlessBest = parseInt(localStorage.getItem(`${prefix}endless-best`) || '0'); } catch {}
+  allData.forEach(d => { if ((d.endlessBest || 0) > endlessBest) endlessBest = d.endlessBest; });
   // Unlocked characters
   const hasWon = allData.some(d => d.wins > 0);
   const unlockedChars = CHARACTERS.filter((c, i) => {
@@ -12359,10 +12666,25 @@ function launchDebugBossFight() {
   const LOGO_SE = 'audio/logo_se.mp3';
 
   if (splash) {
-    // Play SE as the logo animation begins
+    // Preload SE early
     const se = new Audio(LOGO_SE);
+    se.preload = 'auto';
     se.volume = getMasterVolume();
-    se.play().catch(() => {});
+    se.load();
+
+    // Wait for audio to be ready, then play alongside animation
+    const playSE = () => {
+      se.play().catch(() => {});
+    };
+    if (se.readyState >= 3) {
+      playSE();
+    } else {
+      se.addEventListener('canplaythrough', playSE, { once: true });
+      // Don't wait forever — play anyway after 500ms even if not fully loaded
+      setTimeout(() => {
+        if (se.readyState < 3) playSE();
+      }, 500);
+    }
 
     // After zoom animation completes, fade out splash and show title
     splashLogo.addEventListener('animationend', () => {
