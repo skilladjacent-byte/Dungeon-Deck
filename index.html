@@ -6539,7 +6539,7 @@ function preloadBackgrounds() {
   });
   // BOSS_FIGHT_V2: preload per-boss portraits and card art so they don't pop in.
   // artId values must match the boss definitions in the BOSSES array below.
-  const bossArtIds = ['curator', 'veiled_one', 'krell', 'necromancer', 'dark_brain', 'zombie_horde'];
+  const bossArtIds = ['curator', 'veiled_one', 'krell', 'necromancer', 'dark_brain', 'zombie_horde', 'guttersnipe'];
   bossArtIds.forEach(id => {
     new Image().src = `images/boss/boss_${id}.png`;
     new Image().src = `images/deck/boss_monster_${id}.png`;
@@ -8168,7 +8168,7 @@ function preloadCardArt() {
   // BOSS_FIGHT_V2: register per-boss card art so the renderer accepts it.
   // Without this, getCardArtUrl returns the boss path but _validCardArt[path]
   // is undefined, so cards fall through to the text-only fallback.
-  const bossArtIds = ['curator', 'veiled_one', 'krell', 'necromancer', 'dark_brain', 'zombie_horde'];
+  const bossArtIds = ['curator', 'veiled_one', 'krell', 'necromancer', 'dark_brain', 'zombie_horde', 'guttersnipe'];
   bossArtIds.forEach(id => {
     const src = `images/deck/boss_monster_${id}.png`;
     const img = new Image();
@@ -8986,8 +8986,6 @@ function previewHpBar() {
             // Over-block: excess → boss HP
             const excess = simWeaponVal - nv;
             simBossHp = Math.max(0, simBossHp - excess);
-            // Killing blow counts toward sim chain so subsequent chain rules are correct
-            if (simBossHp === 0) simKills.push({ val: card.val, suit: card.suit, effectiveVal: nv });
           } else if (simWeaponVal === nv) {
             // Perfect block: 0 to both
           } else {
@@ -8996,6 +8994,8 @@ function previewHpBar() {
             if (dmg > 0 && simShielded) { dmg = 0; simShielded = false; }
             netDmg += dmg;
           }
+          // Match real resolver: any weapon-active boss kill advances the chain
+          simKills.push({ val: card.val, suit: card.suit, effectiveVal: nv });
         } else {
           // Bypass / no weapon / chain broken: full damage to player, boss untouched
           let dmg = nv;
@@ -9328,9 +9328,6 @@ function resolveRoom() {
             dmg = 0;
             state.stats.slain++;
             if (state.bossHp === 0) {
-              // Killing blow — this one counts toward the weapon chain
-              state.weaponKills.push({ val: card.val, suit: card.suit, effectiveVal: nv, originalVal: card._originalVal || card.val });
-              updateWeaponBar();
               addLog(`⚔ Lv.${nv} Boss — over-blocked for ${excess}, ${bossDmg} to boss — BOSS DEFEATED!`, 'gold');
             } else {
               addLog(`Lv.${nv} Boss — over-blocked for ${excess}, ${bossDmg} to boss (${state.bossHp} HP left).`, 'gold');
@@ -9354,6 +9351,11 @@ function resolveRoom() {
             addLog(`Lv.${nv} Boss — weapon blocked ${weaponVal} dmg, took ${dmg}.`, 'danger');
             sfxQueue.push({ fn: () => { playPartialBlockSE(); flashPartialSlash(); triggerScreenShake(); } });
           }
+          // Boss kill counts toward the weapon chain on any weapon-active resolution,
+          // matching how regular monsters work — over-block, perfect, and under-block
+          // all push so the chain reflects accumulated boss kills during the fight.
+          state.weaponKills.push({ val: card.val, suit: card.suit, effectiveVal: nv, originalVal: card._originalVal || card.val });
+          updateWeaponBar();
           // Corrosive: the weapon that was actually used corrodes
           if (card.isCorrosive) {
             corrosiveHitWeapon = state.player.weapon;
@@ -9858,13 +9860,8 @@ const BOSS_TAGS = [
     color: '#60c040',
     desc: 'When you skip a room, all monsters in that room gain +1 to their value. Stacks with repeated skips.',
   },
-  {
-    id: 'cutpurse',
-    icon: '🔒',
-    name: 'Cutpurse',
-    color: '#d0a030',
-    desc: 'All items are disabled for this level. You cannot use Crystal Balls, Warp Scrolls, Cursed Charms, Wands, Flasks, Shields, or Luck Charms.',
-  },
+  // Note: Cutpurse tag was removed in v18 — its effect now lives on the Guttersnipe boss.
+  // The 'cutpurse' id is still recognised by itemsDisabled() so old saves don't crash.
 ];
 
 // Returns the monster value bonus from active boss tags
@@ -9880,7 +9877,11 @@ function bossTagWeaponPenalty() {
 }
 
 function itemsDisabled() {
-  return endless.active && endless.activeTags && endless.activeTags.some(t => t.id === 'cutpurse');
+  if (!endless.active) return false;
+  // Guttersnipe boss disables items as his passive
+  if (endless.currentBoss && endless.currentBoss.id === 'guttersnipe') return true;
+  // Legacy: cutpurse tag (removed in v18, but recognise it for old saves)
+  return endless.activeTags && endless.activeTags.some(t => t.id === 'cutpurse');
 }
 
 // Returns room size delta from tags
@@ -10112,25 +10113,25 @@ const BOSSES = [
     artId: 'curator',
     name: 'The Curator',
     passive: 'Discard — If the unselected (carry-over) card is red, it is discarded instead of carried over.',
-    // Boss deck: ♥/♦ 2–7, ♠/♣ 2–8
+    // Boss deck: ♠/♣ 2–11, ♥ 2–9, ♦ 2–9
     buildDeck(isMilo, isSerena, isAshton, isGobbo) {
       const deck = [];
-      // Monsters: ♠ and ♣ 2–8
+      // Monsters: ♠ and ♣ 2–11
       ['♠','♣'].forEach(sym => {
-        for (let v = 2; v <= 8; v++) {
+        for (let v = 2; v <= 11; v++) {
           deck.push({ suit: sym, val: String(v), isRed: false, type: 'monster' });
         }
       });
-      // Potions: ♥ 2–7
-      for (let v = 2; v <= 7; v++) {
+      // Potions: ♥ 2–9
+      for (let v = 2; v <= 9; v++) {
         deck.push({ suit: '♥', val: String(v), isRed: true, type: 'potion' });
       }
-      // Weapons: ♦ 2–7 (skip if Ashton, unless Milo)
+      // Weapons: ♦ 2–9 (skip if Ashton, unless Milo)
       if (!isAshton || isMilo) {
         if (isMilo && isAshton) {
           deck.push({ suit: '♦', val: 'K', isRed: true, type: 'weapon' });
         } else if (!isAshton) {
-          for (let v = 2; v <= 7; v++) {
+          for (let v = 2; v <= 9; v++) {
             deck.push({ suit: '♦', val: String(v), isRed: true, type: 'weapon' });
           }
         }
@@ -10167,18 +10168,18 @@ const BOSSES = [
     buildDeck(isMilo, isSerena, isAshton, isGobbo) {
       const deck = [];
       ['♠','♣'].forEach(sym => {
-        for (let v = 2; v <= 8; v++) {
+        for (let v = 2; v <= 11; v++) {
           deck.push({ suit: sym, val: String(v), isRed: false, type: 'monster' });
         }
       });
-      for (let v = 2; v <= 7; v++) {
+      for (let v = 2; v <= 9; v++) {
         deck.push({ suit: '♥', val: String(v), isRed: true, type: 'potion' });
       }
       if (!isAshton || isMilo) {
         if (isMilo && isAshton) {
           deck.push({ suit: '♦', val: 'K', isRed: true, type: 'weapon' });
         } else if (!isAshton) {
-          for (let v = 2; v <= 7; v++) {
+          for (let v = 2; v <= 9; v++) {
             deck.push({ suit: '♦', val: String(v), isRed: true, type: 'weapon' });
           }
         }
@@ -10205,22 +10206,22 @@ const BOSSES = [
     passive: 'Bombardment — 2 Powder Kegs are shuffled into the boss deck. When a Keg enters a room, it explodes and destroys all cards.',
     buildDeck(isMilo, isSerena, isAshton, isGobbo) {
       const deck = [];
-      // Monsters: ♠ and ♣ 2–8
+      // Monsters: ♠ and ♣ 2–11
       ['♠','♣'].forEach(sym => {
-        for (let v = 2; v <= 8; v++) {
+        for (let v = 2; v <= 11; v++) {
           deck.push({ suit: sym, val: String(v), isRed: false, type: 'monster' });
         }
       });
-      // Potions: ♥ 2–7
-      for (let v = 2; v <= 7; v++) {
+      // Potions: ♥ 2–9
+      for (let v = 2; v <= 9; v++) {
         deck.push({ suit: '♥', val: String(v), isRed: true, type: 'potion' });
       }
-      // Weapons: ♦ 2–7
+      // Weapons: ♦ 2–9
       if (!isAshton || isMilo) {
         if (isMilo && isAshton) {
           deck.push({ suit: '♦', val: 'K', isRed: true, type: 'weapon' });
         } else if (!isAshton) {
-          for (let v = 2; v <= 7; v++) {
+          for (let v = 2; v <= 9; v++) {
             deck.push({ suit: '♦', val: String(v), isRed: true, type: 'weapon' });
           }
         }
@@ -10255,18 +10256,18 @@ const BOSSES = [
     buildDeck(isMilo, isSerena, isAshton, isGobbo) {
       const deck = [];
       ['♠','♣'].forEach(sym => {
-        for (let v = 2; v <= 8; v++) {
+        for (let v = 2; v <= 11; v++) {
           deck.push({ suit: sym, val: String(v), isRed: false, type: 'monster' });
         }
       });
-      for (let v = 2; v <= 7; v++) {
+      for (let v = 2; v <= 9; v++) {
         deck.push({ suit: '♥', val: String(v), isRed: true, type: 'potion' });
       }
       if (!isAshton || isMilo) {
         if (isMilo && isAshton) {
           deck.push({ suit: '♦', val: 'K', isRed: true, type: 'weapon' });
         } else if (!isAshton) {
-          for (let v = 2; v <= 7; v++) {
+          for (let v = 2; v <= 9; v++) {
             deck.push({ suit: '♦', val: String(v), isRed: true, type: 'weapon' });
           }
         }
@@ -10294,18 +10295,18 @@ const BOSSES = [
     buildDeck(isMilo, isSerena, isAshton, isGobbo) {
       const deck = [];
       ['♠','♣'].forEach(sym => {
-        for (let v = 2; v <= 8; v++) {
+        for (let v = 2; v <= 11; v++) {
           deck.push({ suit: sym, val: String(v), isRed: false, type: 'monster' });
         }
       });
-      for (let v = 2; v <= 7; v++) {
+      for (let v = 2; v <= 9; v++) {
         deck.push({ suit: '♥', val: String(v), isRed: true, type: 'potion' });
       }
       if (!isAshton || isMilo) {
         if (isMilo && isAshton) {
           deck.push({ suit: '♦', val: 'K', isRed: true, type: 'weapon' });
         } else if (!isAshton) {
-          for (let v = 2; v <= 7; v++) {
+          for (let v = 2; v <= 9; v++) {
             deck.push({ suit: '♦', val: String(v), isRed: true, type: 'weapon' });
           }
         }
@@ -10338,16 +10339,16 @@ const BOSSES = [
       monsterVals.forEach((v, i) => {
         deck.push({ suit: suits[i % 2], val: String(v), isRed: false, type: 'monster' });
       });
-      // Potions: ♥ 2–7
-      for (let v = 2; v <= 7; v++) {
+      // Potions: ♥ 2–9
+      for (let v = 2; v <= 9; v++) {
         deck.push({ suit: '♥', val: String(v), isRed: true, type: 'potion' });
       }
-      // Weapons: ♦ 2–7
+      // Weapons: ♦ 2–9
       if (!isAshton || isMilo) {
         if (isMilo && isAshton) {
           deck.push({ suit: '♦', val: 'K', isRed: true, type: 'weapon' });
         } else if (!isAshton) {
-          for (let v = 2; v <= 7; v++) {
+          for (let v = 2; v <= 9; v++) {
             deck.push({ suit: '♦', val: String(v), isRed: true, type: 'weapon' });
           }
         }
@@ -10358,6 +10359,46 @@ const BOSSES = [
         }
       }
       // Shuffle
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+      return deck;
+    },
+    applyCarryOverPassive(carryOver) {
+      return carryOver;
+    }
+  },
+  {
+    id: 'guttersnipe',
+    artId: 'guttersnipe',
+    name: 'Guttersnipe',
+    passive: 'Pickpocket — All items are disabled for this fight. You cannot use Crystal Balls, Warp Scrolls, Cursed Charms, Wands, Flasks, Shields, or Luck Charms.',
+    buildDeck(isMilo, isSerena, isAshton, isGobbo) {
+      const deck = [];
+      // Standard expanded boss deck: ♠/♣ 2–11, ♥ 2–9, ♦ 2–9
+      ['♠','♣'].forEach(sym => {
+        for (let v = 2; v <= 11; v++) {
+          deck.push({ suit: sym, val: String(v), isRed: false, type: 'monster' });
+        }
+      });
+      for (let v = 2; v <= 9; v++) {
+        deck.push({ suit: '♥', val: String(v), isRed: true, type: 'potion' });
+      }
+      if (!isAshton || isMilo) {
+        if (isMilo && isAshton) {
+          deck.push({ suit: '♦', val: 'K', isRed: true, type: 'weapon' });
+        } else if (!isAshton) {
+          for (let v = 2; v <= 9; v++) {
+            deck.push({ suit: '♦', val: String(v), isRed: true, type: 'weapon' });
+          }
+        }
+      }
+      if (isAshton) {
+        for (let i = 0; i < 3; i++) {
+          deck.push({ suit: 'trap', val: 'T', isRed: false, type: 'weapon', isTrap: true });
+        }
+      }
       for (let i = deck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -11343,7 +11384,7 @@ function updateCrystalBallUI() {
 }
 
 function useCrystalBall() {
-  if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
+  if (itemsDisabled()) { addLog('🔒 Items are disabled this fight!', ''); return; }
   if (!endless.crystalBalls || endless.crystalBalls <= 0) return;
   logGameEvent('item_used', { item: 'crystal_ball', level: endless.level });
   const peek = state.deck.slice(-3).reverse(); // deck is a stack, last = top
@@ -11443,7 +11484,7 @@ function updateWarpScrollUI() {
 let _warpScrollPeek = []; // temp storage for the 2 peeked cards
 
 function useWarpScroll() {
-  if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
+  if (itemsDisabled()) { addLog('🔒 Items are disabled this fight!', ''); return; }
   if (!endless.warpScrolls || endless.warpScrolls <= 0) return;
   logGameEvent('item_used', { item: 'warp_scroll', level: endless.level });
 
@@ -11732,7 +11773,7 @@ function updateCursedCharmUI() {
 }
 
 function useCursedCharm() {
-  if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
+  if (itemsDisabled()) { addLog('🔒 Items are disabled this fight!', ''); return; }
   if (!endless.cursedCharms || endless.cursedCharms <= 0) return;
   if (state.cursedCharmActive) return; // already used this room
 
@@ -11785,7 +11826,7 @@ function updateTeleportWandUI() {
 }
 
 function useTeleportWand() {
-  if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
+  if (itemsDisabled()) { addLog('🔒 Items are disabled this fight!', ''); return; }
   if (!endless.teleportWands || endless.teleportWands <= 0) return;
   playTransitionSE();
   logGameEvent('item_used', { item: 'teleport_wand', level: endless.level });
@@ -11844,7 +11885,7 @@ function updateHolyFlaskUI() {
 }
 
 function useHolyFlask() {
-  if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
+  if (itemsDisabled()) { addLog('🔒 Items are disabled this fight!', ''); return; }
   if (!endless.holyFlasks || endless.holyFlasks <= 0) return;
   if (state.player.hp >= state.player.maxHp) {
     addLog('🧴 You are already at full health.', '');
@@ -11885,7 +11926,7 @@ function updateShieldCharmUI() {
 }
 
 function useShieldCharm() {
-  if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
+  if (itemsDisabled()) { addLog('🔒 Items are disabled this fight!', ''); return; }
   if (state.shielded) {
     addLog('🛡️ You are already shielded.', '');
     return;
@@ -11930,7 +11971,7 @@ function updateLuckCharmUI() {
 }
 
 function useLuckCharm() {
-  if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
+  if (itemsDisabled()) { addLog('🔒 Items are disabled this fight!', ''); return; }
   if (!endless.luckCharms || endless.luckCharms <= 0) return;
   if (state.hand.length <= 1) {
     addLog('🍀 Not enough cards in the room.', '');
@@ -12070,7 +12111,7 @@ function updateWhetstoneUI() {
 }
 
 function useWhetstone() {
-  if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
+  if (itemsDisabled()) { addLog('🔒 Items are disabled this fight!', ''); return; }
   if (!endless.whetstones || endless.whetstones <= 0) return;
   if (!state.player.weapon || state.player.weapon.val <= 0) {
     addLog('🪨 No weapon equipped to sharpen.', '');
