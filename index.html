@@ -6584,7 +6584,7 @@ function setRoomBackground(isBoss) {
       url('${portraitUrl}'),
       url('${dungeonBg}')`;
     gameEl.style.backgroundSize     = 'cover, cover, auto 70vh, cover';
-    gameEl.style.backgroundPosition = 'center, center, center 45%, center';
+    gameEl.style.backgroundPosition = 'center, center, center 75%, center';
     gameEl.style.backgroundRepeat   = 'no-repeat, no-repeat, no-repeat, no-repeat';
     return;
   }
@@ -8161,6 +8161,16 @@ function preloadCardArt() {
   const monsterVals = ['2','3','4','5','6','7','8','9','10','j','q','k','a'];
   monsterVals.forEach(v => {
     const src = `images/deck/monster_${v}.png`;
+    const img = new Image();
+    img.onload = () => { _validCardArt[src] = true; };
+    img.src = src;
+  });
+  // BOSS_FIGHT_V2: register per-boss card art so the renderer accepts it.
+  // Without this, getCardArtUrl returns the boss path but _validCardArt[path]
+  // is undefined, so cards fall through to the text-only fallback.
+  const bossArtIds = ['curator', 'veiled_one', 'krell', 'necromancer', 'dark_brain', 'zombie_horde'];
+  bossArtIds.forEach(id => {
+    const src = `images/deck/boss_monster_${id}.png`;
     const img = new Image();
     img.onload = () => { _validCardArt[src] = true; };
     img.src = src;
