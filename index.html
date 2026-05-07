@@ -4154,93 +4154,6 @@ if ('serviceWorker' in navigator) {
     color: var(--text-dim);
     line-height: 1.5;
   }
-  /* ─── Boss HP bar (BOSS_FIGHT_V2) ─── */
-  .boss-hp-wrap {
-    display: none;
-    max-width: 420px;
-    margin: 8px auto 2px;
-    padding: 0 6px;
-  }
-  body.is-boss.boss-fight-v2 .boss-hp-wrap { display: block; }
-  .boss-hp-label {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    font-family: 'Cinzel', serif;
-    font-size: clamp(0.7rem, 1.3vw, 0.85rem);
-    letter-spacing: 0.12em;
-    color: rgba(240,160,160,0.85);
-    margin-bottom: 3px;
-    text-transform: uppercase;
-  }
-  .boss-hp-label-hp {
-    font-family: 'Cinzel Decorative', cursive;
-    font-size: clamp(0.85rem, 1.6vw, 1.05rem);
-    color: #ffb0b0;
-    letter-spacing: 0.08em;
-    text-shadow: 0 0 8px rgba(220,50,50,0.5);
-  }
-  .boss-hp-track {
-    position: relative;
-    height: 14px;
-    background: rgba(30,6,6,0.75);
-    border: 1px solid rgba(180,40,40,0.55);
-    border-radius: 3px;
-    overflow: hidden;
-    box-shadow: inset 0 1px 4px rgba(0,0,0,0.6), 0 0 10px rgba(220,40,40,0.15);
-  }
-  .boss-hp-fill {
-    position: absolute;
-    top: 0; left: 0; bottom: 0;
-    width: 100%;
-    background: linear-gradient(90deg, #c02020 0%, #e84040 45%, #ff6060 100%);
-    box-shadow: 0 0 12px rgba(255,70,70,0.6), inset 0 -2px 4px rgba(0,0,0,0.25);
-    transition: width 0.45s cubic-bezier(0.2, 0.7, 0.3, 1);
-    z-index: 2;
-  }
-  /* Gold damage-preview layer — sits behind the red fill.
-     As the red fill retreats to the projected HP, this gold ghost is
-     revealed on the right edge, visualising incoming over-block damage. */
-  .boss-hp-preview-dmg {
-    position: absolute;
-    top: 0; left: 0; bottom: 0;
-    width: 0;
-    background: linear-gradient(90deg, #b87800 0%, #f0c040 60%, #ffdc60 100%);
-    box-shadow: inset 0 -2px 4px rgba(0,0,0,0.25), 0 0 14px rgba(255,210,80,0.55);
-    transition: width 0.25s ease;
-    z-index: 1;
-    opacity: 0.92;
-  }
-  /* Notch overlay — sits on top of the fill + preview so boundaries are
-     always visible regardless of HP state. Shares the player's toggle. */
-  .boss-hp-notches {
-    position: absolute; inset: 0;
-    z-index: 3;
-    pointer-events: none;
-  }
-  .boss-hp-notch {
-    position: absolute;
-    top: 15%;
-    width: 1px;
-    height: 70%;
-    background: rgba(0,0,0,0.45);
-    border-radius: 1px;
-  }
-  .boss-hp-fill.low {
-    background: linear-gradient(90deg, #801010 0%, #c02828 100%);
-    animation: bossHpLowPulse 1.2s ease-in-out infinite;
-  }
-  @keyframes bossHpLowPulse {
-    0%, 100% { box-shadow: 0 0 10px rgba(255,60,60,0.5), inset 0 -2px 4px rgba(0,0,0,0.25); }
-    50%       { box-shadow: 0 0 20px rgba(255,80,80,0.9), inset 0 -2px 4px rgba(0,0,0,0.25); }
-  }
-  .boss-hp-fill.damaged {
-    animation: bossHpFlash 0.5s ease-out;
-  }
-  @keyframes bossHpFlash {
-    0%   { filter: brightness(2.2) saturate(1.3); }
-    100% { filter: brightness(1)   saturate(1); }
-  }
   /* Poison indicator */
   .poison-indicator {
     display: none;
@@ -5044,7 +4957,7 @@ if ('serviceWorker' in navigator) {
 <!-- ══════════════ HOME SCREEN ══════════════ -->
 <div class="screen" id="home">
   <!-- DEV VERSION INDICATOR: blue=v15, red=v16, green=v17, yellow=v18 -->
-  <div id="devVersionDot" style="position:absolute;top:10px;left:10px;width:16px;height:16px;background:#ffd700;z-index:50;border-radius:2px;opacity:0.8;"></div>
+  <div id="devVersionDot" style="position:absolute;top:10px;left:10px;width:16px;height:16px;background:#44cc44;z-index:50;border-radius:2px;opacity:0.8;"></div>
   <div class="home-bg-cards">
     <div class="bg-card"></div>
     <div class="bg-card"></div>
@@ -5177,18 +5090,6 @@ if ('serviceWorker' in navigator) {
     <!-- BOSS BANNER (shown only during boss fight) -->
     <div class="boss-banner" id="bossBanner">
       <div class="boss-banner-text" id="bossBannerName">⚔ Boss Fight</div>
-      <!-- Boss HP bar (BOSS_FIGHT_V2 only) -->
-      <div class="boss-hp-wrap" id="bossHpWrap">
-        <div class="boss-hp-label">
-          <span>Boss</span>
-          <span class="boss-hp-label-hp" id="bossHpLabel">20 / 20</span>
-        </div>
-        <div class="boss-hp-track">
-          <div class="boss-hp-preview-dmg" id="bossHpPreviewDmg"></div>
-          <div class="boss-hp-fill" id="bossHpFill"></div>
-          <div class="boss-hp-notches" id="bossHpNotches"></div>
-        </div>
-      </div>
       <div class="boss-passive-note" id="bossBannerPassive"></div>
       <div class="boss-tag-row" id="bossTagRow"></div>
     </div>
@@ -5620,7 +5521,7 @@ if ('serviceWorker' in navigator) {
         <strong>After each level</strong>, you choose <strong>2 Rewards</strong> from 4 options. Rewards include usable items like Crystal Balls, Warp Scrolls, Shield Charms, Cursed Charms, Holy Flasks, Luck Charms, Whetstones, and Wands of Teleportation — as well as instant effects like weapon upgrades, potion upgrades, Elixir of Life (+3 max HP), and Rest &amp; Recover (full heal).
       </p>
       <p class="htp-text">
-        Then a random unlocked character is offered as a <strong>swap</strong> — you can switch or keep your current character. Switching resets your max HP to the new character's base (clearing both elixir bonuses and debuffs from tags like Soul Rend). Only one character is active at a time; abilities don't stack.
+        Then a random unlocked character is offered as a <strong>swap</strong> — you can switch or keep your current character. Switching resets your max HP to the new character's base (clearing elixir bonuses). Only one character is active at a time; abilities don't stack.
       </p>
     </div>
 
@@ -5694,10 +5595,6 @@ if ('serviceWorker' in navigator) {
   </div>
   <div class="reward-title">Victory!</div>
   <p class="reward-sub">Choose 2 rewards</p>
-  <!-- BOSS_FIGHT_V2: damage dealt to boss (populated in showBossReward, hidden by default) -->
-  <div id="bossDamageDealtLine" style="display:none;font-family:'Cinzel',serif;letter-spacing:0.14em;font-size:clamp(0.8rem,1.6vw,0.95rem);color:#ffb0b0;margin:-4px 0 14px;text-transform:uppercase;text-shadow:0 0 12px rgba(220,50,50,0.35);">
-    <span id="bossDamageDealtText">Damage dealt to boss: 0 / 0</span>
-  </div>
   <div class="reward-cards" id="rewardCards">
     <!-- Populated by JS -->
   </div>
@@ -5862,7 +5759,7 @@ if ('serviceWorker' in navigator) {
         <div class="setting-name">HP Bar Notches</div>
         <div class="setting-sub">Show 1 notch per HP on the health bar</div>
       </div>
-      <div class="toggle on" id="hpNotchToggle" onclick="this.classList.toggle('on'); updateHpBar(); updateBossHpBar(false);"></div>
+      <div class="toggle on" id="hpNotchToggle" onclick="this.classList.toggle('on'); updateHpBar();"></div>
     </div>
     <div class="setting-row">
       <div>
@@ -6376,13 +6273,6 @@ function cardType(suit) {
 // ─────────────────────────────────────
 // ENDLESS MODE STATE
 // ─────────────────────────────────────
-// ─────────────────────────────────────
-// FEATURE FLAGS
-// ─────────────────────────────────────
-// BOSS_FIGHT_V2: new boss-as-enemy system with HP bar, over-block damage, etc.
-// Set to false to revert to the original boss-deck system (all old code preserved).
-const BOSS_FIGHT_V2 = true;
-
 let endless = {
   active: false,
   level: 1,
@@ -6491,10 +6381,6 @@ let state = {
   shielded: false,
   luckCharmMode: false,
   luckCharmsUsedThisRoom: 0,
-  // BOSS_FIGHT_V2: boss-as-enemy HP tracking (0 / unused when flag off or not in boss fight)
-  bossHp: 0,
-  bossMaxHp: 0,
-  bossDamageDealt: 0,
   stats: { rooms:1, slain:0, gold:0, potions:0, cardsResolved:0, weapons:0, unblockedDmgRun:0 }
 };
 
@@ -6537,13 +6423,6 @@ function preloadBackgrounds() {
     img.onload = () => { if (!_validBossBgs.includes(src)) _validBossBgs.push(src); };
     img.src = src;
   });
-  // BOSS_FIGHT_V2: preload per-boss portraits and card art so they don't pop in.
-  // artId values must match the boss definitions in the BOSSES array below.
-  const bossArtIds = ['curator', 'veiled_one', 'krell', 'necromancer', 'dark_brain', 'zombie_horde', 'guttersnipe', 'sargius'];
-  bossArtIds.forEach(id => {
-    new Image().src = `images/boss/boss_${id}.png`;
-    new Image().src = `images/deck/boss_monster_${id}.png`;
-  });
 }
 preloadBackgrounds();
 
@@ -6557,39 +6436,10 @@ function setRoomBackground(isBoss) {
   // If transitions off, use original solid background
   if (!toggle || !toggle.classList.contains('on')) {
     gameEl.style.backgroundImage = ORIGINAL_GAME_BG;
-    gameEl.style.backgroundSize = '';
-    gameEl.style.backgroundPosition = '';
-    gameEl.style.backgroundRepeat = '';
     _currentBg = '';
     return;
   }
 
-  // Boss portrait layer (BOSS_FIGHT_V2 / endless boss): centered, ~70vh tall,
-  // floating over a normal dungeon background so the boss "looms" behind the cards.
-  const bossArtId = isBoss && endless.currentBoss && endless.currentBoss.artId
-    ? endless.currentBoss.artId
-    : null;
-
-  if (bossArtId) {
-    // Pick a dungeon background as the base layer (avoid repeating the last one)
-    const dungeonPool = _validDungeonBgs.length > 0 ? _validDungeonBgs : DUNGEON_BACKGROUNDS;
-    const dAvailable = dungeonPool.filter(bg => bg !== _currentBg);
-    const dungeonBg = dAvailable[Math.floor(Math.random() * dAvailable.length)] || dungeonPool[0];
-    _currentBg = dungeonBg;
-    const portraitUrl = `images/boss/boss_${bossArtId}.png`;
-    // Layer order (top → bottom): vignette, dim wash, boss portrait, dungeon bg
-    gameEl.style.backgroundImage = `
-      radial-gradient(ellipse 100% 70% at 50% 110%, rgba(139,26,26,0.18) 0%, transparent 60%),
-      linear-gradient(180deg, rgba(9,7,5,0.55) 0%, rgba(17,13,8,0.55) 100%),
-      url('${portraitUrl}'),
-      url('${dungeonBg}')`;
-    gameEl.style.backgroundSize     = 'cover, cover, auto 70vh, cover';
-    gameEl.style.backgroundPosition = 'center, center, center 75%, center';
-    gameEl.style.backgroundRepeat   = 'no-repeat, no-repeat, no-repeat, no-repeat';
-    return;
-  }
-
-  // Non-boss (or no portrait available): existing single-background flow
   const pool = isBoss
     ? (_validBossBgs.length > 0 ? _validBossBgs : BOSS_BACKGROUNDS)
     : (_validDungeonBgs.length > 0 ? _validDungeonBgs : DUNGEON_BACKGROUNDS);
@@ -6600,9 +6450,6 @@ function setRoomBackground(isBoss) {
     radial-gradient(ellipse 100% 70% at 50% 110%, rgba(139,26,26,0.12) 0%, transparent 60%),
     linear-gradient(180deg, rgba(9,7,5,0.5) 0%, rgba(17,13,8,0.5) 100%),
     url('${pick}')`;
-  gameEl.style.backgroundSize     = '';
-  gameEl.style.backgroundPosition = '';
-  gameEl.style.backgroundRepeat   = '';
 }
 
 function transitionToNextRoom(carryOver) {
@@ -6936,7 +6783,6 @@ function playAgain() {
     document.body.classList.remove('is-endless');
     document.body.classList.remove('is-boss');
     document.body.classList.remove('boss-passive-visible');
-    document.body.classList.remove('boss-fight-v2');
     document.body.classList.remove('is-poisoned');
     document.body.classList.remove('has-crystal-ball');
     document.body.classList.remove('has-warp-scroll');
@@ -6995,7 +6841,6 @@ function goTo(screenId) {
       document.body.classList.remove('is-endless');
       document.body.classList.remove('is-boss');
       document.body.classList.remove('boss-passive-visible');
-      document.body.classList.remove('boss-fight-v2');
       document.body.classList.remove('is-poisoned');
       document.body.classList.remove('has-crystal-ball');
       document.body.classList.remove('has-warp-scroll');
@@ -7214,10 +7059,6 @@ function continueGame() {
   state._ponderCooldownRoom = 0;
   state._kegUsedThisLevel = save._kegUsedThisLevel || false;
   state._kegNextRoomBigger = save._kegNextRoomBigger || false;
-  // BOSS_FIGHT_V2
-  state.bossHp         = save.bossHp || 0;
-  state.bossMaxHp      = save.bossMaxHp || 0;
-  state.bossDamageDealt = save.bossDamageDealt || 0;
 
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('game').classList.add('active');
@@ -8106,11 +7947,6 @@ function decrementCardVal(card) {
 
 function getMonsterImageUrl(card) {
   if (card.type !== 'monster') return null;
-  // BOSS_FIGHT_V2: boss cards carry their own artId so the lookup works even
-  // after the boss fight ends (kill tracker, discard view on next level, etc.)
-  if (card.isBoss && card.bossArtId) {
-    return `images/deck/boss_monster_${card.bossArtId}.png`;
-  }
   const v = numericValue(card._originalVal || card.val);
   const valMap = { 11: 'j', 12: 'q', 13: 'k', 14: 'a' };
   const filename = valMap[v] || String(v);
@@ -8161,16 +7997,6 @@ function preloadCardArt() {
   const monsterVals = ['2','3','4','5','6','7','8','9','10','j','q','k','a'];
   monsterVals.forEach(v => {
     const src = `images/deck/monster_${v}.png`;
-    const img = new Image();
-    img.onload = () => { _validCardArt[src] = true; };
-    img.src = src;
-  });
-  // BOSS_FIGHT_V2: register per-boss card art so the renderer accepts it.
-  // Without this, getCardArtUrl returns the boss path but _validCardArt[path]
-  // is undefined, so cards fall through to the text-only fallback.
-  const bossArtIds = ['curator', 'veiled_one', 'krell', 'necromancer', 'dark_brain', 'zombie_horde', 'guttersnipe', 'sargius'];
-  bossArtIds.forEach(id => {
-    const src = `images/deck/boss_monster_${id}.png`;
     const img = new Image();
     img.onload = () => { _validCardArt[src] = true; };
     img.src = src;
@@ -8318,7 +8144,6 @@ function dealCardsAnimated() {
     if (card.isCorrosive) el.classList.add('corrosive');
     if (card.isBoomerang) el.classList.add('boomerang');
     if (card.type === 'monster' && numericValue(card.val) >= 2 && numericValue(card.val) <= 4 && endless.activeTags) {
-      if (endless.activeTags.some(t => t.id === 'spade_drain')) el.classList.add('soul-rend');
       if (endless.activeTags.some(t => t.id === 'poison')) el.classList.add('virulent');
     }
     el.dataset.idx = idx;
@@ -8408,7 +8233,6 @@ function renderCards() {
     if (card.isCorrosive) el.classList.add('corrosive');
     if (card.isBoomerang) el.classList.add('boomerang');
     if (card.type === 'monster' && numericValue(card.val) >= 2 && numericValue(card.val) <= 4 && endless.activeTags) {
-      if (endless.activeTags.some(t => t.id === 'spade_drain')) el.classList.add('soul-rend');
       if (endless.activeTags.some(t => t.id === 'poison')) el.classList.add('virulent');
     }
     el.dataset.idx = idx;
@@ -8688,7 +8512,7 @@ function updateWeaponBar() {
   } else if (w.isTrap && w.trapped) {
     // Monster captured — show captured monster art with green glow
     const t = w.trapped;
-    const fakeCard = { type: 'monster', val: t.val, suit: t.suit, isRed: (t.suit === '♥' || t.suit === '♦'), _originalVal: t.val, isBoss: !!t.isBoss, bossArtId: t.bossArtId || null };
+    const fakeCard = { type: 'monster', val: t.val, suit: t.suit, isRed: (t.suit === '♥' || t.suit === '♦'), _originalVal: t.val };
     const monsterArt = getCardArtUrl(fakeCard);
     cardEl.className = 'weapon-card';
     if (monsterArt && _validCardArt[monsterArt]) {
@@ -8801,7 +8625,7 @@ function updateWeaponBar() {
       const effVal = k.effectiveVal != null ? k.effectiveVal : numericValue(k.val);
       const origVal = numericValue(k.originalVal || k.val);
       const isModified = effVal !== origVal;
-      const fakeCard = { type: 'monster', val: k.val, suit: k.suit, isRed: (k.suit === '♥' || k.suit === '♦'), _originalVal: k.originalVal || k.val, isBoss: !!k.isBoss, bossArtId: k.bossArtId || null };
+      const fakeCard = { type: 'monster', val: k.val, suit: k.suit, isRed: (k.suit === '♥' || k.suit === '♦'), _originalVal: k.originalVal || k.val };
       const artUrl = getCardArtUrl(fakeCard);
       if (artUrl && _validCardArt[artUrl]) {
         const titleUrl = getCardTitleImageUrl(fakeCard);
@@ -8932,10 +8756,6 @@ function previewHpBar() {
   const potionLimit = hasPassive('Blessed Hands') ? 2 : 1;
   let simShielded = state.shielded;
 
-  // BOSS_FIGHT_V2: simulate boss HP too so we can preview over-block damage
-  const bossPreviewActive = BOSS_FIGHT_V2 && !!endless.currentBoss && (state.bossMaxHp || 0) > 0;
-  let simBossHp = state.bossHp || 0;
-
   state.selected.forEach(handIdx => {
     const card = state.hand[handIdx];
     if (!card) return;
@@ -8961,7 +8781,6 @@ function previewHpBar() {
       const clubAutoBypass = endless.active && endless.level >= 10 && card.suit === '♣' && !isBypassed;
 
       if (simTrap && !simTrap.trapped && !isBypassed && !clubAutoBypass) {
-        // Trap capture (works the same for monsters and bosses)
         simTrap = { isTrap: true, val: nv, trapped: { val: card.val, suit: card.suit } };
         simWeaponVal = nv;
         return;
@@ -8978,34 +8797,6 @@ function previewHpBar() {
         weaponBlocked = simWeaponVal > 0 && lastKill > 0 && nv >= lastKill;
       }
       const weaponActive = (simWeaponVal > 0 || trapActive) && !weaponBlocked && !isBypassed && !clubAutoBypass;
-
-      // BOSS_FIGHT_V2: boss cards use over/perfect/under-block math
-      if (bossPreviewActive && card.isBoss) {
-        if (weaponActive) {
-          if (simWeaponVal > nv) {
-            // Over-block: excess → boss HP
-            const excess = simWeaponVal - nv;
-            simBossHp = Math.max(0, simBossHp - excess);
-          } else if (simWeaponVal === nv) {
-            // Perfect block: 0 to both
-          } else {
-            // Under-block: player takes difference
-            let dmg = nv - simWeaponVal;
-            if (dmg > 0 && simShielded) { dmg = 0; simShielded = false; }
-            netDmg += dmg;
-          }
-          // Match real resolver: any weapon-active boss kill advances the chain
-          simKills.push({ val: card.val, suit: card.suit, effectiveVal: nv });
-        } else {
-          // Bypass / no weapon / chain broken: full damage to player, boss untouched
-          let dmg = nv;
-          if (dmg > 0 && simShielded) { dmg = 0; simShielded = false; }
-          netDmg += dmg;
-        }
-        return;
-      }
-
-      // Regular (non-boss) monster path
       let dmg = weaponActive ? Math.max(0, nv - simWeaponVal) : nv;
       // Shield absorbs first hit
       if (dmg > 0 && simShielded) {
@@ -9051,29 +8842,6 @@ function previewHpBar() {
   } else {
     redFill.style.width = currentPct + '%';
     healEl.style.width  = '0%';
-  }
-
-  // BOSS_FIGHT_V2: push boss HP preview to the DOM
-  if (bossPreviewActive) {
-    const bossFill    = document.getElementById('bossHpFill');
-    const bossPreview = document.getElementById('bossHpPreviewDmg');
-    const bossLabel   = document.getElementById('bossHpLabel');
-    if (bossFill && bossPreview && bossLabel) {
-      const maxHp       = Math.max(1, state.bossMaxHp || 0);
-      const curHp       = Math.max(0, Math.min(state.bossHp || 0, maxHp));
-      const projBossHp  = Math.max(0, Math.min(simBossHp, maxHp));
-      const curBossPct  = (curHp / maxHp) * 100;
-      const projBossPct = (projBossHp / maxHp) * 100;
-      // Red fill retreats to projected HP; gold ghost stays at current HP,
-      // so the gap on the right edge is the incoming damage.
-      bossPreview.style.width = curBossPct + '%';
-      bossFill.style.width    = projBossPct + '%';
-      if (projBossHp < curHp) {
-        bossLabel.textContent = `${curHp} → ${projBossHp} / ${maxHp}`;
-      } else {
-        bossLabel.textContent = `${curHp} / ${maxHp}`;
-      }
-    }
   }
 }
 
@@ -9259,171 +9027,6 @@ function resolveRoom() {
       continue;
     }
     if (card.type === 'monster') {
-      // ─────────────────────────────────────
-      // BOSS_FIGHT_V2: boss card resolution (runs first if card.isBoss)
-      // Over-block (weapon > val): excess → boss HP. Player takes 0.
-      // Perfect block (weapon == val): 0 to both.
-      // Under-block (weapon < val): player takes diff. Boss HP unchanged.
-      // Bypass / no weapon / chain broken: full player damage, no boss damage.
-      // Weapon chain: boss cards do NOT push onto weaponKills except on the killing blow.
-      // ─────────────────────────────────────
-      if (card.isBoss) {
-        // Naktuk's Invulnerable: no player damage, no boss damage (can't fight back)
-        if (hasPassive('Invulnerable')) {
-          state.stats.slain++;
-          addLog(`Lv.${nv} Boss — you are invulnerable. No damage taken.`, 'gold');
-          state.discard.push(card);
-          if (state.player.hp <= 0 && !phoenixActive) { diedMidResolution = true; break; }
-          continue;
-        }
-
-        const w = state.player.weapon;
-        const weaponVal = Math.max(0, w.val - (w.isDulled ? 1 : 0));
-        const isTrapEquipped = w.isTrap;
-        const lastKill = state.weaponKills.length > 0
-          ? state.weaponKills[state.weaponKills.length - 1].effectiveVal
-          : 0;
-
-        if (isBypassed) state.directBypassCount++;
-
-        const isClub = card.suit === '♣';
-        const clubAutoBypass = endless.active && endless.level >= 10 && isClub && !isBypassed;
-
-        let weaponBlocked;
-        if (hasPassive('Escalating Valor') && !hasPassive('En Garde')) {
-          weaponBlocked = weaponVal > 0 && lastKill > 0 && nv <= lastKill;
-        } else if (hasPassive('En Garde')) {
-          weaponBlocked = weaponVal > 0 && lastKill > 0 && nv > lastKill;
-        } else {
-          weaponBlocked = weaponVal > 0 && lastKill > 0 && nv >= lastKill;
-        }
-
-        const trapReadyToCapture  = isTrapEquipped && !w.trapped && !isBypassed && !clubAutoBypass;
-        const trapWeaponActive    = isTrapEquipped && w.trapped && !weaponBlocked && !isBypassed && !clubAutoBypass;
-        const normalWeaponActive  = !isTrapEquipped && weaponVal > 0 && !weaponBlocked && !isBypassed && !clubAutoBypass;
-        const weaponActive        = normalWeaponActive || trapWeaponActive;
-
-        // Trap capture: Ashton's Monster Trap captures boss cards too
-        if (trapReadyToCapture) {
-          state.player.weapon = { name: `Trapped ${card.val}${card.suit}`, val: nv, isTrap: true, trapped: { val: card.val, suit: card.suit, isBoss: true, bossArtId: card.bossArtId } };
-          updateWeaponBar();
-          addLog(`Lv.${nv} Boss captured by Monster Trap! Now fighting for you.`, 'gold');
-          sfxQueue.push({ fn: () => { playControlScrollSE(); flashGoldSlash(); triggerScreenShake(); } });
-          state.discard.push(card);
-          if (state.player.hp <= 0 && !phoenixActive) { diedMidResolution = true; break; }
-          continue;
-        }
-
-        let dmg = 0;
-
-        if (weaponActive) {
-          if (weaponVal > nv) {
-            // Over-block: excess → boss HP
-            const excess   = weaponVal - nv;
-            const hpBefore = state.bossHp;
-            const bossDmg  = Math.min(excess, hpBefore);
-            state.bossHp   = Math.max(0, hpBefore - excess);
-            state.bossDamageDealt += bossDmg;
-            updateBossHpBar(bossDmg > 0);
-            dmg = 0;
-            state.stats.slain++;
-            if (state.bossHp === 0) {
-              addLog(`⚔ Lv.${nv} Boss — over-blocked for ${excess}, ${bossDmg} to boss — BOSS DEFEATED!`, 'gold');
-            } else {
-              addLog(`Lv.${nv} Boss — over-blocked for ${excess}, ${bossDmg} to boss (${state.bossHp} HP left).`, 'gold');
-            }
-            sfxQueue.push({ fn: () => { (state.player.weapon && state.player.weapon.isBoomerang ? playBoomerangSE : playBlockSE)(); flashGoldSlash(); triggerScreenShake(); } });
-          } else if (weaponVal === nv) {
-            // Perfect block
-            dmg = 0;
-            state.stats.slain++;
-            addLog(`Lv.${nv} Boss — perfect block! 0 damage to both.`, 'gold');
-            sfxQueue.push({ fn: () => { (state.player.weapon && state.player.weapon.isBoomerang ? playBoomerangSE : playBlockSE)(); flashGoldSlash(); triggerScreenShake(); } });
-          } else {
-            // Under-block: player takes the difference
-            dmg = nv - weaponVal;
-            if (dmg > 0 && state.shielded) {
-              dmg = 0;
-              consumeShield();
-            }
-            state.player.hp = phoenixActive ? state.player.hp - dmg : Math.max(0, state.player.hp - dmg);
-            state.stats.slain++;
-            addLog(`Lv.${nv} Boss — weapon blocked ${weaponVal} dmg, took ${dmg}.`, 'danger');
-            sfxQueue.push({ fn: () => { playPartialBlockSE(); flashPartialSlash(); triggerScreenShake(); } });
-          }
-          // Boss kill counts toward the weapon chain on any weapon-active resolution,
-          // matching how regular monsters work — over-block, perfect, and under-block
-          // all push so the chain reflects accumulated boss kills during the fight.
-          state.weaponKills.push({ val: card.val, suit: card.suit, effectiveVal: nv, originalVal: card._originalVal || card.val, isBoss: true, bossArtId: card.bossArtId });
-          updateWeaponBar();
-          // Corrosive: the weapon that was actually used corrodes
-          if (card.isCorrosive) {
-            corrosiveHitWeapon = state.player.weapon;
-            addLog(`🧪 Corrosive! Your weapon will corrode after this room.`, 'danger');
-          }
-        } else {
-          // Full damage to player — bypass, no weapon, chain broken, or club auto-bypass
-          dmg = nv;
-          if (dmg > 0 && state.shielded) {
-            dmg = 0;
-            consumeShield();
-          }
-          state.player.hp = phoenixActive ? state.player.hp - dmg : Math.max(0, state.player.hp - dmg);
-          state.stats.slain++;
-          if (clubAutoBypass) {
-            addLog(`Lv.${nv} Boss — cursed! Bypasses all weapons. Took ${dmg} damage.`, 'danger');
-          } else if (isBypassed) {
-            addLog(`Lv.${nv} Boss — weapon ignored, took ${dmg} damage.`, 'danger');
-            state.stats.unblockedDmgRun = (state.stats.unblockedDmgRun || 0) + dmg;
-          } else if (weaponBlocked) {
-            const reason = hasPassive('Escalating Valor')
-              ? `needs boss > ${state.weaponKills[state.weaponKills.length-1].effectiveVal}`
-              : `≥ last kill ${state.weaponKills[state.weaponKills.length-1].effectiveVal}`;
-            addLog(`Lv.${nv} Boss — weapon ineffective (${reason}), took ${dmg} damage.`, 'danger');
-          } else {
-            addLog(`Lv.${nv} Boss — no weapon, took ${dmg} damage.`, 'danger');
-          }
-          sfxQueue.push({ fn: () => { playHitSE(); flashDamageSlash(); triggerScreenShake(); } });
-        }
-
-        // Shared tag/mechanic effects for damage actually taken by player
-        if (dmg > 0) {
-          // Endless Level 5+: Spade-suit damage permanently reduces Max HP
-          if (endless.active && endless.level >= 5 && card.suit === '♠') {
-            const maxHpReduction = Math.max(0, nv - weaponVal);
-            if (maxHpReduction > 0) {
-              state.player.maxHp = Math.max(1, state.player.maxHp - maxHpReduction);
-              state.player.hp    = Math.min(state.player.hp, state.player.maxHp);
-              updateHpBar();
-              addLog(`☠ Max HP reduced by ${maxHpReduction} → now ${state.player.maxHp}`, 'danger');
-            }
-          }
-          // Soul Rend — 2–4 value boss cards drain Max HP when dealing damage
-          if (endless.activeTags && endless.activeTags.some(t => t.id === 'spade_drain')
-              && numericValue(card.val) >= 2 && numericValue(card.val) <= 4) {
-            state.player.maxHp = Math.max(1, state.player.maxHp - dmg);
-            state.player.hp    = Math.min(state.player.hp, state.player.maxHp);
-            updateHpBar();
-            addLog(`💀 Soul Rend — Max HP reduced by ${dmg} → now ${state.player.maxHp}`, 'danger');
-          }
-          // Virulent — 2–4 value boss cards poison on unblocked hit
-          if (endless.activeTags && endless.activeTags.some(t => t.id === 'poison')
-              && numericValue(card.val) >= 2 && numericValue(card.val) <= 4
-              && !weaponActive && !endless.poisoned) {
-            endless.poisoned = true;
-            document.body.classList.add('is-poisoned');
-            addLog('☠ Poisoned! 1 damage per room resolved until cured.', 'danger');
-          }
-        }
-
-        state.discard.push(card);
-        if (state.player.hp <= 0 && !phoenixActive) { diedMidResolution = true; break; }
-        if (state.player.hp <= 0 && phoenixActive) { state._phoenixTriggered = true; }
-        continue;
-      }
-      // ─────────────────────────────────────
-      // Regular monster resolution (non-boss)
-      // ─────────────────────────────────────
       // Naktuk's Invulnerable: no monster damage
       if (hasPassive('Invulnerable')) {
         state.stats.slain++;
@@ -9535,14 +9138,6 @@ function resolveRoom() {
             updateHpBar();
             addLog(`☠ Max HP reduced by ${maxHpReduction} → now ${state.player.maxHp}`, 'danger');
           }
-        }
-        // Boss tag: Soul Rend — Monsters 2–4 drain max HP when they deal damage
-        if (endless.activeTags && endless.activeTags.some(t => t.id === 'spade_drain')
-            && card.type === 'monster' && numericValue(card.val) >= 2 && numericValue(card.val) <= 4 && dmg > 0) {
-          state.player.maxHp = Math.max(1, state.player.maxHp - dmg);
-          state.player.hp    = Math.min(state.player.hp, state.player.maxHp);
-          updateHpBar();
-          addLog(`💀 Soul Rend — Max HP reduced by ${dmg} → now ${state.player.maxHp}`, 'danger');
         }
         // Boss tag: Virulent — Monsters 2–4 poison on unblocked hit
         if (endless.activeTags && endless.activeTags.some(t => t.id === 'poison')
@@ -9690,22 +9285,9 @@ function resolveRoom() {
     return;
   }
 
-  // BOSS_FIGHT_V2: boss defeated (HP = 0, player alive) → immediate victory.
-  // This wins even if the deck still has cards — kill = end of fight.
-  if (BOSS_FIGHT_V2 && endless.currentBoss && state.bossHp === 0 && state.player.hp > 0) {
-    addLog(`🏆 Boss defeated!`, 'gold');
-    setTimeout(() => showVictory(), 600);
-    return;
-  }
-
   // Victory: all cards have been dealt and this was the last room to resolve
   // (deck empty, and either no carry-over card OR hand was already partial)
   if (state.deck.length === 0 && (carryOver === null || state.hand.length < roomSize())) {
-    // BOSS_FIGHT_V2: if the deck emptied while the boss is still alive, the
-    // player wins anyway (stated design — may change later).
-    if (BOSS_FIGHT_V2 && endless.currentBoss && state.bossHp > 0) {
-      addLog(`The deck runs dry. The boss survives — but you escape with your life.`, 'gold');
-    }
     setTimeout(() => showVictory(), 600);
     return;
   }
@@ -9776,13 +9358,6 @@ function recordUnblockedDamage() {
 // ─────────────────────────────────────
 
 const BOSS_TAGS = [
-  {
-    id: 'spade_drain',
-    icon: '💀',
-    name: 'Soul Rend',
-    color: '#ff4040',
-    desc: 'Monsters valued 2–4, when dealing damage, permanently reduce your Max HP by the amount dealt.',
-  },
   {
     id: 'poison',
     icon: '☠',
@@ -9860,8 +9435,13 @@ const BOSS_TAGS = [
     color: '#60c040',
     desc: 'When you skip a room, all monsters in that room gain +1 to their value. Stacks with repeated skips.',
   },
-  // Note: Cutpurse tag was removed in v18 — its effect now lives on the Guttersnipe boss.
-  // The 'cutpurse' id is still recognised by itemsDisabled() so old saves don't crash.
+  {
+    id: 'cutpurse',
+    icon: '🔒',
+    name: 'Cutpurse',
+    color: '#d0a030',
+    desc: 'All items are disabled for this level. You cannot use Crystal Balls, Warp Scrolls, Cursed Charms, Wands, Flasks, Shields, or Luck Charms.',
+  },
 ];
 
 // Returns the monster value bonus from active boss tags
@@ -9877,11 +9457,7 @@ function bossTagWeaponPenalty() {
 }
 
 function itemsDisabled() {
-  if (!endless.active) return false;
-  // Guttersnipe boss disables items as his passive
-  if (endless.currentBoss && endless.currentBoss.id === 'guttersnipe') return true;
-  // Legacy: cutpurse tag (removed in v18, but recognise it for old saves)
-  return endless.activeTags && endless.activeTags.some(t => t.id === 'cutpurse');
+  return endless.active && endless.activeTags && endless.activeTags.some(t => t.id === 'cutpurse');
 }
 
 // Returns room size delta from tags
@@ -10019,120 +9595,30 @@ function curePoison() {
   addLog('Poison cured by the potion.', 'gold');
 }
 
-// ─────────────────────────────────────
-// BOSS_FIGHT_V2: transform a boss's monster deck into a "boss card" deck.
-// Each monster card gets marked with isBoss: true. We deliberately keep
-// type: 'monster' so every existing renderer, filter, tag visual, tutorial
-// check, and discard-view path Just Works. The combat resolver checks
-// card.isBoss first and branches to the boss-specific math.
-// Potions, weapons, kegs, and traps are untouched.
-// ─────────────────────────────────────
-function convertDeckToBossV2(deck) {
-  const artId = (endless.currentBoss && endless.currentBoss.artId) || null;
-  return deck.map(card => {
-    if (card.type !== 'monster') return card;
-    return { ...card, isBoss: true, bossArtId: artId };
-  });
-}
-
-// BOSS_FIGHT_V2: one-call setup used by every boss-fight entry point.
-// Converts the freshly-built boss deck, initialises boss HP, and shows the HP bar.
-// When the flag is off, clears any leftover V2 state instead so revert is clean.
-// Returns the (possibly converted) deck so callers can assign it back.
-function applyBossFightV2Setup(deck) {
-  if (BOSS_FIGHT_V2) {
-    const converted = convertDeckToBossV2(deck);
-    state.bossMaxHp       = 20;
-    state.bossHp          = 20;
-    state.bossDamageDealt = 0;
-    document.body.classList.add('boss-fight-v2');
-    updateBossHpBar(false);
-    return converted;
-  }
-  state.bossHp          = 0;
-  state.bossMaxHp       = 0;
-  state.bossDamageDealt = 0;
-  document.body.classList.remove('boss-fight-v2');
-  return deck;
-}
-
-// BOSS_FIGHT_V2: clear boss-fight-v2 class and zero HP state. Called when
-// leaving or not entering a boss fight (non-boss endless level, defeated, etc.)
-function clearBossFightV2State() {
-  state.bossHp          = 0;
-  state.bossMaxHp       = 0;
-  state.bossDamageDealt = 0;
-  document.body.classList.remove('boss-fight-v2');
-}
-
-// BOSS_FIGHT_V2: update boss HP bar UI. Call after any change to state.bossHp.
-// `animateDamage` = true plays a brief flash on the fill.
-// This also resets any active damage preview (preview is driven separately
-// by previewBossHpBar / previewHpBar during card selection).
-function updateBossHpBar(animateDamage) {
-  const wrap    = document.getElementById('bossHpWrap');
-  const fill    = document.getElementById('bossHpFill');
-  const preview = document.getElementById('bossHpPreviewDmg');
-  const label   = document.getElementById('bossHpLabel');
-  if (!wrap || !fill || !label) return;
-  const maxHp = Math.max(1, state.bossMaxHp || 0);
-  const hp    = Math.max(0, Math.min(state.bossHp || 0, maxHp));
-  const pct   = (hp / maxHp) * 100;
-  fill.style.width = pct + '%';
-  // The gold "about to take damage" ghost always sits at current HP width,
-  // so when previewBossHpBar shrinks the red fill, the ghost is revealed.
-  // On a direct HP update (damage landed), we also collapse it to current.
-  if (preview) preview.style.width = pct + '%';
-  label.textContent = `${hp} / ${maxHp}`;
-  fill.classList.toggle('low', hp > 0 && hp / maxHp <= 0.25);
-  if (animateDamage) {
-    fill.classList.remove('damaged');
-    void fill.offsetWidth; // reflow to restart animation
-    fill.classList.add('damaged');
-  }
-
-  // Render notches — shares the player's #hpNotchToggle setting
-  const notchEl = document.getElementById('bossHpNotches');
-  if (!notchEl) return;
-  const toggle = document.getElementById('hpNotchToggle');
-  const showNotches = toggle && toggle.classList.contains('on');
-  if (!showNotches || maxHp <= 1) {
-    notchEl.innerHTML = '';
-    return;
-  }
-  let html = '';
-  for (let i = 1; i < maxHp; i++) {
-    const left = (i / maxHp) * 100;
-    html += `<div class="boss-hp-notch" style="left:${left}%"></div>`;
-  }
-  notchEl.innerHTML = html;
-}
-
 const BOSSES = [
   {
     id: 'the_curator',
-    artId: 'curator',
     name: 'The Curator',
     passive: 'Discard — If the unselected (carry-over) card is red, it is discarded instead of carried over.',
-    // Boss deck: ♠/♣ 2–11, ♥ 2–9, ♦ 2–9
+    // Boss deck: ♥/♦ 2–7, ♠/♣ 2–8
     buildDeck(isMilo, isSerena, isAshton, isGobbo) {
       const deck = [];
-      // Monsters: ♠ and ♣ 2–11
+      // Monsters: ♠ and ♣ 2–8
       ['♠','♣'].forEach(sym => {
-        for (let v = 2; v <= 11; v++) {
+        for (let v = 2; v <= 8; v++) {
           deck.push({ suit: sym, val: String(v), isRed: false, type: 'monster' });
         }
       });
-      // Potions: ♥ 2–9
-      for (let v = 2; v <= 9; v++) {
+      // Potions: ♥ 2–7
+      for (let v = 2; v <= 7; v++) {
         deck.push({ suit: '♥', val: String(v), isRed: true, type: 'potion' });
       }
-      // Weapons: ♦ 2–9 (skip if Ashton, unless Milo)
+      // Weapons: ♦ 2–7 (skip if Ashton, unless Milo)
       if (!isAshton || isMilo) {
         if (isMilo && isAshton) {
           deck.push({ suit: '♦', val: 'K', isRed: true, type: 'weapon' });
         } else if (!isAshton) {
-          for (let v = 2; v <= 9; v++) {
+          for (let v = 2; v <= 7; v++) {
             deck.push({ suit: '♦', val: String(v), isRed: true, type: 'weapon' });
           }
         }
@@ -10163,24 +9649,23 @@ const BOSSES = [
   },
   {
     id: 'the_veiled_one',
-    artId: 'veiled_one',
     name: 'The Veiled One',
     passive: 'The Veil — Every 3rd room (3, 6, 9...) all cards except the carry-over are flipped face-down. Only their suit is visible. The veil lifts when you confirm.',
     buildDeck(isMilo, isSerena, isAshton, isGobbo) {
       const deck = [];
       ['♠','♣'].forEach(sym => {
-        for (let v = 2; v <= 11; v++) {
+        for (let v = 2; v <= 8; v++) {
           deck.push({ suit: sym, val: String(v), isRed: false, type: 'monster' });
         }
       });
-      for (let v = 2; v <= 9; v++) {
+      for (let v = 2; v <= 7; v++) {
         deck.push({ suit: '♥', val: String(v), isRed: true, type: 'potion' });
       }
       if (!isAshton || isMilo) {
         if (isMilo && isAshton) {
           deck.push({ suit: '♦', val: 'K', isRed: true, type: 'weapon' });
         } else if (!isAshton) {
-          for (let v = 2; v <= 9; v++) {
+          for (let v = 2; v <= 7; v++) {
             deck.push({ suit: '♦', val: String(v), isRed: true, type: 'weapon' });
           }
         }
@@ -10202,27 +9687,26 @@ const BOSSES = [
   },
   {
     id: 'krell_the_grenadier',
-    artId: 'krell',
     name: 'Krell the Grenadier',
     passive: 'Bombardment — 2 Powder Kegs are shuffled into the boss deck. When a Keg enters a room, it explodes and destroys all cards.',
     buildDeck(isMilo, isSerena, isAshton, isGobbo) {
       const deck = [];
-      // Monsters: ♠ and ♣ 2–11
+      // Monsters: ♠ and ♣ 2–8
       ['♠','♣'].forEach(sym => {
-        for (let v = 2; v <= 11; v++) {
+        for (let v = 2; v <= 8; v++) {
           deck.push({ suit: sym, val: String(v), isRed: false, type: 'monster' });
         }
       });
-      // Potions: ♥ 2–9
-      for (let v = 2; v <= 9; v++) {
+      // Potions: ♥ 2–7
+      for (let v = 2; v <= 7; v++) {
         deck.push({ suit: '♥', val: String(v), isRed: true, type: 'potion' });
       }
-      // Weapons: ♦ 2–9
+      // Weapons: ♦ 2–7
       if (!isAshton || isMilo) {
         if (isMilo && isAshton) {
           deck.push({ suit: '♦', val: 'K', isRed: true, type: 'weapon' });
         } else if (!isAshton) {
-          for (let v = 2; v <= 9; v++) {
+          for (let v = 2; v <= 7; v++) {
             deck.push({ suit: '♦', val: String(v), isRed: true, type: 'weapon' });
           }
         }
@@ -10251,24 +9735,23 @@ const BOSSES = [
   },
   {
     name: 'The Necromancer',
-    artId: 'necromancer',
     emoji: '💀',
     passive: 'Every 4 rooms, the 2 lowest-value monsters from the discard pile are resurrected back into the deck.',
     buildDeck(isMilo, isSerena, isAshton, isGobbo) {
       const deck = [];
       ['♠','♣'].forEach(sym => {
-        for (let v = 2; v <= 11; v++) {
+        for (let v = 2; v <= 8; v++) {
           deck.push({ suit: sym, val: String(v), isRed: false, type: 'monster' });
         }
       });
-      for (let v = 2; v <= 9; v++) {
+      for (let v = 2; v <= 7; v++) {
         deck.push({ suit: '♥', val: String(v), isRed: true, type: 'potion' });
       }
       if (!isAshton || isMilo) {
         if (isMilo && isAshton) {
           deck.push({ suit: '♦', val: 'K', isRed: true, type: 'weapon' });
         } else if (!isAshton) {
-          for (let v = 2; v <= 9; v++) {
+          for (let v = 2; v <= 7; v++) {
             deck.push({ suit: '♦', val: String(v), isRed: true, type: 'weapon' });
           }
         }
@@ -10290,24 +9773,23 @@ const BOSSES = [
   },
   {
     name: 'The Dark Brain',
-    artId: 'dark_brain',
     emoji: '🧠',
     passive: 'Your character\'s passive ability is nullified for this fight. You face the darkness with no special powers.',
     buildDeck(isMilo, isSerena, isAshton, isGobbo) {
       const deck = [];
       ['♠','♣'].forEach(sym => {
-        for (let v = 2; v <= 11; v++) {
+        for (let v = 2; v <= 8; v++) {
           deck.push({ suit: sym, val: String(v), isRed: false, type: 'monster' });
         }
       });
-      for (let v = 2; v <= 9; v++) {
+      for (let v = 2; v <= 7; v++) {
         deck.push({ suit: '♥', val: String(v), isRed: true, type: 'potion' });
       }
       if (!isAshton || isMilo) {
         if (isMilo && isAshton) {
           deck.push({ suit: '♦', val: 'K', isRed: true, type: 'weapon' });
         } else if (!isAshton) {
-          for (let v = 2; v <= 9; v++) {
+          for (let v = 2; v <= 7; v++) {
             deck.push({ suit: '♦', val: String(v), isRed: true, type: 'weapon' });
           }
         }
@@ -10329,7 +9811,6 @@ const BOSSES = [
   },
   {
     name: 'Zombie Horde',
-    artId: 'zombie_horde',
     emoji: '🧟',
     passive: 'The hoard swarms with low-value undead. Monsters are all 3s, 4s, 5s, and a pair of 6s — relentless but individually weak.',
     buildDeck(isMilo, isSerena, isAshton, isGobbo) {
@@ -10340,16 +9821,16 @@ const BOSSES = [
       monsterVals.forEach((v, i) => {
         deck.push({ suit: suits[i % 2], val: String(v), isRed: false, type: 'monster' });
       });
-      // Potions: ♥ 2–9
-      for (let v = 2; v <= 9; v++) {
+      // Potions: ♥ 2–7
+      for (let v = 2; v <= 7; v++) {
         deck.push({ suit: '♥', val: String(v), isRed: true, type: 'potion' });
       }
-      // Weapons: ♦ 2–9
+      // Weapons: ♦ 2–7
       if (!isAshton || isMilo) {
         if (isMilo && isAshton) {
           deck.push({ suit: '♦', val: 'K', isRed: true, type: 'weapon' });
         } else if (!isAshton) {
-          for (let v = 2; v <= 9; v++) {
+          for (let v = 2; v <= 7; v++) {
             deck.push({ suit: '♦', val: String(v), isRed: true, type: 'weapon' });
           }
         }
@@ -10367,104 +9848,6 @@ const BOSSES = [
       return deck;
     },
     applyCarryOverPassive(carryOver) {
-      return carryOver;
-    }
-  },
-  {
-    id: 'guttersnipe',
-    artId: 'guttersnipe',
-    name: 'Guttersnipe',
-    passive: 'Pickpocket — All items are disabled for this fight. You cannot use Crystal Balls, Warp Scrolls, Cursed Charms, Wands, Flasks, Shields, or Luck Charms.',
-    buildDeck(isMilo, isSerena, isAshton, isGobbo) {
-      const deck = [];
-      // Standard expanded boss deck: ♠/♣ 2–11, ♥ 2–9, ♦ 2–9
-      ['♠','♣'].forEach(sym => {
-        for (let v = 2; v <= 11; v++) {
-          deck.push({ suit: sym, val: String(v), isRed: false, type: 'monster' });
-        }
-      });
-      for (let v = 2; v <= 9; v++) {
-        deck.push({ suit: '♥', val: String(v), isRed: true, type: 'potion' });
-      }
-      if (!isAshton || isMilo) {
-        if (isMilo && isAshton) {
-          deck.push({ suit: '♦', val: 'K', isRed: true, type: 'weapon' });
-        } else if (!isAshton) {
-          for (let v = 2; v <= 9; v++) {
-            deck.push({ suit: '♦', val: String(v), isRed: true, type: 'weapon' });
-          }
-        }
-      }
-      if (isAshton) {
-        for (let i = 0; i < 3; i++) {
-          deck.push({ suit: 'trap', val: 'T', isRed: false, type: 'weapon', isTrap: true });
-        }
-      }
-      for (let i = deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [deck[i], deck[j]] = [deck[j], deck[i]];
-      }
-      return deck;
-    },
-    applyCarryOverPassive(carryOver) {
-      return carryOver;
-    }
-  },
-  {
-    id: 'sargius',
-    artId: 'sargius',
-    name: 'Sargius, Eternal Thirst',
-    emoji: '🩸',
-    passive: 'Drain — If the unselected (carry-over) card is a potion, Sargius consumes it and heals for its value.',
-    buildDeck(isMilo, isSerena, isAshton, isGobbo) {
-      const deck = [];
-      // Standard expanded boss deck: ♠/♣ 2–11, ♥ 2–9, ♦ 2–9
-      ['♠','♣'].forEach(sym => {
-        for (let v = 2; v <= 11; v++) {
-          deck.push({ suit: sym, val: String(v), isRed: false, type: 'monster' });
-        }
-      });
-      for (let v = 2; v <= 9; v++) {
-        deck.push({ suit: '♥', val: String(v), isRed: true, type: 'potion' });
-      }
-      if (!isAshton || isMilo) {
-        if (isMilo && isAshton) {
-          deck.push({ suit: '♦', val: 'K', isRed: true, type: 'weapon' });
-        } else if (!isAshton) {
-          for (let v = 2; v <= 9; v++) {
-            deck.push({ suit: '♦', val: String(v), isRed: true, type: 'weapon' });
-          }
-        }
-      }
-      if (isAshton) {
-        for (let i = 0; i < 3; i++) {
-          deck.push({ suit: 'trap', val: 'T', isRed: false, type: 'weapon', isTrap: true });
-        }
-      }
-      for (let i = deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [deck[i], deck[j]] = [deck[j], deck[i]];
-      }
-      return deck;
-    },
-    applyCarryOverPassive(carryOver) {
-      if (!carryOver) return null;
-      if (carryOver.type === 'potion') {
-        const healVal = numericValue(carryOver.val);
-        addLog(`🩸 Sargius consumes the Lv.${healVal} Potion (${carryOver.val}${carryOver.suit})!`, 'danger');
-        // BOSS_FIGHT_V2: heal the boss's HP pool, capped at max
-        if (BOSS_FIGHT_V2 && (state.bossMaxHp || 0) > 0) {
-          const before = state.bossHp;
-          state.bossHp = Math.min(state.bossMaxHp, state.bossHp + healVal);
-          const healed = state.bossHp - before;
-          if (healed > 0) {
-            addLog(`🩸 Sargius heals ${healed} HP → ${state.bossHp} / ${state.bossMaxHp}`, 'danger');
-            updateBossHpBar(false);
-          }
-        }
-        state.discard.push(carryOver);
-        return null; // consumed — no carry-over
-      }
       return carryOver;
     }
   }
@@ -10499,9 +9882,6 @@ function startBossFight() {
 
   // Reset game state for boss fight, unarmed
   state.deck   = boss.buildDeck(hasPassive('Escalating Valor'), hasPassive('Blessed Hands'), hasPassive('Monster Trap'), hasPassive('Powder Keg'));
-
-  // BOSS_FIGHT_V2: convert monster cards → boss cards, init boss HP, show HP bar
-  state.deck = applyBossFightV2Setup(state.deck);
 
   // Explosive tag: add 1 Powder Keg and reshuffle
   if (endless.activeTags && endless.activeTags.some(t => t.id === 'explosive')) {
@@ -10570,7 +9950,6 @@ function startBossFight() {
 function endBossFight() {
   document.body.classList.remove('is-boss');
   document.body.classList.remove('boss-passive-visible');
-  document.body.classList.remove('boss-fight-v2');
   endless.currentBoss = null;
   endless.activeTags  = [];
   endless.deceptiveFakes = [];
@@ -10587,24 +9966,6 @@ function showBossReward() {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('boss-reward').classList.add('active');
   state.currentScreen = 'boss-reward';
-
-  // BOSS_FIGHT_V2: show damage-dealt-to-boss line if we have data.
-  // Falls back to hidden when flag is off or no boss-HP fight happened.
-  const dmgLine = document.getElementById('bossDamageDealtLine');
-  const dmgText = document.getElementById('bossDamageDealtText');
-  if (dmgLine && dmgText) {
-    if (BOSS_FIGHT_V2 && (state.bossMaxHp || 0) > 0) {
-      const dealt = state.bossDamageDealt || 0;
-      const max   = state.bossMaxHp || 0;
-      const survived = state.bossHp > 0;
-      dmgText.textContent = survived
-        ? `Damage dealt to boss: ${dealt} / ${max} (boss survived)`
-        : `Damage dealt to boss: ${dealt} / ${max}`;
-      dmgLine.style.display = 'block';
-    } else {
-      dmgLine.style.display = 'none';
-    }
-  }
 
   const container = document.getElementById('rewardCards');
   const rewards = generateRewards();
@@ -10974,7 +10335,7 @@ function acceptCharSwap() {
   endless.starterIdx = newIdx;
   state.selectedChar = newIdx;
 
-  // Reset to new character's base maxHp (clears elixir bonuses AND soul rend debuffs)
+  // Reset to new character's base maxHp (clears elixir bonuses AND tag debuffs)
   state.player.maxHp = newChar.maxHp;
   state.player.hp = Math.min(state.player.hp, state.player.maxHp);
 
@@ -11053,14 +10414,8 @@ function startNextEndlessLevel() {
       hasPassive('Escalating Valor'), hasPassive('Blessed Hands'),
       hasPassive('Monster Trap'), hasPassive('Powder Keg')
     );
-    // BOSS_FIGHT_V2: convert monster cards → boss cards, init boss HP, show HP bar.
-    // Done before tag-effect marking so corrosive/empowered/dulled still work — those
-    // filters match type:'monster', which we deliberately preserve on boss cards.
-    state.deck = applyBossFightV2Setup(state.deck);
   } else {
     state.deck = buildDeck();
-    // BOSS_FIGHT_V2: not a boss level — make sure any leftover V2 state is cleared.
-    clearBossFightV2State();
   }
 
   // Apply tag effects to deck
@@ -11316,7 +10671,6 @@ function endlessLevelComplete() {
   if (endless.currentBoss) {
     document.body.classList.remove('is-boss');
     document.body.classList.remove('boss-passive-visible');
-    document.body.classList.remove('boss-fight-v2');
     endless.currentBoss = null;
     document.querySelectorAll('.boss-tag-tooltip').forEach(t => t.remove());
     document.getElementById('bossTagRow').innerHTML = '';
@@ -11347,7 +10701,6 @@ function showEndlessDefeated() {
     endless.totalSlain += state.stats.slain;
     document.body.classList.remove('is-boss');
     document.body.classList.remove('boss-passive-visible');
-    document.body.classList.remove('boss-fight-v2');
     document.body.classList.remove('has-level-tags');
         document.body.classList.remove('items-disabled');
     endless.activeTags = [];
@@ -11443,7 +10796,7 @@ function updateCrystalBallUI() {
 }
 
 function useCrystalBall() {
-  if (itemsDisabled()) { addLog('🔒 Items are disabled this fight!', ''); return; }
+  if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
   if (!endless.crystalBalls || endless.crystalBalls <= 0) return;
   logGameEvent('item_used', { item: 'crystal_ball', level: endless.level });
   const peek = state.deck.slice(-3).reverse(); // deck is a stack, last = top
@@ -11543,7 +10896,7 @@ function updateWarpScrollUI() {
 let _warpScrollPeek = []; // temp storage for the 2 peeked cards
 
 function useWarpScroll() {
-  if (itemsDisabled()) { addLog('🔒 Items are disabled this fight!', ''); return; }
+  if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
   if (!endless.warpScrolls || endless.warpScrolls <= 0) return;
   logGameEvent('item_used', { item: 'warp_scroll', level: endless.level });
 
@@ -11832,7 +11185,7 @@ function updateCursedCharmUI() {
 }
 
 function useCursedCharm() {
-  if (itemsDisabled()) { addLog('🔒 Items are disabled this fight!', ''); return; }
+  if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
   if (!endless.cursedCharms || endless.cursedCharms <= 0) return;
   if (state.cursedCharmActive) return; // already used this room
 
@@ -11885,7 +11238,7 @@ function updateTeleportWandUI() {
 }
 
 function useTeleportWand() {
-  if (itemsDisabled()) { addLog('🔒 Items are disabled this fight!', ''); return; }
+  if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
   if (!endless.teleportWands || endless.teleportWands <= 0) return;
   playTransitionSE();
   logGameEvent('item_used', { item: 'teleport_wand', level: endless.level });
@@ -11944,7 +11297,7 @@ function updateHolyFlaskUI() {
 }
 
 function useHolyFlask() {
-  if (itemsDisabled()) { addLog('🔒 Items are disabled this fight!', ''); return; }
+  if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
   if (!endless.holyFlasks || endless.holyFlasks <= 0) return;
   if (state.player.hp >= state.player.maxHp) {
     addLog('🧴 You are already at full health.', '');
@@ -11985,7 +11338,7 @@ function updateShieldCharmUI() {
 }
 
 function useShieldCharm() {
-  if (itemsDisabled()) { addLog('🔒 Items are disabled this fight!', ''); return; }
+  if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
   if (state.shielded) {
     addLog('🛡️ You are already shielded.', '');
     return;
@@ -12030,7 +11383,7 @@ function updateLuckCharmUI() {
 }
 
 function useLuckCharm() {
-  if (itemsDisabled()) { addLog('🔒 Items are disabled this fight!', ''); return; }
+  if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
   if (!endless.luckCharms || endless.luckCharms <= 0) return;
   if (state.hand.length <= 1) {
     addLog('🍀 Not enough cards in the room.', '');
@@ -12170,7 +11523,7 @@ function updateWhetstoneUI() {
 }
 
 function useWhetstone() {
-  if (itemsDisabled()) { addLog('🔒 Items are disabled this fight!', ''); return; }
+  if (itemsDisabled()) { addLog('🔒 Items are disabled by Cutpurse!', ''); return; }
   if (!endless.whetstones || endless.whetstones <= 0) return;
   if (!state.player.weapon || state.player.weapon.val <= 0) {
     addLog('🪨 No weapon equipped to sharpen.', '');
@@ -12675,6 +12028,7 @@ const TUTORIAL_STEPS = [
   { type:'text', msg:"Press Skip to avoid this room.", tap:true },
   { type:'force_btn', btn:'fleeBtn' },
   { type:'deal', roomIdx:2 },
+  { type:'text', msg:"Skipped rooms are placed on the bottom of the deck.", tap:true },
   { type:'text', msg:"You can't skip two rooms in a row.", tap:true },
   { type:'highlight_card', cardIdx:0, msg:'This is a Weapon.' },
   { type:'force_card', cardIdx:0, msg:'Select it to equip.' },
@@ -13026,10 +12380,6 @@ saveRun = function() {
     discardViewsThisRun: state.discardViewsThisRun || 0,
     _kegUsedThisLevel: state._kegUsedThisLevel || false,
     _kegNextRoomBigger: state._kegNextRoomBigger || false,
-    // BOSS_FIGHT_V2
-    bossHp: state.bossHp || 0,
-    bossMaxHp: state.bossMaxHp || 0,
-    bossDamageDealt: state.bossDamageDealt || 0,
   };
   try { localStorage.setItem(getSaveKey(), JSON.stringify(save)); }
   catch(e) { console.warn('Save failed:', e); }
@@ -13348,10 +12698,6 @@ function launchDebugBossFight() {
     hasPassive('Monster Trap'),
     hasPassive('Powder Keg')
   );
-
-  // BOSS_FIGHT_V2: convert monster cards → boss cards, init boss HP, show HP bar.
-  // Done before tag-effect marking so corrosive/empowered/dulled still apply.
-  state.deck = applyBossFightV2Setup(state.deck);
 
   // Explosive tag: add 1 Powder Keg and reshuffle
   if (endless.activeTags && endless.activeTags.some(t => t.id === 'explosive')) {
