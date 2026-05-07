@@ -48,7 +48,7 @@ if ('serviceWorker' in navigator) {
   }).catch(() => {});
 
   const swCode = `
-    const CACHE = 'deck-diver-v18';
+    const CACHE = 'deck-diver-v19';
     self.addEventListener('install', e => {
       e.waitUntil(
         caches.open(CACHE).then(cache =>
@@ -7029,10 +7029,14 @@ function continueGame() {
     endless.shieldCharms = save.endlessShieldCharms || 0;
     endless.luckCharms   = save.endlessLuckCharms || 0;
     endless.whetstones   = save.endlessWhetstones || 0;
-    endless.activeTags   = [];
+    endless.activeTags   = save.endlessActiveTags || [];
     endless.currentBoss  = null;
     document.body.classList.add('is-endless');
     if (endless.poisoned) document.body.classList.add('is-poisoned');
+    if (endless.activeTags.length > 0) {
+      document.body.classList.add('boss-passive-visible');
+      renderBossTagBadges();
+    }
     updatePartyBadge();
   }
 
@@ -12377,6 +12381,7 @@ saveRun = function() {
     endlessShieldCharms: endless.shieldCharms,
     endlessLuckCharms: endless.luckCharms,
     endlessWhetstones: endless.whetstones,
+    endlessActiveTags: endless.activeTags || [],
     discardViewsThisRun: state.discardViewsThisRun || 0,
     _kegUsedThisLevel: state._kegUsedThisLevel || false,
     _kegNextRoomBigger: state._kegNextRoomBigger || false,
