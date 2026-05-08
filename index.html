@@ -48,7 +48,7 @@ if ('serviceWorker' in navigator) {
   }).catch(() => {});
 
   const swCode = `
-    const CACHE = 'deck-diver-v19';
+    const CACHE = 'deck-diver-v20';
     self.addEventListener('install', e => {
       e.waitUntil(
         caches.open(CACHE).then(cache =>
@@ -4957,7 +4957,7 @@ if ('serviceWorker' in navigator) {
 <!-- ══════════════ HOME SCREEN ══════════════ -->
 <div class="screen" id="home">
   <!-- DEV VERSION INDICATOR: blue=v15, red=v16, green=v17, yellow=v18 -->
-  <div id="devVersionDot" style="position:absolute;top:10px;left:10px;width:16px;height:16px;background:#44cc44;z-index:50;border-radius:2px;opacity:0.8;"></div>
+  <div id="devVersionDot" style="position:absolute;top:10px;left:10px;width:16px;height:16px;background:#ff4444;z-index:50;border-radius:2px;opacity:0.8;"></div>
   <div class="home-bg-cards">
     <div class="bg-card"></div>
     <div class="bg-card"></div>
@@ -7556,6 +7556,11 @@ function startGame() {
     state.player.weapon = { name: 'Monster Trap', val: 0, isTrap: true, trapped: null };
   }
 
+  // Milo: mark starting weapon as ascending chain
+  if (hasPassive('Escalating Valor') && state.player.weapon) {
+    state.player.weapon.ascending = true;
+  }
+
   // Update player UI
   document.getElementById('playerPortrait').innerHTML = charLogoHtml(char, 60);
   document.getElementById('playerName').textContent = char.name;
@@ -8793,7 +8798,7 @@ function previewHpBar() {
       const trapActive = simTrap && simTrap.trapped && !isBypassed && !clubAutoBypass;
 
       let weaponBlocked;
-      if (hasPassive('Escalating Valor') && !hasPassive('En Garde')) {
+      if (p.weapon.ascending && !hasPassive('En Garde')) {
         weaponBlocked = simWeaponVal > 0 && lastKill > 0 && nv <= lastKill;
       } else if (hasPassive('En Garde')) {
         weaponBlocked = simWeaponVal > 0 && lastKill > 0 && nv > lastKill;
@@ -9057,7 +9062,7 @@ function resolveRoom() {
       const clubAutoBypass = endless.active && endless.level >= 10 && isClub && !isBypassed;
 
       let weaponBlocked;
-      if (hasPassive('Escalating Valor') && !hasPassive('En Garde')) {
+      if (w.ascending && !hasPassive('En Garde')) {
         // Milo only: weapon blocked if monster <= last kill
         weaponBlocked = weaponVal > 0 && lastKill > 0 && nv <= lastKill;
       } else if (hasPassive('En Garde')) {
@@ -9186,6 +9191,7 @@ function resolveRoom() {
         const wpn = { name: `Level ${numericValue(card.val)} Weapon`, val: numericValue(card.val) };
         if (card.isBoomerang) { wpn.isBoomerang = true; wpn.boomerangReturns = card.boomerangReturns ?? 1; }
         if (card.isDulled) wpn.isDulled = true;
+        if (hasPassive('Escalating Valor')) wpn.ascending = true;
         state.player.weapon = wpn;
         if (state.weaponKills.length > (state.stats.maxWeaponKillStreak || 0)) {
           state.stats.maxWeaponKillStreak = state.weaponKills.length;
