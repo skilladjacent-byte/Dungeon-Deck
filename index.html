@@ -48,7 +48,7 @@ if ('serviceWorker' in navigator) {
   }).catch(() => {});
 
   const swCode = `
-    const CACHE = 'deck-diver-v21';
+    const CACHE = 'deck-diver-v23';
     self.addEventListener('install', e => {
       e.waitUntil(
         caches.open(CACHE).then(cache =>
@@ -4957,7 +4957,7 @@ if ('serviceWorker' in navigator) {
 <!-- ══════════════ HOME SCREEN ══════════════ -->
 <div class="screen" id="home">
   <!-- DEV VERSION INDICATOR: blue=v15, red=v16, green=v17, yellow=v18 -->
-  <div id="devVersionDot" style="position:absolute;top:10px;left:10px;width:16px;height:16px;background:#44cc44;z-index:50;border-radius:2px;opacity:0.8;"></div>
+  <div id="devVersionDot" style="position:absolute;top:10px;left:10px;width:16px;height:16px;background:#4488ff;z-index:50;border-radius:2px;opacity:0.8;"></div>
   <div class="home-bg-cards">
     <div class="bg-card"></div>
     <div class="bg-card"></div>
@@ -7031,10 +7031,24 @@ function continueGame() {
     endless.whetstones   = save.endlessWhetstones || 0;
     endless.activeTags   = save.endlessActiveTags || [];
     endless.currentBoss  = null;
+    // Restore boss fight if saved during one
+    if (save.endlessCurrentBossName) {
+      const boss = BOSSES.find(b => b.name === save.endlessCurrentBossName);
+      if (boss) {
+        endless.currentBoss = boss;
+        document.body.classList.add('is-boss');
+        document.getElementById('bossBannerName').textContent = `⚔ ${boss.name}`;
+        document.getElementById('bossBannerPassive').textContent = boss.passive;
+        document.body.classList.toggle('items-disabled', itemsDisabled());
+        pauseMenuMusic();
+        playBossMusic();
+      }
+    }
     document.body.classList.add('is-endless');
     if (endless.poisoned) document.body.classList.add('is-poisoned');
     if (endless.activeTags.length > 0) {
       document.body.classList.add('boss-passive-visible');
+      document.body.classList.add('has-level-tags');
       renderBossTagBadges();
     }
     updatePartyBadge();
@@ -12408,6 +12422,7 @@ saveRun = function() {
     endlessLuckCharms: endless.luckCharms,
     endlessWhetstones: endless.whetstones,
     endlessActiveTags: endless.activeTags || [],
+    endlessCurrentBossName: endless.currentBoss ? endless.currentBoss.name : null,
     discardViewsThisRun: state.discardViewsThisRun || 0,
     _kegUsedThisLevel: state._kegUsedThisLevel || false,
     _kegNextRoomBigger: state._kegNextRoomBigger || false,
