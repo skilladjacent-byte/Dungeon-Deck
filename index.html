@@ -48,7 +48,7 @@ if ('serviceWorker' in navigator) {
   }).catch(() => {});
 
   const swCode = `
-    const CACHE = 'deck-diver-v20';
+    const CACHE = 'deck-diver-v21';
     self.addEventListener('install', e => {
       e.waitUntil(
         caches.open(CACHE).then(cache =>
@@ -4957,7 +4957,7 @@ if ('serviceWorker' in navigator) {
 <!-- ══════════════ HOME SCREEN ══════════════ -->
 <div class="screen" id="home">
   <!-- DEV VERSION INDICATOR: blue=v15, red=v16, green=v17, yellow=v18 -->
-  <div id="devVersionDot" style="position:absolute;top:10px;left:10px;width:16px;height:16px;background:#ff4444;z-index:50;border-radius:2px;opacity:0.8;"></div>
+  <div id="devVersionDot" style="position:absolute;top:10px;left:10px;width:16px;height:16px;background:#44cc44;z-index:50;border-radius:2px;opacity:0.8;"></div>
   <div class="home-bg-cards">
     <div class="bg-card"></div>
     <div class="bg-card"></div>
@@ -8754,6 +8754,16 @@ function previewHpBar() {
   // No preview when The Veiled One has cards hidden
   if (state.isVeiled) return;
   const p = state.player;
+
+  // MILO FIX: Stamp ascending on weapon for preview
+  if (p.weapon) {
+    const miloIdx = CHARACTERS.findIndex(c => c.id === 'milo');
+    const hasMilo = endless.active
+      ? (endless.starterIdx === miloIdx || (endless.partyMembers && endless.partyMembers.includes(miloIdx)))
+      : (state.selectedChar === miloIdx);
+    p.weapon.ascending = !!hasMilo;
+  }
+
   let netDmg  = 0;
   let netHeal = 0;
 
@@ -9016,6 +9026,16 @@ function confirmRoom() {
 
 function resolveRoom() {
   if (state.selected.length < requiredSelections()) return;
+
+  // MILO FIX: Stamp ascending on weapon every resolution to prevent chain direction bugs
+  // Bypasses hasPassive entirely — checks character directly
+  if (state.player.weapon) {
+    const miloIdx = CHARACTERS.findIndex(c => c.id === 'milo');
+    const hasMilo = endless.active
+      ? (endless.starterIdx === miloIdx || (endless.partyMembers && endless.partyMembers.includes(miloIdx)))
+      : (state.selectedChar === miloIdx);
+    state.player.weapon.ascending = !!hasMilo;
+  }
 
   const resolved = state.selected.map(i => state.hand[i]);
   // Count curse potions in selection — REMOVED: curse is now Cursed Charm item
